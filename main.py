@@ -69,7 +69,7 @@ while True:
                         
         hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
         group_collision_check(v.building_list,hero) #edits the offest based on hero collision
-        group_collision_check(v.ennemi_list,hero)
+        #group_collision_check(v.ennemi_list,hero)
         
         for o in v.ennemi_list:
             o.attack(hero)

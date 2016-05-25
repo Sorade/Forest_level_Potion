@@ -355,7 +355,6 @@ class Character(MySprite):
         if self.hp > 0:
             return True
         else:
-            print 'dead char'
             self.kill()
             variables.dead_sprites_list.add(self) #adds the character to the deleted sprite list
             self.image = self.dead_image
@@ -395,24 +394,43 @@ class Character(MySprite):
             if self.speed > 48.0/(variables.FPS*0.7):
                 self.speed = 48.0/(variables.FPS*0.7)
             self.set_rand_dest()
+            
+    def move_collision(self,EW,SW):
+        char_col_points = [self.rect.bottomleft,
+           self.rect.bottomright,
+           self.rect.midleft,
+           self.rect.midright,
+           self.rect.midbottom,
+           self.rect.center]
+
+        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
+            if len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
+                if EW == True:
+                    self.rect = self.rect.move(0, -(self.move_speed))
+                elif SW == True:
+                    self.rect = self.rect.move(0, -(self.move_speed))
+                if isinstance(obstacle, Character) == False:
+                    self.set_rand_dest()
 
     def move_NS(self):
         self.rect = self.rect.move(0, self.move_speed)
         # Check for Collisions
-        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
-            if pygame.sprite.collide_rect(self, obstacle): #collides
-                self.rect = self.rect.move(0, -(self.move_speed))
-                if isinstance(obstacle, Character) == False:
-                    self.set_rand_dest()
+        self.move_collision(False,True)
+#        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
+#            if pygame.sprite.collide_rect(self, obstacle): #collides
+#                self.rect = self.rect.move(0, -(self.move_speed))
+#                if isinstance(obstacle, Character) == False:
+#                    self.set_rand_dest()
             
     def move_EW(self):
         self.rect = self.rect.move(self.move_speed,0)
         # Check for Collisions
-        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
-            if pygame.sprite.collide_rect(self, obstacle): #collides
-                self.rect = self.rect.move(-(self.move_speed) , 0)
-                if isinstance(obstacle, Character) == False:
-                    self.set_rand_dest()
+        self.move_collision(True,False)
+#        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
+#            if pygame.sprite.collide_rect(self, obstacle): #collides
+#                self.rect = self.rect.move(-(self.move_speed) , 0)
+#                if isinstance(obstacle, Character) == False:
+#                    self.set_rand_dest()
     
     def move(self):#,mouse_pos, screen, background
         if self.pos != self.dest:
