@@ -682,16 +682,16 @@ class Projectile(Item):
 
         
     def fire(self,shooter):
-        self.rect = shooter.rect.move(shooter.rect[2]/2,shooter.rect[3]/2) #place's the projectile at shooter's position
+        self.rect.center = shooter.rect.center#place's the projectile at shooter's position
         self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset
-        self.dmg = shooter.F/10
+        self.dmg = shooter.F/10.0
         self.image = variables.arrow_img
         variables.projectile_list.add(self)
         variables.has_shot = True
         
     def hit_test(self,character):
         test = pygame.sprite.spritecollideany(self, variables.building_list, collided = None)
-        if self.rect.colliderect(character.rect) == True:
+        if self.rect.colliderect(character.rect.inflate(-character.rect.width/5,-character.rect.height/5)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
             dmg = (self.dmg+random.randint(1,10)) - (character.E/10+arm)
             if dmg < 0:
@@ -746,30 +746,25 @@ class Projectile(Item):
             xoffset = -np.cos(angle_rad)*speed
             yoffset = -np.sin(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)+90
-            #self.image = self.image_list[0]
         elif xm < xp and ym > yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset =  np.sin(angle_rad)*speed
             yoffset = -np.cos(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)+180
-            #self.image = self.image_list[1]
         elif xm < xp and ym < yp:
             angle_rad = np.arctan((abs(dy)/abs(dx)))
             xoffset = np.cos(angle_rad)*speed
             yoffset = np.sin(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)+270
-            #self.image = self.image_list[1]
         else:# xm > xp and ym < yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset = -np.sin(angle_rad)*speed
             yoffset =  np.cos(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)
-            #self.image = self.image_list[0]
         
         self.image = pygame.transform.rotate(variables.arrow_img, -self.orientation)
         self.rect = self.rect.move(-xoffset,-yoffset)
         self.dest = (self.dest[0]-xoffset+variables.xoffset,self.dest[1]-yoffset+variables.yoffset)
-        #print 'arrow moved'    
         
 
 
