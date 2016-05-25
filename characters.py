@@ -93,11 +93,12 @@ class Player(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
-        self.equipement.contents.extend([wp.Bow(),wp.Arrow()])
+        self.equipement.contents.extend([wp.Sword()])
+        self.inventory.contents.extend([wp.Bow(),wp.Arrow()])
         self.attack_speed = 500
         self.F = 35
         self.E = 35
-        self.dead_image = variables.dead_player
+        self.dead_image = variables.dead_player if random.randint(0,1) == 0 else pygame.transform.flip(variables.dead_player, True, False)
         
     def attack(self, Character):
         if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) == True and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0:
@@ -124,10 +125,6 @@ class Player(Character):
                 elif Character.rect.inflate(10,10).colliderect(self.rect) == False and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                     wp.Arrow().fire(self)
                     self.attack_time_left = 0
-#                if Character.is_alive() == False:
-#                    Character.kill()
-#                    variables.dead_sprites_list.add(Character) #adds the character to the deleted sprite list
-#                    Character.image_list = variables.dead_ennemi
     
     def update_images(self):
         #updates attack timer
@@ -136,7 +133,6 @@ class Player(Character):
         #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
         self.temp = 0
         if  (self.attack_time_left <= self.attack_speed and self.has_attack == True) or (self.attack_time_left <= self.attack_speed and self.anim_shot == True):
-            print 'should'
             self.temp = self.attack_images
             
         else:

@@ -17,7 +17,7 @@ from instances import *
 pygame.init()
 clock = pygame.time.Clock()
 
-pygame.time.set_timer(v.set_ennemies_dest, 5000) #for ennemi movement
+pygame.time.set_timer(v.set_ennemies_dest, 1500) #for ennemi movement
 pygame.time.set_timer(v.set_ennemies_move, int(1000/(v.FPS*0.7))) #for ennemi movement
 pygame.mixer.init()
 pygame.mixer.music.load('Theme3.ogg')
@@ -69,6 +69,7 @@ while True:
                         
         hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
         group_collision_check(v.building_list,hero) #edits the offest based on hero collision
+        group_collision_check(v.ennemi_list,hero)
         
         for o in v.ennemi_list:
             o.attack(hero)
@@ -93,7 +94,8 @@ while True:
         
         #check if characters are dead before blitting:
         for Character in itertools.chain.from_iterable([variables.char_list,variables.player_list]):
-            Character.is_alive()
+            if Character.is_alive() == True:
+                Character.is_alive() 
         
         #blitting        
         v.screen.blit(scroll_map.image, scroll_map.rect) # blits the grass map to new pos
