@@ -61,7 +61,7 @@ while True:
                 for o in v.char_list: 
                     if isinstance(o, Ranger): #moves characters
                         o.move()
-                        
+#                        
         for p in v.projectile_list: #moves projectiles
             p.move()
             for o in v.ennemi_list:
