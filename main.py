@@ -61,8 +61,13 @@ while True:
                 for o in v.char_list: 
                     if isinstance(o, Ranger): #moves characters
                         o.move()
-        hero.get_offset() # sets the movement offset for the iteration
-        #check_null_offset() #if player stops or is firing sets offsets to 0
+                        
+        for p in v.projectile_list: #moves projectiles
+            p.move()
+            for o in v.ennemi_list:
+                p.hit_test(o)
+                        
+        hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
         group_collision_check(v.building_list,hero) #edits the offest based on hero collision
         
         for o in v.ennemi_list:
@@ -70,11 +75,7 @@ while True:
             o.update_images()
             o.anim_move()
             
-        for p in v.projectile_list: #moves projectiles
-            p.move()
-            for o in v.ennemi_list:
-                p.hit_test(o)
-                
+               
         for d in v.dead_sprites_list:
             d.loot(hero)
 
