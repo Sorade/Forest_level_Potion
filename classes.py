@@ -216,10 +216,6 @@ class Character(MySprite):
             variables.yoffset, variables.xoffset = 0,0
             variables.has_shot = False
             self.anim_shot = True
-#        if (variables.dy == 0 and variables.dx == 0) == True :
-#            x = self.dest[0]-self.image.get_rect()[2]
-#            y = self.dest[0]-self.image.get_rect()[2]
-#            self.dest = self.rect.bottomright
                         
         
     def open_inventory(self):

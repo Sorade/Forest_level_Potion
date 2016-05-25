@@ -60,8 +60,7 @@ while True:
             if event.type == v.set_ennemies_move:         
                 for o in v.char_list: 
                     if isinstance(o, Ranger): #moves characters
-                        #o.move()
-                        pass
+                        o.move()
 #                        
         for p in v.projectile_list: #moves projectiles
             p.move()
@@ -73,7 +72,7 @@ while True:
         hero.character_collisions()
         
         for o in v.ennemi_list:
-            #o.attack(hero)
+            o.attack(hero)
             o.update_images()
             o.anim_move()
             

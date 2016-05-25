@@ -112,7 +112,6 @@ class Player(Character):
             if len([x for x in char_col_points if obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/2).collidepoint(x)]) >= 1:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
-                #print dx, variables.orientation
                 if dx > 0 and  0 < variables.orientation < 180:
                     variables.xoffset = 0 #set x offset to 0 for global use
                 if dx < 0 and  180 < variables.orientation < 360:
@@ -178,25 +177,25 @@ class Player(Character):
         self.anim_time_left += self.anim_time.get_time()
         #checks which anim to display based on the direction and if sprite is moving and alive
         if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-            if variables.orientation >= 140 and variables.orientation <= 220: #checks orientation
+            if variables.orientation >= 135 and variables.orientation <= 225: # goes south checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
                 if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[0]
-            elif variables.orientation >= 220 and variables.orientation <= 320: #checks orientation
+            elif variables.orientation >= 225 and variables.orientation <= 315: #goes west checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
                 if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[4]
-            elif variables.orientation >= 321 or variables.orientation <= 40: #checks orientation
+            elif variables.orientation >= 321 or variables.orientation <= 40: # goes North checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
                 if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[8]
-            elif variables.orientation >= 40 and variables.orientation <= 140: #checks orientation
+            elif variables.orientation >= 45 and variables.orientation <= 135: #goes East checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
