@@ -164,25 +164,25 @@ class Player(Character):
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[0]
             elif variables.orientation >= 220 and variables.orientation <= 320: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[4]
             elif variables.orientation >= 321 or variables.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[8]
             elif variables.orientation >= 40 and variables.orientation <= 140: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
             self.anim_time_left = 0
             self.anim_counter += 1

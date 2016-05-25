@@ -17,7 +17,7 @@ from instances import *
 pygame.init()
 clock = pygame.time.Clock()
 
-pygame.time.set_timer(v.set_ennemies_dest, 1500) #for ennemi movement
+pygame.time.set_timer(v.set_ennemies_dest, 5000) #for ennemi movement
 pygame.time.set_timer(v.set_ennemies_move, int(1000/(v.FPS*0.7))) #for ennemi movement
 pygame.mixer.init()
 pygame.mixer.music.load('Theme3.ogg')

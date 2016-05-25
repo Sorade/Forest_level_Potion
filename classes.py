@@ -104,33 +104,32 @@ class Character(MySprite):
         self.anim_time_left += self.anim_time.get_time()
         #checks which anim to display based on the direction and if sprite is moving and alive
         if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-            if variables.orientation >= 140 and variables.orientation <= 220: #checks orientation
+            if self.orientation >= 140 and self.orientation <= 220: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[0]
-            elif variables.orientation >= 220 and variables.orientation <= 320: #checks orientation
+            elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[4]
-            elif variables.orientation >= 321 or variables.orientation <= 40: #checks orientation
+            elif self.orientation >= 321 or self.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[8]
-            elif variables.orientation >= 40 and variables.orientation <= 140: #checks orientation
+            elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
-                    self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
+                if self.pos == self.rect.topleft and self.has_attack == False:
+                    self.image = self.image_list[12]
             self.anim_time_left = 0
             self.anim_counter += 1
-            
             
             
     def get_dest(self):
@@ -361,17 +360,6 @@ class Character(MySprite):
             self.image = self.dead_image if random.randint(0,1) == 0 else pygame.transform.flip(self.dead_image, True, False)
             return False
     
-#    def update_image(self):
-#        for item in self.equipement.contents:
-#            if isinstance(item,Bow()):
-#                self.image_list = variables.pbow_images
-#                break
-#            if isinstance(item,Sword()):
-#                self.image_list = variables.player_images
-#            if isinstance(item,Shied()):
-#                self.image_list = variables.pshield_images
-
-    
     def attack(self, Character):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
@@ -419,6 +407,7 @@ class Character(MySprite):
             if pygame.sprite.collide_rect(self, obstacle):
                 #print 'collide'
                 self.rect = self.rect.move(0, -(self.move_speed))
+                self.set_rand_dest()
             
     def move_EW(self):
         self.rect = self.rect.move(self.move_speed,0)
@@ -427,6 +416,7 @@ class Character(MySprite):
             if pygame.sprite.collide_rect(self, obstacle):
                 #print 'collide'
                 self.rect = self.rect.move(-(self.move_speed) , 0)
+                self.set_rand_dest()
     
     def move(self):#,mouse_pos, screen, background
         if self.pos != self.dest:
