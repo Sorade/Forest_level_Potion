@@ -18,7 +18,7 @@ class Ranger(Character):
         self.CC = 30.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
-        super(Ranger, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, x, y, self.CC, self.CT)
+        super(Ranger, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
         self.equipement.contents.extend([wp.Sword(),ar.Leather_armor()])
         self.attack_speed = 1000
         self.F = 20
