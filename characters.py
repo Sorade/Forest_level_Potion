@@ -10,6 +10,7 @@ import random
 from classes import Character,Projectile,Weapon,Armor
 import weapons as wp
 import armors as ar
+from pygame.locals import *
 
 class Ranger(Character):
     def __init__(self, x, y):
@@ -99,6 +100,35 @@ class Player(Character):
         self.F = 35
         self.E = 35
         self.dead_image = variables.dead_player if random.randint(0,1) == 0 else pygame.transform.flip(variables.dead_player, True, False)
+
+    def group_collision_check(self,group):
+        for sprite in group: #checks if sprite collide with character using test_rect
+            
+            if (variables.dx  == 0 and variables.dy == 0) == False:
+                #check x xollision
+                test_rect = Rect(self.rect)
+                test_rect = test_rect.move(-variables.xoffset,0)#.inflate(-test_rect.width/8,-test_rect.height/10)
+                char_col_points = [test_rect.bottomleft,
+                   test_rect.bottomright,
+                   test_rect.midleft,
+                   test_rect.midright,
+                   test_rect.midbottom,
+                   test_rect.center]
+                if len([x for x in char_col_points if sprite.rect.inflate(-sprite.rect.width/5,-sprite.rect.height/5).collidepoint(x)]) >= 1:
+                    variables.xoffset = 0 #set x offset to 0 for global use
+                    variables.yoffset += variables.xoffset
+                #check y collision
+                test_rect = Rect(self.rect) #resets test_rect to initial sprite position
+                test_rect = test_rect.move(0,-variables.yoffset)#.inflate(-10,-5)
+                char_col_points = [test_rect.bottomleft,
+                   test_rect.bottomright,
+                   test_rect.midleft,
+                   test_rect.midright,
+                   test_rect.midbottom,
+                   test_rect.center]
+                if len([x for x in char_col_points if sprite.rect.inflate(-sprite.rect.width/5,-sprite.rect.height/5).collidepoint(x)]) >= 1:
+                    variables.yoffset = 0 #set y offset to 0 for global use
+                    variables.xoffset += variables.yoffset
 
     def character_collisions(self):
         char_col_points = [self.rect.bottomleft,
