@@ -701,7 +701,7 @@ class Projectile(Item):
     def fire(self,shooter):
         self.rect.center = shooter.rect.center#place's the projectile at shooter's position
         self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset
-        self.dmg = shooter.F/10.0
+        self.dmg = int(shooter.F/10.0)
         self.image = variables.arrow_img
         variables.projectile_list.add(self)
         variables.has_shot = True
@@ -710,12 +710,12 @@ class Projectile(Item):
         test = pygame.sprite.spritecollideany(self, variables.building_list, collided = None)
         if self.rect.colliderect(character.rect.inflate(-character.rect.width/5,-character.rect.height/5)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
-            dmg = (self.dmg+random.randint(1,10)) - (character.E/10+arm)
+            dmg = self.random_dmg() - (character.E/10+arm)
             if dmg < 0:
                 dmg = 0
             character.hp -= dmg
             self.kill()
-            #print 'has hit ! and dealt = {}'.format(dmg)
+            print 'has hit ! and dealt = {}'.format(dmg)
         elif test is not None:
             if test.rect.collidepoint(self.rect.center):
                 self.kill()
