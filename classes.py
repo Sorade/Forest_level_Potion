@@ -367,7 +367,7 @@ class Character(MySprite):
                 self.has_attack = True
                 test = random.randint(1,100) <= self.CC
                 if test == True:
-                    dmg = sum([x.dmg for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                    dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                     arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                     if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                         dmg = 0
@@ -580,11 +580,23 @@ class Item(MySprite):
 class No_item(object): #creates a blank item
     def __init__(self):
         self.name = 'none'
+        
+def d10(int):
+    rng = range(0,int)
+    total = 0
+    for x in rng:
+        total += random.randint(0,10)
+    return total
   
 class Weapon(Item):
-    def __init__(self, name, value, image, x, y, dmg):
+    def __init__(self, name, value, image, x, y, dmg, dmg_modif):
         super(Weapon, self).__init__(name, value, image, x, y)
+        self.dmg_modif = dmg_modif
         self.dmg = dmg
+        
+    def random_dmg(self):
+        attack_dmg = self.dmg+d10(self.dmg_modif)
+        return attack_dmg
         
 class Armor(Item):
     def __init__(self, name, value, image, x, y, arm):
@@ -674,14 +686,18 @@ class Building(Item):
         #self.rect = self.image.get_rect().move(x, y) #initial placement
         
 class Projectile(Item):
-    def __init__(self, name, value, image, x, y, speed, dmg):
+    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif):
         super(Projectile, self).__init__(name, value, image, x, y)
         self.dest = (self.rect[0],self.rect[1])
         self.speed = speed
+        self.dmg_modif = dmg_modif
         self.dmg = dmg
         self.orientation = 0
-
         
+    def random_dmg(self):
+        attack_dmg = self.dmg+d10(self.dmg_modif)
+        return attack_dmg
+
     def fire(self,shooter):
         self.rect.center = shooter.rect.center#place's the projectile at shooter's position
         self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset

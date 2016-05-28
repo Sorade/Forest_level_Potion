@@ -135,6 +135,7 @@ def check_null_offset():
         variables.yoffset, variables.xoffset = 0,0
         variables.has_shot = False
         
+    
         
 
             

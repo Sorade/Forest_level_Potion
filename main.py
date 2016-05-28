@@ -17,7 +17,7 @@ from instances import *
 pygame.init()
 clock = pygame.time.Clock()
 
-pygame.time.set_timer(v.set_ennemies_dest, 1500) #for ennemi movement
+pygame.time.set_timer(v.set_ennemies_dest, 2000) #for ennemi movement
 pygame.time.set_timer(v.set_ennemies_move, int(1000/(v.FPS*0.7))) #for ennemi movement
 pygame.mixer.init()
 pygame.mixer.music.load('Theme3.ogg')
@@ -85,7 +85,6 @@ while True:
         #animations
         hero.update_images()
         hero.anim_move() #animates hero sprite
-        print v.orientation
         #offset checks
         group_offset(v.building_list) #new building position using offset
         group_offset(v.item_list)

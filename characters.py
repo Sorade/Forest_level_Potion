@@ -106,27 +106,15 @@ class Player(Character):
             
             if (variables.dx  == 0 and variables.dy == 0) == False:
                 #check x xollision
-                test_rect = Rect(self.rect)
+                test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
                 test_rect = test_rect.move(-variables.xoffset,0)#.inflate(-test_rect.width/8,-test_rect.height/10)
-                char_col_points = [test_rect.bottomleft,
-                   test_rect.bottomright,
-                   test_rect.midleft,
-                   test_rect.midright,
-                   test_rect.midbottom,
-                   test_rect.center]
-                if len([x for x in char_col_points if sprite.rect.inflate(-sprite.rect.width/5,-sprite.rect.height/5).collidepoint(x)]) >= 1:
+                if test_rect.colliderect(sprite.rect.inflate(-sprite.rect.width/3,-sprite.rect.height/10)):
                     variables.xoffset = 0 #set x offset to 0 for global use
                     variables.yoffset += variables.xoffset
                 #check y collision
-                test_rect = Rect(self.rect) #resets test_rect to initial sprite position
+                test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2)) #resets test_rect to initial sprite position
                 test_rect = test_rect.move(0,-variables.yoffset)#.inflate(-10,-5)
-                char_col_points = [test_rect.bottomleft,
-                   test_rect.bottomright,
-                   test_rect.midleft,
-                   test_rect.midright,
-                   test_rect.midbottom,
-                   test_rect.center]
-                if len([x for x in char_col_points if sprite.rect.inflate(-sprite.rect.width/5,-sprite.rect.height/5).collidepoint(x)]) >= 1:
+                if test_rect.colliderect(sprite.rect.inflate(-sprite.rect.width/3,-sprite.rect.height/10)):
                     variables.yoffset = 0 #set y offset to 0 for global use
                     variables.xoffset += variables.yoffset
 
@@ -163,7 +151,7 @@ class Player(Character):
                     self.has_attack = True
                     test = random.randint(1,100) <= self.CC
                     if test == True:
-                        dmg = sum([x.dmg for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                        dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
