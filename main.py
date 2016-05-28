@@ -85,6 +85,7 @@ while True:
         #animations
         hero.update_images()
         hero.anim_move() #animates hero sprite
+        print v.orientation
         #offset checks
         group_offset(v.building_list) #new building position using offset
         group_offset(v.item_list)
@@ -115,6 +116,7 @@ while True:
         Lifebar(hero)#pygame.draw.rect(variables.screen, (245,0,0) , Rect(10,v.screenHEIGHT-30,hero.hp*10,10))
         for msg in v.message_list:
             msg.show()
+            
         adjust_offset()
         
         if pygame.key.get_pressed()[pygame.K_i]:

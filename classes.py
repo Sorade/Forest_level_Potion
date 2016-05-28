@@ -134,12 +134,15 @@ class Character(MySprite):
             
     def get_dest(self):
         self.dest = pygame.mouse.get_pos() #mouse position tracker
+        new_x = self.dest[0]-self.image.get_rect()[2] #adds offset to center player
+        new_y = self.dest[1]-self.image.get_rect()[3] #adds offset to center player
+        self.dest = (new_x,new_y)
         
         xp = self.rect.x
         yp = self.rect.y
         #print xp,yp
-        xm = self.dest[0]-self.image.get_rect()[2] #adds offset to center player
-        ym = self.dest[1]-self.image.get_rect()[3]
+        xm = self.dest[0] 
+        ym = self.dest[1]
         
         variables.dx = xm-xp
         variables.dy= ym-yp 
@@ -151,11 +154,11 @@ class Character(MySprite):
         xp = self.rect.x#(variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         yp = self.rect.y#(variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
         #print xp,yp
-        xm = self.dest[0]-self.image.get_rect()[2] #adds offset to center player
-        ym = self.dest[1]-self.image.get_rect()[3]
+        xm = self.dest[0]
+        ym = self.dest[1]
         
         dx = float(xm-xp)
-        dy= float(ym-yp) 
+        dy = float(ym-yp) 
         
         #dist = (variables.dx**2+variables.dy**2)**0.5 #get lenght to travel
         
@@ -412,21 +415,11 @@ class Character(MySprite):
         self.rect = self.rect.move(0, self.move_speed)
         # Check for Collisions
         self.move_collision(False,True)
-#        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
-#            if pygame.sprite.collide_rect(self, obstacle): #collides
-#                self.rect = self.rect.move(0, -(self.move_speed))
-#                if isinstance(obstacle, Character) == False:
-#                    self.set_rand_dest()
             
     def move_EW(self):
         self.rect = self.rect.move(self.move_speed,0)
         # Check for Collisions
         self.move_collision(True,False)
-#        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
-#            if pygame.sprite.collide_rect(self, obstacle): #collides
-#                self.rect = self.rect.move(-(self.move_speed) , 0)
-#                if isinstance(obstacle, Character) == False:
-#                    self.set_rand_dest()
     
     def move(self):#,mouse_pos, screen, background
         if self.pos != self.dest:
@@ -458,8 +451,6 @@ class Character(MySprite):
                     self.has_looted = True
                     for item in inv:
                         self.pop_around(item, 50,50)
-#                        item.rect[0] = self.rect.move(random.randint(0,20)+5,0)[0] #sets position next to chest
-#                        item.rect[1] = self.rect.move(0,random.randint(0,20)+self.rect[3])[1]
                         variables.item_list.add(item) #add's sprite back to item list for it to behave as item in game
                         inv.remove(item) #removes item from chest
             if self.has_looted == False:

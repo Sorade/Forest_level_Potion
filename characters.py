@@ -219,7 +219,7 @@ class Player(Character):
                 self.image =self.image_list[self.anim_counter+4]  
                 if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
                     self.image = self.image_list[4]
-            elif variables.orientation >= 321 or variables.orientation <= 40: # goes North checks orientation
+            elif variables.orientation >= 325 or variables.orientation <= 45: # goes North checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
