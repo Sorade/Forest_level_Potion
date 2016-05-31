@@ -87,6 +87,8 @@ class Character(MySprite):
         self.orientation = 0
         self.has_attack = False
         self.anim_shot = False
+        ''''Charge collision timer, used to delay the random seek in the collision movement function'''        
+        
         
         '''inventory opening attributes'''
         self.do_once = True
@@ -381,8 +383,10 @@ class Character(MySprite):
         self.dest_rect = self.rect.inflate(200,200)
         self.dest = (random.randint(self.dest_rect[0],self.dest_rect[0]+self.dest_rect[2]),random.randint(self.dest_rect[1],self.dest_rect[1]+self.dest_rect[3]))
         
-    def set_charge_dest(self,charge_target):    
-        self.dest = charge_target.rect.topleft
+    def set_charge_dest(self,charge_target):
+        '''Charge destination randomly changed to allow the seek behaviour
+        due to the move_collision function'''
+        self.dest = charge_target.rect.x+random.randint(-10,10),charge_target.rect.y+random.randint(-10,10)
         
     def behaviour(self,Character):
         if self.rect.inflate(250,250).colliderect(Character.rect) == True:
@@ -399,13 +403,13 @@ class Character(MySprite):
         for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
                 if EW == True:
-                    if self.dest[1]+random.randint(-10,10) > self.rect.y:
+                    if self.dest[1] > self.rect.y:
                         mvt = self.speed
                     else:
                         mvt = -self.speed
                     self.rect = self.rect.move(-self.move_speed,mvt)
                 elif SN == True:
-                    if self.dest[0]+random.randint(-10,10) > self.rect.x:
+                    if self.dest[0] > self.rect.x:
                         mvt = self.speed
                     else:
                         mvt = -self.speed
