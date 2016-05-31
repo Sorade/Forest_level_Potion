@@ -382,7 +382,7 @@ class Character(MySprite):
         self.dest = (random.randint(self.dest_rect[0],self.dest_rect[0]+self.dest_rect[2]),random.randint(self.dest_rect[1],self.dest_rect[1]+self.dest_rect[3]))
         
     def set_charge_dest(self,charge_target):    
-        self.dest = charge_target.center
+        self.dest = charge_target.rect.topleft
         
     def behaviour(self,Character):
         if self.rect.inflate(250,250).colliderect(Character.rect) == True:
@@ -399,9 +399,17 @@ class Character(MySprite):
         for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
                 if EW == True:
-                    self.rect = self.rect.move(-self.move_speed,0)
+                    if self.dest[1]+random.randint(-10,10) > self.rect.y:
+                        mvt = self.speed
+                    else:
+                        mvt = -self.speed
+                    self.rect = self.rect.move(-self.move_speed,mvt)
                 elif SN == True:
-                    self.rect = self.rect.move(0,-self.move_speed)
+                    if self.dest[0]+random.randint(-10,10) > self.rect.x:
+                        mvt = self.speed
+                    else:
+                        mvt = -self.speed
+                    self.rect = self.rect.move(mvt,-self.move_speed)
                 break
 
     def move_NS(self):
@@ -439,17 +447,18 @@ class Character(MySprite):
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
+            has_looted = False
             for inv in [self.inventory.contents,self.equipement.contents]:
                 if len(inv) >= 1:
-                    self.has_looted = True
+                    has_looted = True
                     for item in inv:
                         self.pop_around(item, 50,50)
                         variables.item_list.add(item) #add's sprite back to item list for it to behave as item in game
                         inv.remove(item) #removes item from chest
-            if self.has_looted == False:
+            if has_looted == False:
                 w = 150
                 h = 30
-                msg = Message('Nothing to loot !!', 0,0,w,h)
+                msg = Message('Nothing to loot !!',500, 0,0,w,h)
                 msg.image = pygame.transform.scale(msg.image, (w, h))
                 msg.rect.center = (variables.screenWIDTH/2,25)
                 variables.message_list.add(msg)
