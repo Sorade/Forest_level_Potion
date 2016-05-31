@@ -119,15 +119,9 @@ class Player(Character):
                     variables.xoffset += variables.yoffset
 
     def character_collisions(self):
-        char_col_points = [self.rect.bottomleft,
-           self.rect.bottomright,
-           self.rect.midleft,
-           self.rect.midright,
-           self.rect.midbottom,
-           self.rect.center]
-           
+        test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
         for obstacle in variables.ennemi_list:
-            if len([x for x in char_col_points if obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/2).collidepoint(x)]) >= 1:
+            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/3,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/2).collidepoint(x)]) >= 1:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
                 if dx > 0 and  0 < variables.orientation < 180:
@@ -138,6 +132,7 @@ class Player(Character):
                     variables.yoffset = 0 #set y offset to 0 for global use
                 if dy < 0 and  (270 < variables.orientation < 360) == True or (0 < variables.orientation < 90) == True:
                     variables.yoffset = 0 #set y offset to 0 for global use
+                break
                     
     def attack(self, Character):
         if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) == True and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0:
