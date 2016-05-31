@@ -170,7 +170,7 @@ tree_stump = pygame.image.load('Object_Sprites\\tree_stump.png').convert()
 tree_stump.set_colorkey((0,0,0))
 oak = pygame.image.load('Object_Sprites\\oaktree.png').convert()
 oak.set_colorkey((0,0,0))
-obs_list = [forest_rocks,tree_stump,oak,forest_sample,pine_ns]
+obs_list = [forest_rocks,tree_stump,oak,oak,oak,oak,forest_sample,forest_sample,forest_sample,pine_ns]
 
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png
