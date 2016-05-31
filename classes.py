@@ -399,9 +399,9 @@ class Character(MySprite):
         for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
                 if EW == True:
-                    self.rect = self.rect.move(-self.move_speed,self.move_speed)
+                    self.rect = self.rect.move(-self.move_speed,0)
                 elif SN == True:
-                    self.rect = self.rect.move(self.move_speed,-self.move_speed)
+                    self.rect = self.rect.move(0,-self.move_speed)
                 break
 
     def move_NS(self):
