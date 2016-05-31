@@ -24,8 +24,6 @@ class Ranger(Character):
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
-        self.dead_image = variables.dead_ennemi
-
 
     def update_images(self):
         #updates attack timer
