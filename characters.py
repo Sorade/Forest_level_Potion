@@ -15,7 +15,7 @@ from pygame.locals import *
 class Ranger(Character):
     def __init__(self, x, y):
         self.hp = 15
-        self.speed = 48.0/(variables.FPS*0.7)
+        self.speed = int(48.0/(variables.FPS*0.7))
         self.CC = 30.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor

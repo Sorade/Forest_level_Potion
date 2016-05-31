@@ -394,13 +394,13 @@ class Character(MySprite):
                 self.speed *= 2
             self.set_charge_dest(Character)
         elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
-            if self.speed > 48.0/(variables.FPS*0.7):
+            if self.speed > int(48.0/(variables.FPS*0.7)):
                 self.speed = int(48.0/(variables.FPS*0.7))
             my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
             random.choice(my_list)
             print 'aware'
         else:
-            if self.speed > 48.0/(variables.FPS*0.7):
+            if self.speed > int(48.0/(variables.FPS*0.7)):
                 self.speed = int(48.0/(variables.FPS*0.7))
             self.set_rand_dest()
             
