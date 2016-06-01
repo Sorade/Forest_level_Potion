@@ -15,10 +15,7 @@ from items import *
 from instances import *
 
 pygame.init()
-clock = pygame.time.Clock()
-
-pygame.time.set_timer(v.set_ennemies_dest, 2000) #for ennemi movement
-pygame.time.set_timer(v.set_ennemies_move, int(1000/(v.FPS*0.7))) #for ennemi movement
+clock = pygame.time.Clock() #set timer which is used to slow game down
 pygame.mixer.init()
 pygame.mixer.music.load('Theme3.ogg')
 pygame.mixer.music.play(-1)
@@ -29,7 +26,7 @@ add_chests(10)
 
 #game loop    
 while True:
-    clock.tick(v.FPS)
+    clock.tick(v.FPS) #needed to slow game down
     v.screen.fill((0,0,0)) #make background black for map edges
 
     ####MAIN MAP LOOP
@@ -51,16 +48,13 @@ while True:
                     if isinstance(i,Chest):
                         i.open_(hero)
                             
-            if event.type == v.set_ennemies_dest:
-                #print 'moves'
-                for o in v.char_list: 
-                    if isinstance(o, Ranger): #moves characters
-                        o.behaviour(hero)
+        for o in v.char_list: 
+            if isinstance(o, Ranger): #sets mobs dest characters
+                o.behaviour(hero)
     
-            if event.type == v.set_ennemies_move:         
-                for o in v.char_list: 
-                    if isinstance(o, Ranger): #moves characters
-                        o.move()
+        for o in v.char_list: 
+            if isinstance(o, Ranger): #moves characters
+                o.move()
                         
         for p in v.projectile_list: #moves projectiles
             p.move()

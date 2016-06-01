@@ -80,6 +80,7 @@ class Character(MySprite):
         self.attack_speed = 750
         self.E = 35
         self.F = 30
+        '''anim timer'''
         self.anim_time = pygame.time.Clock()
         self.anim_time_left = 0        
         self.anim_speed = 100
@@ -87,6 +88,16 @@ class Character(MySprite):
         self.orientation = 0
         self.has_attack = False
         self.anim_shot = False
+        
+        '''setting dest timer'''
+        self.dest_time = pygame.time.Clock()
+        self.dest_time_left = 0        
+        self.dest_speed = 2000
+        
+        '''Mvt timer'''
+        self.mvt_time = pygame.time.Clock()
+        self.mvt_time_left = 0        
+        self.mvt_speed = int(1000/(variables.FPS*0.7))
         
         '''inventory opening attributes'''
         self.do_once = True
@@ -116,7 +127,7 @@ class Character(MySprite):
                 self.image =self.image_list[self.anim_counter+4]  
                 if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[4]
-            elif self.orientation >= 321 or self.orientation <= 40: #checks orientation
+            elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
@@ -222,7 +233,6 @@ class Character(MySprite):
                         
         
     def open_inventory(self):
-          
         while self.inventory_opened == True:
             variables.screen.blit(self.inventory.inv_bg, self.inventory.inv_bg.get_rect())
             if self.do_once == True:
@@ -387,20 +397,23 @@ class Character(MySprite):
         self.dest = charge_target.rect.x+random.randint(-10,10),charge_target.rect.y+random.randint(-10,10)
         
     def behaviour(self,Character):
-        if self.rect.inflate(250,250).colliderect(Character.rect) == True:
-            if self.speed < 2:
-                self.speed *= 2
-            self.set_charge_dest(Character)
-        elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
-            if self.speed > int(48.0/(variables.FPS*0.7)):
-                self.speed = int(48.0/(variables.FPS*0.7))
-            my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
-            random.choice(my_list)
-            print 'aware'
-        else:
-            if self.speed > int(48.0/(variables.FPS*0.7)):
-                self.speed = int(48.0/(variables.FPS*0.7))
-            self.set_rand_dest()
+        self.dest_time.tick()
+        self.dest_time_left += self.dest_time.get_time()
+        if self.dest_time_left >= self.dest_speed: # checks if time to set new dest
+            self.dest_time_left = 0 #resets timer
+            if self.rect.inflate(250,250).colliderect(Character.rect) == True:
+                if self.speed < 2:
+                    self.speed *= 2
+                self.set_charge_dest(Character)
+            elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
+                if self.speed > int(48.0/(variables.FPS*0.7)):
+                    self.speed = int(48.0/(variables.FPS*0.7))
+                my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
+                random.choice(my_list)
+            else:
+                if self.speed > int(48.0/(variables.FPS*0.7)):
+                    self.speed = int(48.0/(variables.FPS*0.7))
+                self.set_rand_dest()
             
     def move_collision(self,EW,SN):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
@@ -431,27 +444,32 @@ class Character(MySprite):
         self.move_collision(True,False)
     
     def move(self):#,mouse_pos, screen, background
-        if self.pos != self.dest:
-            if self.dest[0] > self.rect[0]: #move E
-                self.move_speed = self.speed
-                self.move_EW() #moves player
-                self.orientation = 90
-            if self.dest[0] < self.rect[0]: #move W
-                self.move_speed = -self.speed
-                self.move_EW() #moves player
-                self.orientation = 270
-            if self.dest[1] < self.rect[1]:
-                self.move_speed = -self.speed
-                self.move_NS() #moves player
-                self.orientation = 0
-            if self.dest[1] > self.rect[1]:
-                self.move_speed = self.speed
-                self.move_NS() #moves player
-                self.orientation = 180
-            if self.rect.collidepoint(self.dest): #check position reset
-                self.pos = self.rect.topleft
-        else:
-            self.anim_time_left = 0
+        #updates mvt timer
+        self.mvt_time.tick()
+        self.mvt_time_left += self.mvt_time.get_time()
+        if  self.mvt_time_left >= self.mvt_speed:# checks time to animate
+            if self.pos != self.dest: # cheks pos  animate
+                self.mvt_time_left = 0
+                if self.dest[0] > self.rect[0]: #move E
+                    self.move_speed = self.speed
+                    self.move_EW() #moves player
+                    self.orientation = 90
+                if self.dest[0] < self.rect[0]: #move W
+                    self.move_speed = -self.speed
+                    self.move_EW() #moves player
+                    self.orientation = 270
+                if self.dest[1] < self.rect[1]:
+                    self.move_speed = -self.speed
+                    self.move_NS() #moves player
+                    self.orientation = 0
+                if self.dest[1] > self.rect[1]:
+                    self.move_speed = self.speed
+                    self.move_NS() #moves player
+                    self.orientation = 180
+                if self.rect.collidepoint(self.dest): #check position reset
+                    self.pos = self.rect.topleft
+            else:
+                self.anim_time_left = 0
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
