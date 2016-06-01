@@ -9,6 +9,27 @@ from pygame.locals import *
 import itertools
 import numpy as np
 
+class Level(object):
+    def __init__(self, lvl_num):
+        self.lvl_num = lvl_num
+        self.run = False
+        #create sprite groups
+        self.player_list = pygame.sprite.Group()
+        self.char_list = pygame.sprite.Group()
+        self.ennemi_list = pygame.sprite.Group()
+        self.item_list = pygame.sprite.Group()
+        self.building_list = pygame.sprite.Group()
+        self.projectile_list = pygame.sprite.Group()
+        self.all_sprites_list = pygame.sprite.Group()
+        self.deleted_list = pygame.sprite.Group()
+        self.dead_sprites_list = pygame.sprite.Group()
+        self.message_list = pygame.sprite.Group()
+        self.to_blit_list = pygame.sprite.Group()
+        
+        self.sprite_group_list = []
+        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
+
+
 class Lifebar(object):
     def __init__(self,character):
         self.value = character.hp*10 if character.hp >= 0 else 0
@@ -29,12 +50,13 @@ class MySprite(pygame.sprite.Sprite):
         self.center = self.rect.center
         self.pos = self.rect.topleft
         self.blit_order = 1
+        self.level =  Level(1)#level to which sprite belongs
         
     def pop_around(self,item,xzone,yzone):
         collides = True
         while collides == True: #number of wanted enemies
             item.rect = Rect((random.randint(self.rect.x-xzone,self.rect.x+self.rect.width+xzone),random.randint(self.rect.y-yzone,self.rect.y+self.rect.height+yzone)),(item.rect.width,item.rect.height))
-            for c in variables.all_sprites_list:
+            for c in self.level.all_sprites_list:
                 if c.rect.inflate(-5,-5).collidepoint(item.rect.center) == False and self.rect.inflate(xzone,yzone).contains(item.rect) == True:
                     collides = False
         return item.rect
@@ -49,12 +71,12 @@ class MySprite(pygame.sprite.Sprite):
         #variables.screen.blit(s, (self.rect[0]-self.rect[2]/2,self.rect[1]-self.rect[3]/2))
         
     def delete(self):
-        for group in variables.sprite_group_list: #removes sprites from all groups
+        for group in self.level.sprite_group_list: #removes sprites from all groups
             if self in group:
                     group.remove(self)
                     print 'sprite deleted'
-                    print variables.item_list
-        variables.deleted_list.add(self) #adds the sprite to deleted list
+                    print self.level.item_list
+        self.level.deleted_list.add(self) #adds the sprite to deleted list
         
         
 class Character(MySprite):
@@ -281,14 +303,14 @@ class Character(MySprite):
                         print 'removing inv item'
                         self.inventory.contents[self.selected_button].rect[0] = self.rect.move(random.randint(0,20)+5,0)[0]
                         self.inventory.contents[self.selected_button].rect[1] = self.rect.move(0,random.randint(0,20)+10)[1]
-                        variables.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
-                        variables.item_list.add(self.inventory.contents[self.selected_button]) #add's sprite back to item list for it to behave as item in game
+                        self.level.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
+                        self.level.item_list.add(self.inventory.contents[self.selected_button]) #add's sprite back to item list for it to behave as item in game
                         self.inventory.contents.pop(self.selected_button) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
                         self.buttons_list.pop(self.selected_button)
                     elif self.buttons_list[self.selected_button].rect.colliderect(self.dropbut.rect) and self.start_pos[0]>variables.screenWIDTH/2:  #remove item from equipemnt
                         print 'removing eq item'
-                        variables.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
-                        variables.item_list.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's sprite back to item list for it to behave as item in game
+                        self.level.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
+                        self.level.item_list.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's sprite back to item list for it to behave as item in game
                         self.equipement.contents[self.selected_button-len(self.buttons_list)].rect[0] = self.rect.move(random.randint(0,20)+5,0)[0]
                         self.equipement.contents[self.selected_button-len(self.buttons_list)].rect[1] = self.rect.move(0,random.randint(0,20)+10)[1]
                         self.equipement.contents.pop(self.selected_button-len(self.buttons_list)) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
@@ -346,7 +368,7 @@ class Character(MySprite):
                     self.equipement.create(self,variables.screenWIDTH/2+50,10,0,50)
                     
                 self.selected = False
-            for msg in variables.message_list:
+            for msg in self.level.message_list:
                 msg.show()
             pygame.display.update()
                 
@@ -365,7 +387,7 @@ class Character(MySprite):
             return True
         else:
             self.kill()
-            variables.dead_sprites_list.add(self) #adds the character to the deleted sprite list
+            self.level.dead_sprites_list.add(self) #adds the character to the deleted sprite list
             self.image = self.dead_image
             return False
     
@@ -417,7 +439,7 @@ class Character(MySprite):
             
     def move_collision(self,EW,SN):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
-        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
+        for obstacle in itertools.chain.from_iterable([self.level.building_list,self.level.player_list]):
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
                 if EW == True:
                     if self.dest[1] > self.rect.y:
@@ -479,7 +501,7 @@ class Character(MySprite):
                     has_looted = True
                     for item in inv:
                         self.pop_around(item, 50,50)
-                        variables.item_list.add(item) #add's sprite back to item list for it to behave as item in game
+                        self.level.item_list.add(item) #add's sprite back to item list for it to behave as item in game
                         inv.remove(item) #removes item from chest
             if has_looted == False:
                 w = 150
@@ -487,7 +509,7 @@ class Character(MySprite):
                 msg = Message('Nothing to loot !!',500, 0,0,w,h)
                 msg.image = pygame.transform.scale(msg.image, (w, h))
                 msg.rect.center = (variables.screenWIDTH/2,25)
-                variables.message_list.add(msg)
+                self.level.message_list.add(msg)
 
 
 class Button(pygame.sprite.Sprite):
@@ -694,7 +716,7 @@ class Potion(Item):
                 msg = Message('Clic again to drink', 2000, 0,0,w,h)
                 msg.image = pygame.transform.scale(msg.image, (w, h))
                 msg.rect.center = (variables.screenWIDTH/2,25)
-                variables.message_list.add(msg)
+                self.level.message_list.add(msg)
                 self.confirm = True
                 self.timer_left = 0
                 
@@ -731,11 +753,11 @@ class Projectile(Item):
         self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset
         self.dmg = int(shooter.F/10.0)
         self.image = variables.arrow_img
-        variables.projectile_list.add(self)
+        self.level.projectile_list.add(self)
         variables.has_shot = True
         
     def hit_test(self,character):
-        test = pygame.sprite.spritecollideany(self, variables.building_list, collided = None)
+        test = pygame.sprite.spritecollideany(self, self.level.building_list, collided = None)
         if self.rect.colliderect(character.rect.inflate(-character.rect.width/5,-character.rect.height/5)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
             dmg = self.random_dmg() - (character.E/10+arm)

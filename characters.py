@@ -118,7 +118,7 @@ class Player(Character):
 
     def character_collisions(self):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
-        for obstacle in variables.ennemi_list:
+        for obstacle in self.level.ennemi_list:
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/3,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/2).collidepoint(x)]) >= 1:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
