@@ -88,6 +88,11 @@ class Character(MySprite):
         self.has_attack = False
         self.anim_shot = False
         
+        '''Mvt timer'''
+        self.mvt_time = pygame.time.Clock()
+        self.mvt_time_left = 0        
+        self.mvt_speed = int(1000/(v.FPS*0.7))
+        
         '''inventory opening attributes'''
         self.do_once = True
         self.buttons_list = []
@@ -222,7 +227,6 @@ class Character(MySprite):
                         
         
     def open_inventory(self):
-          
         while self.inventory_opened == True:
             variables.screen.blit(self.inventory.inv_bg, self.inventory.inv_bg.get_rect())
             if self.do_once == True:
@@ -396,7 +400,6 @@ class Character(MySprite):
                 self.speed = int(48.0/(variables.FPS*0.7))
             my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
             random.choice(my_list)
-            print 'aware'
         else:
             if self.speed > int(48.0/(variables.FPS*0.7)):
                 self.speed = int(48.0/(variables.FPS*0.7))
@@ -431,7 +434,11 @@ class Character(MySprite):
         self.move_collision(True,False)
     
     def move(self):#,mouse_pos, screen, background
-        if self.pos != self.dest:
+        #updates mvt timer
+        self.mvt_time.tick()
+        self.mvt_time_left += self.mvt_time.get_time()
+        if self.pos != self.dest and self.mvt_time_left >= self.mvt_speed: #checks time to animate and pos
+            self.mvt_time_left = 0
             if self.dest[0] > self.rect[0]: #move E
                 self.move_speed = self.speed
                 self.move_EW() #moves player
