@@ -80,6 +80,7 @@ class Character(MySprite):
         self.attack_speed = 750
         self.E = 35
         self.F = 30
+        '''anim timer'''
         self.anim_time = pygame.time.Clock()
         self.anim_time_left = 0        
         self.anim_speed = 100
@@ -91,7 +92,7 @@ class Character(MySprite):
         '''Mvt timer'''
         self.mvt_time = pygame.time.Clock()
         self.mvt_time_left = 0        
-        self.mvt_speed = int(1000/(v.FPS*0.7))
+        self.mvt_speed = int(1000/(variables.FPS*0.7))
         
         '''inventory opening attributes'''
         self.do_once = True
@@ -437,28 +438,29 @@ class Character(MySprite):
         #updates mvt timer
         self.mvt_time.tick()
         self.mvt_time_left += self.mvt_time.get_time()
-        if self.pos != self.dest and self.mvt_time_left >= self.mvt_speed: #checks time to animate and pos
-            self.mvt_time_left = 0
-            if self.dest[0] > self.rect[0]: #move E
-                self.move_speed = self.speed
-                self.move_EW() #moves player
-                self.orientation = 90
-            if self.dest[0] < self.rect[0]: #move W
-                self.move_speed = -self.speed
-                self.move_EW() #moves player
-                self.orientation = 270
-            if self.dest[1] < self.rect[1]:
-                self.move_speed = -self.speed
-                self.move_NS() #moves player
-                self.orientation = 0
-            if self.dest[1] > self.rect[1]:
-                self.move_speed = self.speed
-                self.move_NS() #moves player
-                self.orientation = 180
-            if self.rect.collidepoint(self.dest): #check position reset
-                self.pos = self.rect.topleft
-        else:
-            self.anim_time_left = 0
+        if  self.mvt_time_left >= self.mvt_speed:# checks time to animate
+            if self.pos != self.dest: # cheks pos  animate
+                self.mvt_time_left = 0
+                if self.dest[0] > self.rect[0]: #move E
+                    self.move_speed = self.speed
+                    self.move_EW() #moves player
+                    self.orientation = 90
+                if self.dest[0] < self.rect[0]: #move W
+                    self.move_speed = -self.speed
+                    self.move_EW() #moves player
+                    self.orientation = 270
+                if self.dest[1] < self.rect[1]:
+                    self.move_speed = -self.speed
+                    self.move_NS() #moves player
+                    self.orientation = 0
+                if self.dest[1] > self.rect[1]:
+                    self.move_speed = self.speed
+                    self.move_NS() #moves player
+                    self.orientation = 180
+                if self.rect.collidepoint(self.dest): #check position reset
+                    self.pos = self.rect.topleft
+            else:
+                self.anim_time_left = 0
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
