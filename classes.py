@@ -87,8 +87,6 @@ class Character(MySprite):
         self.orientation = 0
         self.has_attack = False
         self.anim_shot = False
-        ''''Charge collision timer, used to delay the random seek in the collision movement function'''        
-        
         
         '''inventory opening attributes'''
         self.do_once = True
