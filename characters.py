@@ -10,20 +10,21 @@ import random
 from classes import Character,Projectile,Weapon,Armor
 import weapons as wp
 import armors as ar
-from pygame.locals import *
 
 class Ranger(Character):
     def __init__(self, x, y):
         self.hp = 15
-        self.speed = int(48.0/(variables.FPS*0.7))
+        self.speed = 48.0/(variables.FPS*0.7)
         self.CC = 30.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
-        super(Ranger, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
+        super(Ranger, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, x, y, self.CC, self.CT)
         self.equipement.contents.extend([wp.Sword(),ar.Leather_armor()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
+        self.dead_image = variables.dead_ennemi
+
 
     def update_images(self):
         #updates attack timer
@@ -92,46 +93,12 @@ class Player(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
-        self.equipement.contents.extend([wp.Sword()])
-        self.inventory.contents.extend([wp.Bow(),wp.Arrow()])
+        self.equipement.contents.extend([wp.Bow(),wp.Arrow()])
         self.attack_speed = 500
         self.F = 35
         self.E = 35
-        self.dead_image = variables.dead_player if random.randint(0,1) == 0 else pygame.transform.flip(variables.dead_player, True, False)
-
-    def group_collision_check(self,group):
-        for sprite in group: #checks if sprite collide with character using test_rect
-            
-            if (variables.dx  == 0 and variables.dy == 0) == False:
-                #check x xollision
-                test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
-                test_rect = test_rect.move(-variables.xoffset,0)#.inflate(-test_rect.width/8,-test_rect.height/10)
-                if test_rect.colliderect(sprite.rect.inflate(-sprite.rect.width/3,-sprite.rect.height/10)):
-                    variables.xoffset = 0 #set x offset to 0 for global use
-                    variables.yoffset += variables.xoffset
-                #check y collision
-                test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2)) #resets test_rect to initial sprite position
-                test_rect = test_rect.move(0,-variables.yoffset)#.inflate(-10,-5)
-                if test_rect.colliderect(sprite.rect.inflate(-sprite.rect.width/3,-sprite.rect.height/10)):
-                    variables.yoffset = 0 #set y offset to 0 for global use
-                    variables.xoffset += variables.yoffset
-
-    def character_collisions(self):
-        test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
-        for obstacle in variables.ennemi_list:
-            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/3,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/2).collidepoint(x)]) >= 1:
-                dx = obstacle.rect.centerx-self.rect.centerx
-                dy = obstacle.rect.centery-self.rect.centery
-                if dx > 0 and  0 < variables.orientation < 180:
-                    variables.xoffset = 0 #set x offset to 0 for global use
-                if dx < 0 and  180 < variables.orientation < 360:
-                    variables.xoffset = 0 #set x offset to 0 for global use
-                if dy > 0 and  90 < variables.orientation < 270:
-                    variables.yoffset = 0 #set y offset to 0 for global use
-                if dy < 0 and  (270 < variables.orientation < 360) == True or (0 < variables.orientation < 90) == True:
-                    variables.yoffset = 0 #set y offset to 0 for global use
-                break
-                    
+        self.dead_image = variables.dead_player
+        
     def attack(self, Character):
         if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) == True and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0:
             variables.has_shot = True
@@ -144,7 +111,7 @@ class Player(Character):
                     self.has_attack = True
                     test = random.randint(1,100) <= self.CC
                     if test == True:
-                        dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                        dmg = sum([x.dmg for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
@@ -157,6 +124,10 @@ class Player(Character):
                 elif Character.rect.inflate(10,10).colliderect(self.rect) == False and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                     wp.Arrow().fire(self)
                     self.attack_time_left = 0
+#                if Character.is_alive() == False:
+#                    Character.kill()
+#                    variables.dead_sprites_list.add(Character) #adds the character to the deleted sprite list
+#                    Character.image_list = variables.dead_ennemi
     
     def update_images(self):
         #updates attack timer
@@ -165,6 +136,7 @@ class Player(Character):
         #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
         self.temp = 0
         if  (self.attack_time_left <= self.attack_speed and self.has_attack == True) or (self.attack_time_left <= self.attack_speed and self.anim_shot == True):
+            print 'should'
             self.temp = self.attack_images
             
         else:
@@ -188,29 +160,29 @@ class Player(Character):
         self.anim_time_left += self.anim_time.get_time()
         #checks which anim to display based on the direction and if sprite is moving and alive
         if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-            if variables.orientation >= 135 and variables.orientation <= 225: # goes south checks orientation
+            if variables.orientation >= 140 and variables.orientation <= 220: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
                     self.image = self.image_list[0]
-            elif variables.orientation >= 225 and variables.orientation <= 315: #goes west checks orientation
+            elif variables.orientation >= 220 and variables.orientation <= 320: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
                     self.image = self.image_list[4]
-            elif variables.orientation >= 315 or variables.orientation <= 45: # goes North checks orientation
+            elif variables.orientation >= 321 or variables.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
                     self.image = self.image_list[8]
-            elif variables.orientation >= 45 and variables.orientation <= 135: #goes East checks orientation
+            elif variables.orientation >= 40 and variables.orientation <= 140: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
                     self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
             self.anim_time_left = 0
             self.anim_counter += 1

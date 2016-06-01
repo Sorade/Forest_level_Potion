@@ -25,16 +25,15 @@ def group_collision_check(group,character):
 #        print test_rect
         if (variables.dx  == 0 and variables.dy == 0) == False:
             #check x xollision
-            test_rect = test_rect.move(variables.xoffset,0)#.inflate(-test_rect.width/8,-test_rect.height/10)
-            if len([x for x in char_col_points if test_rect.inflate(-test_rect.width/5,0).collidepoint(x)]) >= 1:
-                print len([x for x in char_col_points if test_rect.collidepoint(x)])
+            test_rect = test_rect.move(variables.xoffset,0).inflate(-10,-5)
+            if len([x for x in char_col_points if test_rect.collidepoint(x)]) >= 1:
                 variables.xoffset = 0 #set x offset to 0 for global use
                 variables.yoffset += variables.xoffset
 #                col_x = True
             #check y collision
             test_rect = Rect(sprite.rect) #resets test_rect to initial sprite position
-            test_rect = test_rect.move(0,variables.yoffset)#.inflate(-10,-5)
-            if len([x for x in char_col_points if test_rect.inflate(0,-test_rect.height/5).collidepoint(x)]) >= 1:
+            test_rect = test_rect.move(0,variables.yoffset).inflate(-10,-5)
+            if len([x for x in char_col_points if test_rect.collidepoint(x)]) >= 1:
                 variables.yoffset = 0 #set y offset to 0 for global use
                 variables.xoffset += variables.yoffset
 #                col_y = True
@@ -135,7 +134,6 @@ def check_null_offset():
         variables.yoffset, variables.xoffset = 0,0
         variables.has_shot = False
         
-    
         
 
             

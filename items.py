@@ -29,7 +29,6 @@ class Chest(Item):
                     print 'removes item from chest'
                     item.rect = self.pop_around(item,45,45)
                     print item.rect
-                    #variables.all_sprites_list.add(item) #add's it so all items of chest pop
                     variables.item_list.add(item) #add's sprite back to item list for it to behave as item in game
                     self.inventory.contents.remove(item) #removes item from chest
             else:

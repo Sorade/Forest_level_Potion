@@ -37,7 +37,7 @@ for x in range(0,26):
     variables.building_list.add(w)
     variables.all_sprites_list.add(w)
     
-for x in range(0,56):
+for x in range(0,55):
     if x < 28:
         w = Building('wall_left',0,variables.pine_ns,-10,x*74, 1000)
     else:

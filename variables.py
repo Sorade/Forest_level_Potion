@@ -44,7 +44,7 @@ game_running = True
 #player_down_1,player_down_2,player_down_3,player_down_4,
 #player_lat_1,player_lat_2,player_lat_3,player_lat_4,
 #player_up_1,player_up_2,player_up_3,player_up_4]
-#
+
 #for im in player_images:
 #    im.set_colorkey((0,0,0)) #sets background colour to transparent
     
@@ -72,11 +72,24 @@ for xyz in ['Down','Left','Up','Right']:
     for n in range(0,4):
         p_w_bow_images.append(pygame.image.load('Character_Sprites\\walk\\bow\\{}_{}.png'.format(xyz,n+1)).convert_alpha())
 
+
+#dirnum = 0
+#for ls in [walk_images,attack_images]:
+#    if dirnum == 0:
+#        dir_ = 'walk'
+#    else:
+#        dir_= 'attack'
+#    count = 0
+#    for wep in ['sword','archer']:
+#        lst = ls[count]
+#        for xyz in ['Down','Left','Up','Right']:
+#            #print lst,'Character_Sprites\\{}\\{}\\{}_x.png'.format(dir_,wep,xyz)
+#            for n in range(0,4):
+#                lst.append(pygame.image.load('Character_Sprites\\walk\\{}\\{}_{}.png'.format(dir_,wep,xyz,n+1)).convert_alpha())
+#        count +=1   
+        
 dead_player = pygame.image.load('Character_Sprites\\dead.png').convert_alpha()
                  
-
-skl_a_sword_images = []
-skl_w_sword_images = []
 
 gobm_down_1 = pygame.image.load('Skeleton_Sprites\\walk\\Down_1.png').convert_alpha()
 gobm_down_2 = pygame.image.load('Skeleton_Sprites\\walk\\Down_2.png').convert_alpha()
@@ -93,29 +106,20 @@ gobm_up_2 = pygame.image.load('Skeleton_Sprites\\walk\\Up_2.png').convert_alpha(
 gobm_up_3 = pygame.image.load('Skeleton_Sprites\\walk\\Up_3.png').convert_alpha()
 gobm_up_4 = pygame.image.load('Skeleton_Sprites\\walk\\Up_4.png').convert_alpha()
 
-gobm_right_1 = pygame.transform.flip(gobm_lat_1, True, False)
-gobm_right_2 = pygame.transform.flip(gobm_lat_2, True, False)
-gobm_right_3 = pygame.transform.flip(gobm_lat_3, True, False)
-gobm_right_4 = pygame.transform.flip(gobm_lat_4, True, False)
-
-skl_w_sword_images = [
+gobm_images = [
 gobm_down_1,gobm_down_2,gobm_down_3,gobm_down_4,
 gobm_lat_1,gobm_lat_2,gobm_lat_3,gobm_lat_4,
-gobm_up_1,gobm_up_2,gobm_up_3,gobm_up_4,
-gobm_right_1,gobm_right_2,gobm_right_3,gobm_right_4]
+gobm_up_1,gobm_up_2,gobm_up_3,gobm_up_4]
 
 goba_down_1 = pygame.image.load('Skeleton_Sprites\\attack\\Down_1.png').convert_alpha()
 goba_down_2 = pygame.image.load('Skeleton_Sprites\\attack\\Down_2.png').convert_alpha()
 goba_down_3 = pygame.image.load('Skeleton_Sprites\\attack\\Down_3.png').convert_alpha()
 goba_down_4 = pygame.image.load('Skeleton_Sprites\\attack\\Down_4.png').convert_alpha()
 
-skl_a_sword_images = [goba_down_1, goba_down_2, goba_down_3, goba_down_4,
+gobattak_images = [goba_down_1, goba_down_2, goba_down_3, goba_down_4,
                  goba_down_1, goba_down_2, goba_down_3, goba_down_4,
                  goba_down_1, goba_down_2, goba_down_3, goba_down_4,
                  goba_down_1, goba_down_2, goba_down_3, goba_down_4]
-
-skl_walk_images = [skl_w_sword_images]
-skl_attack_images = [skl_a_sword_images]
 
 dead_ennemi = pygame.image.load('Skeleton_Sprites\\dead.png').convert_alpha()
 
@@ -170,7 +174,7 @@ tree_stump = pygame.image.load('Object_Sprites\\tree_stump.png').convert()
 tree_stump.set_colorkey((0,0,0))
 oak = pygame.image.load('Object_Sprites\\oaktree.png').convert()
 oak.set_colorkey((0,0,0))
-obs_list = [forest_rocks,tree_stump,oak,oak,oak,oak,forest_sample,forest_sample,forest_sample,pine_ns]
+obs_list = [forest_rocks,tree_stump,oak,forest_sample,pine_ns]
 
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png

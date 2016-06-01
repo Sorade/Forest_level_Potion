@@ -17,7 +17,7 @@ from instances import *
 pygame.init()
 clock = pygame.time.Clock()
 
-pygame.time.set_timer(v.set_ennemies_dest, 2000) #for ennemi movement
+pygame.time.set_timer(v.set_ennemies_dest, 1500) #for ennemi movement
 pygame.time.set_timer(v.set_ennemies_move, int(1000/(v.FPS*0.7))) #for ennemi movement
 pygame.mixer.init()
 pygame.mixer.music.load('Theme3.ogg')
@@ -61,22 +61,20 @@ while True:
                 for o in v.char_list: 
                     if isinstance(o, Ranger): #moves characters
                         o.move()
-                        
-        for p in v.projectile_list: #moves projectiles
-            p.move()
-            for o in v.ennemi_list:
-                p.hit_test(o)
-                        
-        hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
-        hero.group_collision_check(v.building_list) #edits the offest based on hero collision
-        hero.character_collisions()
-
+        hero.get_offset() # sets the movement offset for the iteration
+        #check_null_offset() #if player stops or is firing sets offsets to 0
+        group_collision_check(v.building_list,hero) #edits the offest based on hero collision
+        
         for o in v.ennemi_list:
             o.attack(hero)
             o.update_images()
             o.anim_move()
             
-               
+        for p in v.projectile_list: #moves projectiles
+            p.move()
+            for o in v.ennemi_list:
+                p.hit_test(o)
+                
         for d in v.dead_sprites_list:
             d.loot(hero)
 
@@ -94,8 +92,7 @@ while True:
         
         #check if characters are dead before blitting:
         for Character in itertools.chain.from_iterable([variables.char_list,variables.player_list]):
-            if Character.is_alive() == True:
-                Character.is_alive() 
+            Character.is_alive()
         
         #blitting        
         v.screen.blit(scroll_map.image, scroll_map.rect) # blits the grass map to new pos
@@ -114,7 +111,6 @@ while True:
         Lifebar(hero)#pygame.draw.rect(variables.screen, (245,0,0) , Rect(10,v.screenHEIGHT-30,hero.hp*10,10))
         for msg in v.message_list:
             msg.show()
-            
         adjust_offset()
         
         if pygame.key.get_pressed()[pygame.K_i]:
