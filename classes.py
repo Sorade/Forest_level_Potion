@@ -63,10 +63,10 @@ class Character(MySprite):
         self.attack_images = attack_images
         self.image_list = self.attack_images[0]
         self.image = self.image_list[0]
-        self.dead_image = variables.dead_ennemi
+        self.dead_image = variables.dead_ennemi if random.randint(0,1) == 0 else pygame.transform.flip(variables.dead_ennemi, True, False)
         # Call the parent class (Sprite) constructor
         super(Character, self).__init__(self.image,x,y)
-        self.speed = speed
+        self.speed = int(speed)
         self.hp_max = hp
         self.hp = hp
         self.dest = (self.rect[0],self.rect[1])
@@ -87,6 +87,8 @@ class Character(MySprite):
         self.orientation = 0
         self.has_attack = False
         self.anim_shot = False
+        ''''Charge collision timer, used to delay the random seek in the collision movement function'''        
+        
         
         '''inventory opening attributes'''
         self.do_once = True
@@ -104,43 +106,45 @@ class Character(MySprite):
         self.anim_time_left += self.anim_time.get_time()
         #checks which anim to display based on the direction and if sprite is moving and alive
         if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-            if variables.orientation >= 140 and variables.orientation <= 220: #checks orientation
+            if self.orientation >= 140 and self.orientation <= 220: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[0]
-            elif variables.orientation >= 220 and variables.orientation <= 320: #checks orientation
+            elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[4]
-            elif variables.orientation >= 321 or variables.orientation <= 40: #checks orientation
+            elif self.orientation >= 321 or self.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
+                if self.pos == self.rect.topleft and self.has_attack == False:
                     self.image = self.image_list[8]
-            elif variables.orientation >= 40 and variables.orientation <= 140: #checks orientation
+            elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False:
-                    self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
+                if self.pos == self.rect.topleft and self.has_attack == False:
+                    self.image = self.image_list[12]
             self.anim_time_left = 0
             self.anim_counter += 1
             
             
-            
     def get_dest(self):
         self.dest = pygame.mouse.get_pos() #mouse position tracker
+        new_x = self.dest[0]-self.image.get_rect()[2] #adds offset to center player
+        new_y = self.dest[1]-self.image.get_rect()[3] #adds offset to center player
+        self.dest = (new_x,new_y)
         
         xp = self.rect.x
         yp = self.rect.y
         #print xp,yp
-        xm = self.dest[0]-self.image.get_rect()[2] #adds offset to center player
-        ym = self.dest[1]-self.image.get_rect()[3]
+        xm = self.dest[0] 
+        ym = self.dest[1]
         
         variables.dx = xm-xp
         variables.dy= ym-yp 
@@ -152,11 +156,11 @@ class Character(MySprite):
         xp = self.rect.x#(variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         yp = self.rect.y#(variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
         #print xp,yp
-        xm = self.dest[0]-self.image.get_rect()[2] #adds offset to center player
-        ym = self.dest[1]-self.image.get_rect()[3]
+        xm = self.dest[0]
+        ym = self.dest[1]
         
         dx = float(xm-xp)
-        dy= float(ym-yp) 
+        dy = float(ym-yp) 
         
         #dist = (variables.dx**2+variables.dy**2)**0.5 #get lenght to travel
         
@@ -217,10 +221,6 @@ class Character(MySprite):
             variables.yoffset, variables.xoffset = 0,0
             variables.has_shot = False
             self.anim_shot = True
-#        if (variables.dy == 0 and variables.dx == 0) == True :
-#            x = self.dest[0]-self.image.get_rect()[2]
-#            y = self.dest[0]-self.image.get_rect()[2]
-#            self.dest = self.rect.bottomright
                         
         
     def open_inventory(self):
@@ -358,19 +358,8 @@ class Character(MySprite):
         else:
             self.kill()
             variables.dead_sprites_list.add(self) #adds the character to the deleted sprite list
-            self.image = self.dead_image if random.randint(0,1) == 0 else pygame.transform.flip(self.dead_image, True, False)
+            self.image = self.dead_image
             return False
-    
-#    def update_image(self):
-#        for item in self.equipement.contents:
-#            if isinstance(item,Bow()):
-#                self.image_list = variables.pbow_images
-#                break
-#            if isinstance(item,Sword()):
-#                self.image_list = variables.player_images
-#            if isinstance(item,Shied()):
-#                self.image_list = variables.pshield_images
-
     
     def attack(self, Character):
         self.attack_time.tick()
@@ -380,7 +369,7 @@ class Character(MySprite):
                 self.has_attack = True
                 test = random.randint(1,100) <= self.CC
                 if test == True:
-                    dmg = sum([x.dmg for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                    dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                     arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                     if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                         dmg = 0
@@ -389,44 +378,59 @@ class Character(MySprite):
                     Character.hp -=  dmg
                     print 'mob deals {} dmg'.format(dmg)
                 self.attack_time_left = 0
-            if Character.is_alive() == False:
-                Character.kill()
-                variables.dead_sprites_list.add(Character) #adds the character to the deleted sprite list
-                Character.image = variables.dead_ennemi
-                
            
     def set_rand_dest(self):
         self.dest_rect = self.rect.inflate(200,200)
         self.dest = (random.randint(self.dest_rect[0],self.dest_rect[0]+self.dest_rect[2]),random.randint(self.dest_rect[1],self.dest_rect[1]+self.dest_rect[3]))
         
-    def set_charge_dest(self,charge_target):    
-        self.dest = charge_target.center
+    def set_charge_dest(self,charge_target):
+        '''Charge destination randomly changed to allow the seek behaviour
+        due to the move_collision function'''
+        self.dest = charge_target.rect.x+random.randint(-10,10),charge_target.rect.y+random.randint(-10,10)
         
     def behaviour(self,Character):
         if self.rect.inflate(250,250).colliderect(Character.rect) == True:
             if self.speed < 2:
                 self.speed *= 2
             self.set_charge_dest(Character)
+        elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
+            if self.speed > int(48.0/(variables.FPS*0.7)):
+                self.speed = int(48.0/(variables.FPS*0.7))
+            my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
+            random.choice(my_list)
+            print 'aware'
         else:
-            if self.speed > 48.0/(variables.FPS*0.7):
-                self.speed = 48.0/(variables.FPS*0.7)
+            if self.speed > int(48.0/(variables.FPS*0.7)):
+                self.speed = int(48.0/(variables.FPS*0.7))
             self.set_rand_dest()
+            
+    def move_collision(self,EW,SN):
+        test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
+        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
+            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
+                if EW == True:
+                    if self.dest[1] > self.rect.y:
+                        mvt = self.speed
+                    else:
+                        mvt = -self.speed
+                    self.rect = self.rect.move(-self.move_speed,mvt)
+                elif SN == True:
+                    if self.dest[0] > self.rect.x:
+                        mvt = self.speed
+                    else:
+                        mvt = -self.speed
+                    self.rect = self.rect.move(mvt,-self.move_speed)
+                break
 
     def move_NS(self):
         self.rect = self.rect.move(0, self.move_speed)
         # Check for Collisions
-        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
-            if pygame.sprite.collide_rect(self, obstacle):
-                #print 'collide'
-                self.rect = self.rect.move(0, -(self.move_speed))
-            
+        self.move_collision(False,True)
+        
     def move_EW(self):
         self.rect = self.rect.move(self.move_speed,0)
         # Check for Collisions
-        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
-            if pygame.sprite.collide_rect(self, obstacle):
-                #print 'collide'
-                self.rect = self.rect.move(-(self.move_speed) , 0)
+        self.move_collision(True,False)
     
     def move(self):#,mouse_pos, screen, background
         if self.pos != self.dest:
@@ -453,19 +457,18 @@ class Character(MySprite):
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
+            has_looted = False
             for inv in [self.inventory.contents,self.equipement.contents]:
                 if len(inv) >= 1:
-                    self.has_looted = True
+                    has_looted = True
                     for item in inv:
                         self.pop_around(item, 50,50)
-#                        item.rect[0] = self.rect.move(random.randint(0,20)+5,0)[0] #sets position next to chest
-#                        item.rect[1] = self.rect.move(0,random.randint(0,20)+self.rect[3])[1]
                         variables.item_list.add(item) #add's sprite back to item list for it to behave as item in game
                         inv.remove(item) #removes item from chest
-            if self.has_looted == False:
+            if has_looted == False:
                 w = 150
                 h = 30
-                msg = Message('Nothing to loot !!', 0,0,w,h)
+                msg = Message('Nothing to loot !!',500, 0,0,w,h)
                 msg.image = pygame.transform.scale(msg.image, (w, h))
                 msg.rect.center = (variables.screenWIDTH/2,25)
                 variables.message_list.add(msg)
@@ -589,11 +592,23 @@ class Item(MySprite):
 class No_item(object): #creates a blank item
     def __init__(self):
         self.name = 'none'
+        
+def d10(int):
+    rng = range(0,int)
+    total = 0
+    for x in rng:
+        total += random.randint(0,10)
+    return total
   
 class Weapon(Item):
-    def __init__(self, name, value, image, x, y, dmg):
+    def __init__(self, name, value, image, x, y, dmg, dmg_modif):
         super(Weapon, self).__init__(name, value, image, x, y)
+        self.dmg_modif = dmg_modif
         self.dmg = dmg
+        
+    def random_dmg(self):
+        attack_dmg = self.dmg+d10(self.dmg_modif)
+        return attack_dmg
         
 class Armor(Item):
     def __init__(self, name, value, image, x, y, arm):
@@ -683,32 +698,36 @@ class Building(Item):
         #self.rect = self.image.get_rect().move(x, y) #initial placement
         
 class Projectile(Item):
-    def __init__(self, name, value, image, x, y, speed, dmg):
+    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif):
         super(Projectile, self).__init__(name, value, image, x, y)
         self.dest = (self.rect[0],self.rect[1])
         self.speed = speed
+        self.dmg_modif = dmg_modif
         self.dmg = dmg
         self.orientation = 0
-
         
+    def random_dmg(self):
+        attack_dmg = self.dmg+d10(self.dmg_modif)
+        return attack_dmg
+
     def fire(self,shooter):
-        self.rect = shooter.rect.move(shooter.rect[2]/2,shooter.rect[3]/2) #place's the projectile at shooter's position
+        self.rect.center = shooter.rect.center#place's the projectile at shooter's position
         self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset
-        self.dmg = shooter.F/10
+        self.dmg = int(shooter.F/10.0)
         self.image = variables.arrow_img
         variables.projectile_list.add(self)
         variables.has_shot = True
         
     def hit_test(self,character):
         test = pygame.sprite.spritecollideany(self, variables.building_list, collided = None)
-        if self.rect.colliderect(character.rect) == True:
+        if self.rect.colliderect(character.rect.inflate(-character.rect.width/5,-character.rect.height/5)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
-            dmg = (self.dmg+random.randint(1,10)) - (character.E/10+arm)
+            dmg = self.random_dmg() - (character.E/10+arm)
             if dmg < 0:
                 dmg = 0
             character.hp -= dmg
             self.kill()
-            #print 'has hit ! and dealt = {}'.format(dmg)
+            print 'has hit ! and dealt = {}'.format(dmg)
         elif test is not None:
             if test.rect.collidepoint(self.rect.center):
                 self.kill()
@@ -756,30 +775,25 @@ class Projectile(Item):
             xoffset = -np.cos(angle_rad)*speed
             yoffset = -np.sin(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)+90
-            #self.image = self.image_list[0]
         elif xm < xp and ym > yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset =  np.sin(angle_rad)*speed
             yoffset = -np.cos(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)+180
-            #self.image = self.image_list[1]
         elif xm < xp and ym < yp:
             angle_rad = np.arctan((abs(dy)/abs(dx)))
             xoffset = np.cos(angle_rad)*speed
             yoffset = np.sin(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)+270
-            #self.image = self.image_list[1]
         else:# xm > xp and ym < yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset = -np.sin(angle_rad)*speed
             yoffset =  np.cos(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)
-            #self.image = self.image_list[0]
         
         self.image = pygame.transform.rotate(variables.arrow_img, -self.orientation)
         self.rect = self.rect.move(-xoffset,-yoffset)
         self.dest = (self.dest[0]-xoffset+variables.xoffset,self.dest[1]-yoffset+variables.yoffset)
-        #print 'arrow moved'    
         
 
 
