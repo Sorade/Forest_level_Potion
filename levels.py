@@ -56,30 +56,29 @@ class Level1(Level):
                         if isinstance(i,Chest):
                             i.open_(hero)
                                 
-                if event.type == v.set_ennemies_dest:
-                    #print 'moves'
-                    for o in self.char_list: 
-                        if isinstance(o, Ranger): #moves characters
-                            o.behaviour(hero)
+            for o in self.char_list: 
+                if isinstance(o, Ranger): #sets mobs dest characters
+                    o.behaviour(hero)
         
-                if event.type == v.set_ennemies_move:         
-                    for o in self.char_list: 
-                        if isinstance(o, Ranger): #moves characters
-                            o.move()
-            hero.get_offset() # sets the movement offset for the iteration
-            #check_null_offset() #if player stops or is firing sets offsets to 0
-            group_collision_check(self.building_list,hero) #edits the offest based on hero collision
-            
+            for o in self.char_list: 
+                if isinstance(o, Ranger): #moves characters
+                    o.move()
+                            
+            for p in self.projectile_list: #moves projectiles
+                p.move()
+                for o in self.ennemi_list:
+                    p.hit_test(o)
+                            
+            hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
+            hero.group_collision_check(self.building_list) #edits the offest based on hero collision
+            hero.character_collisions()
+    
             for o in self.ennemi_list:
                 o.attack(hero)
                 o.update_images()
                 o.anim_move()
                 
-            for p in self.projectile_list: #moves projectiles
-                p.move()
-                for o in self.ennemi_list:
-                    p.hit_test(o)
-                    
+                   
             for d in self.dead_sprites_list:
                 d.loot(hero)
     
@@ -97,7 +96,8 @@ class Level1(Level):
             
             #check if characters are dead before blitting:
             for Character in itertools.chain.from_iterable([variables.char_list,variables.player_list]):
-                Character.is_alive()
+                if Character.is_alive() == True:
+                    Character.is_alive() 
             
             #blitting        
             v.screen.blit(scroll_map.image, scroll_map.rect) # blits the grass map to new pos
@@ -113,11 +113,12 @@ class Level1(Level):
             self.ennemi_list.draw(v.screen) #blits ennemies
             v.screen.blit(hero.image, hero.rect) #blits hero to screen center 
             
-            Lifebar(hero)#pygame.draw.rect(variables.screen, (245,0,0) , Rect(10,v.screenHEIGHT-30,hero.hp*10,10))
+            Lifebar(hero)
             for msg in self.message_list:
                 msg.show()
+                
             adjust_offset()
             
             if pygame.key.get_pressed()[pygame.K_i]:
                 hero.inventory_opened = True
-                hero.open_inventory()    
+                hero.open_inventory()
