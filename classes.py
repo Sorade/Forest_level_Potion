@@ -29,7 +29,6 @@ class Level(object):
         self.sprite_group_list = []
         self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
-
 class Lifebar(object):
     def __init__(self,character):
         self.value = character.hp*10 if character.hp >= 0 else 0
@@ -130,6 +129,11 @@ class Character(MySprite):
         self.inventory_opened = False 
         self.m_down = False
         self.m_up = True
+        
+        self.inv_time = pygame.time.Clock()
+        self.inv_time_left = 0        
+        self.inv_delay = 500
+
         
     def anim_move(self):
         #updates anim timer
@@ -262,10 +266,13 @@ class Character(MySprite):
                 self.equipement.create(self,variables.screenWIDTH/2+50,10,0,50)
                 self.dropbut = Button('discard', 50,450,50,20)            
                 self.do_once = False
-                print 'Creates Buttons'
+                self.inv_time.tick() #needs to tick it here to reset the tick value or it has kept adding up since last inventory 
+                self.inv_time_left = 0
             for b in self.buttons_list:
                 b.display()
             self.dropbut.display()
+            
+            
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
@@ -273,12 +280,12 @@ class Character(MySprite):
                 if event.type == MOUSEBUTTONDOWN:
                     self.m_down = True
                     self.m_up = False
-                    print 'mouse down'
+                    #print 'mouse down'
                     
                 if event.type == MOUSEBUTTONUP:
                     self.m_up = True
                     self.m_down = False
-                    print 'mouse up'
+                    #print 'mouse up'
             
             if self.selected == False and self.m_down == True:
                 for b in self.buttons_list:
@@ -372,7 +379,12 @@ class Character(MySprite):
                 msg.show()
             pygame.display.update()
                 
-            if pygame.key.get_pressed()[pygame.K_g]:
+                
+            #update inv shutdown delay:
+            self.inv_time.tick()
+            self.inv_time_left += self.inv_time.get_time()
+            if pygame.key.get_pressed()[pygame.K_i] and self.inv_time_left > self.inv_delay:
+                self.inv_time_left = 0
                 self.buttons_list = [] #clear's buttons list
                 self.do_once = True # to insure buttons are populated again at next inventory opening
                 self.inventory_opened = False

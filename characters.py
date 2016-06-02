@@ -155,7 +155,9 @@ class Player(Character):
                     self.attack_time_left = 0
                     '''make sure if is correct rather than elif, might need a has_shot variable'''
                 elif Character.rect.inflate(10,10).colliderect(self.rect) == False and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
-                    wp.Arrow().fire(self)
+                    projectile = wp.Arrow()
+                    projectile.level = self.level #add's the projectile to the level
+                    projectile.fire(self) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
     
     def update_images(self):

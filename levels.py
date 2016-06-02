@@ -17,31 +17,34 @@ import items as it
 from pygame.locals import *
 from classes import *
 
-class Level(object):
-    def __init__(self, lvl_num):
-        self.lvl_num = lvl_num
-        self.run = False
-        #create sprite groups
-        self.player_list = pygame.sprite.Group()
-        self.char_list = pygame.sprite.Group()
-        self.ennemi_list = pygame.sprite.Group()
-        self.item_list = pygame.sprite.Group()
-        self.building_list = pygame.sprite.Group()
-        self.projectile_list = pygame.sprite.Group()
-        self.all_sprites_list = pygame.sprite.Group()
-        self.deleted_list = pygame.sprite.Group()
-        self.dead_sprites_list = pygame.sprite.Group()
-        self.message_list = pygame.sprite.Group()
-        self.to_blit_list = pygame.sprite.Group()
-        
-        self.sprite_group_list = []
-        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
+#class Level(object):
+#    def __init__(self, lvl_num):
+#        self.lvl_num = lvl_num
+#        self.run = False
+#        #create sprite groups
+#        self.player_list = pygame.sprite.Group()
+#        self.char_list = pygame.sprite.Group()
+#        self.ennemi_list = pygame.sprite.Group()
+#        self.item_list = pygame.sprite.Group()
+#        self.building_list = pygame.sprite.Group()
+#        self.projectile_list = pygame.sprite.Group()
+#        self.all_sprites_list = pygame.sprite.Group()
+#        self.deleted_list = pygame.sprite.Group()
+#        self.dead_sprites_list = pygame.sprite.Group()
+#        self.message_list = pygame.sprite.Group()
+#        self.to_blit_list = pygame.sprite.Group()
+#        
+#        self.sprite_group_list = []
+#        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
 class Level1(Level):
+    def set_level(self, sprite_grp):
+        for sprite in sprite_grp:
+            sprite.level = self
+    
     def __init__(self):
         super(Level1, self).__init__(1)
         
-    def initialise(self):
         ##Instances
         #Characters
         #Creating the characters
@@ -114,6 +117,7 @@ class Level1(Level):
                     self.char_list.add(o)
                     self.ennemi_list.add(o)
                     self.all_sprites_list.add(o)
+                    for item in o.equipement.contents: self.all_sprites_list.add(item)
                 
         #random objects
         def add_chests(int):
@@ -140,15 +144,11 @@ class Level1(Level):
                         self.all_sprites_list.add(item)
                     count +=1
                     
-        def set_level(sprite_grp):
-            for sprite in sprite_grp:
-                sprite.level = self
-                    
         add_obstacles(75)
         add_ennemies(10)
         add_chests(10)
         
-        set_level(self.all_sprites_list)
+        self.set_level(self.all_sprites_list)
         
         
     def execute(self):
@@ -178,7 +178,7 @@ class Level1(Level):
             for o in self.char_list: 
                 if isinstance(o, ch.Ranger): #moves characters
                     o.move()
-                            
+            
             for p in self.projectile_list: #moves projectiles
                 p.move()
                 for o in self.ennemi_list:
@@ -234,6 +234,10 @@ class Level1(Level):
                 
             adjust_offset()
             
-            if pygame.key.get_pressed()[pygame.K_i]:
-                ins.hero.inventory_opened = True
-                ins.hero.open_inventory()
+            '''dirty loop to get the player's inv_delay timer values'''
+            for player in self.player_list:
+                player.inv_time.tick()
+                player.inv_time_left += player.inv_time.get_time()
+                if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
+                    ins.hero.inventory_opened = True
+                    ins.hero.open_inventory()
