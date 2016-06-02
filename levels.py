@@ -117,9 +117,9 @@ class Level1(Level):
                 
         #random objects
         def add_chests(int):
-            obj = [wp.Sword(),wp.Bow(),wp.Arrow(), ar.Helm()]
             count = 0
             while count < 10:
+                obj = [wp.Sword(),wp.Bow(),wp.Arrow(), ar.Helm()]
                 collides = False
                 chest_contents = []
                 for n in range(0,random.randint(0,3)):
@@ -136,6 +136,8 @@ class Level1(Level):
                 if test is None and collides == False:
                     self.building_list.add(w)
                     self.all_sprites_list.add(w)
+                    for item in w.inventory.contents:
+                        self.all_sprites_list.add(item)
                     count +=1
                     
         def set_level(sprite_grp):
@@ -146,11 +148,11 @@ class Level1(Level):
         add_ennemies(10)
         add_chests(10)
         
+        set_level(self.all_sprites_list)
+        
         
     def execute(self):
-        print 'ready to exec'
         if self.run == True:
-            print 'has exec'
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
