@@ -39,6 +39,7 @@ class Level(object):
             self.run = False
             [x for x in self.player_list][0].level = new_level
             new_level.run = True
+            variables.current_level = new_level
             
     def execute(self):
             variables.current_level = self

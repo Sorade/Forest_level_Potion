@@ -28,10 +28,10 @@ class Level1(Level):
         ##Instances
         #Characters
         #Creating the characters
-        chars = []
+#        chars = []
         #hero = ins.hero
-        sword_h = wp.Sword()
-        sword_h.rect = sword_h.rect.move(50,50)
+#        sword_h = wp.Sword()
+#        sword_h.rect = sword_h.rect.move(50,50)
         
         #Level Edges
         for x in range(0,26):
@@ -57,14 +57,14 @@ class Level1(Level):
             
            
         #Objects
-        #chest = Chest('Chest',2,var.chest_img, 300, 300, Sword())
-        sword = wp.Sword()
-        sword.name = 'warhammer'
-        sword.wield = 'two_handed'
-        sword2 = wp.Sword()
-        sword2.name = 'axe'
-        sword2.rect = sword2.rect.move(10,10)
-        helm = ar.Helm()
+#        #chest = Chest('Chest',2,var.chest_img, 300, 300, Sword())
+#        sword = wp.Sword()
+#        sword.name = 'warhammer'
+#        sword.wield = 'two_handed'
+#        sword2 = wp.Sword()
+#        sword2.name = 'axe'
+#        sword2.rect = sword2.rect.move(10,10)
+#        helm = ar.Helm()
         house = Building('House',10, var.house1_img, 350, 80, 80)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
         self.all_sprites_list.add(house,ins.hero) 
@@ -239,10 +239,10 @@ class Level2(Level):
         ##Instances
         #Characters
         #Creating the characters
-        chars = []
-        #hero = ins.hero
-        sword_h = wp.Sword()
-        sword_h.rect = sword_h.rect.move(50,50)
+#        chars = []
+#        #hero = ins.hero
+#        sword_h = wp.Sword()
+#        sword_h.rect = sword_h.rect.move(50,50)
         
         #Level Edges
         for x in range(0,26):
@@ -269,13 +269,13 @@ class Level2(Level):
            
         #Objects
         #chest = Chest('Chest',2,var.chest_img, 300, 300, Sword())
-        sword = wp.Sword()
-        sword.name = 'warhammer'
-        sword.wield = 'two_handed'
-        sword2 = wp.Sword()
-        sword2.name = 'axe'
-        sword2.rect = sword2.rect.move(10,10)
-        helm = ar.Helm()
+#        sword = wp.Sword()
+#        sword.name = 'warhammer'
+#        sword.wield = 'two_handed'
+#        sword2 = wp.Sword()
+#        sword2.name = 'axe'
+#        sword2.rect = sword2.rect.move(10,10)
+#        helm = ar.Helm()
         house = Building('House',10, var.house1_img, 350, 80, 80)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
         self.all_sprites_list.add(house,ins.hero) 
@@ -344,6 +344,7 @@ class Level2(Level):
         
     def execute(self):
         if self.run == True:
+            super(Level2, self).execute()
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
@@ -435,5 +436,8 @@ class Level2(Level):
 
         #self.leave(1)
         if pygame.key.get_pressed()[pygame.K_v]:
+            new_level = var.level_list[0]
             self.run = False
-            variables.level_list[0].run = True
+            [x for x in self.player_list][0].level = new_level
+            new_level.run = True
+            var.current_level = new_level
