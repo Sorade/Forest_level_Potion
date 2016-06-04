@@ -595,16 +595,31 @@ class Inventory(object):
         self.contents = []
         self.inv_bg = variables.inv_bg
         
+    def combine_ammo(self):
+        all_projectiles = [x for x in self.contents if isinstance (x,Projectile)]
+        for item in all_projectiles:
+            temp_projectiles = all_projectiles
+            temp_projectiles.remove(item)
+            other_projectiles = temp_projectiles
+            print other_projectiles
+            for other in other_projectiles:
+                if type(item) == type(other):
+                    item.ammo += other.ammo
+                    self.contents.remove(other)
+                    
     def add(self, item):
         if len(self.contents) < 32:
             self.contents.append(item)
             item.inv_pos = len(self.contents)
+            self.combine_ammo()
     
     def rem(self, item):
         try:
             self.contents.remove(item)
         except:
             print 'item not in inventory'
+    
+
             
     def create(self,Character,x,y, dx, dy):
         xstart = x
@@ -624,28 +639,28 @@ class Inventory(object):
             y += dy
             Character.buttons_list.append(b)
             
-class Equipment(object): #not working yet
-    def __init__(self):
-        self.contents = {
-                'Head':0,'Neck':0, 'Torso':0, 'Right hand':0, 'Left hand':0, 'Ring':0
-        }   
-        
-    def add(self, item): #to check
-        self.contents.append(item)
-        item.inv_pos = len(self.contents)
-    
-    def rem(self, item): #to ckech
-        try:
-            self.contents.remove(item)
-        except:
-            print 'item not in inventory'
-            
-    def create(self,Character,x,y, dx, dy):
-        for i in self.contents:
-            b = Button(i.name,x,y,80,30)
-            x += dx
-            y += dy
-            Character.buttons_list.append(b)
+#class Equipment(object): #not working yet
+#    def __init__(self):
+#        self.contents = {
+#                'Head':0,'Neck':0, 'Torso':0, 'Right hand':0, 'Left hand':0, 'Ring':0
+#        }   
+#        
+#    def add(self, item): #to check
+#        self.contents.append(item)
+#        item.inv_pos = len(self.contents)
+#    
+#    def rem(self, item): #to ckech
+#        try:
+#            self.contents.remove(item)
+#        except:
+#            print 'item not in inventory'
+#            
+#    def create(self,Character,x,y, dx, dy):
+#        for i in self.contents:
+#            b = Button(i.name,x,y,80,30)
+#            x += dx
+#            y += dy
+#            Character.buttons_list.append(b)
 
             
 class Item(MySprite):

@@ -89,10 +89,10 @@ class Level1(Level):
         def add_chests(int):
             count = 0
             while count < 10:
-                obj = [wp.Sword(),wp.Bow(),wp.Arrow(random.randint(2,5)), ar.Helm()]
+                obj = [wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()]
                 collides = False
                 chest_contents = []
-                for n in range(0,random.randint(0,3)):
+                for n in range(0,random.randint(1,3)):
                     chest_contents.append(random.choice(obj))
                 pos = Rect(random.randint(50,var.background.get_rect()[2]),random.randint(80,var.background.get_rect()[3]),var.chest_img.get_rect().width,var.chest_img.get_rect().height)
                 w = it.Chest(0,0, chest_contents)
