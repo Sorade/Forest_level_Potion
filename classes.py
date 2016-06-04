@@ -11,6 +11,9 @@ import numpy as np
 
 class Level(object):
     def __init__(self, lvl_num):
+        variables.current_level = self
+        variables.level_list.append(self)
+
         self.lvl_num = lvl_num
         self.run = False
         #create sprite groups
@@ -29,8 +32,13 @@ class Level(object):
         self.sprite_group_list = []
         self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
-
-   # def leave(self):
+    def leave(self,new_lvl):
+        '''change level'''
+        if pygame.key.get_pressed()[pygame.K_c]:
+            new_level = variables.level_list[new_lvl-1]
+            self.run = False
+            [x for x in self.player_list][0].level = new_level
+            new_level.run = True
         
         
 class Lifebar(object):

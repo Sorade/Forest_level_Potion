@@ -27,7 +27,8 @@ pygame.mixer.music.play(-1)
 '''Levels Init'''
 mylevel1 = lvl.Level1()
 mylevel1.run = True
-print mylevel1.player_list
+mylevel2 = lvl.Level2()
+
 
 '''Pygame Game Loop'''   
 while True:
@@ -36,6 +37,7 @@ while True:
     
     '''Main Game Loop'''
     mylevel1.execute()
+    mylevel2.execute()
         
     pygame.display.update()
     
