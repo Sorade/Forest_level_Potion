@@ -29,6 +29,10 @@ class Level(object):
         self.sprite_group_list = []
         self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
+
+   # def leave(self):
+        
+        
 class Lifebar(object):
     def __init__(self,character):
         self.value = character.hp*10 if character.hp >= 0 else 0
@@ -132,7 +136,7 @@ class Character(MySprite):
         
         self.inv_time = pygame.time.Clock()
         self.inv_time_left = 0        
-        self.inv_delay = 500
+        self.inv_delay = 400
 
         
     def anim_move(self):
@@ -242,8 +246,8 @@ class Character(MySprite):
             yoffset =  np.cos(angle_rad)*speed
             variables.orientation = angle_rad*(180.0/np.pi)
         
-        variables.xoffset = xoffset
-        variables.yoffset = yoffset
+        variables.xoffset = int(xoffset)
+        variables.yoffset = int(yoffset)
         
         if variables.dx <= 3 and variables.dx >= -3:
             variables.dx = 0
