@@ -213,7 +213,6 @@ class Level1(Level):
                 msg.show()
                 
             adjust_offset()
-            print var.xoffset
             
             '''dirty loop to get the player's inv_delay timer values'''
             for player in self.player_list:

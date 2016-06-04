@@ -53,7 +53,7 @@ class MySprite(pygame.sprite.Sprite):
         self.center = self.rect.center
         self.pos = self.rect.topleft
         self.blit_order = 1
-        self.level =  Level(1)#level to which sprite belongs
+        self.level =  variables.current_level #Level(1)#level to which sprite belongs
         
     def pop_around(self,item,xzone,yzone):
         collides = True

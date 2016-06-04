@@ -23,6 +23,8 @@ start_pos = (0,0)
 do_once = True
 has_shot = False
 game_running = True
+
+current_level = 0
 #Importing Chars
 #walk
 #player_down_1 = pygame.image.load('Character_Sprites\\Down_1.png').convert()
