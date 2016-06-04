@@ -777,13 +777,14 @@ class Building(Item):
         #self.rect = self.image.get_rect().move(x, y) #initial placement
         
 class Projectile(Item):
-    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif):
+    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif, ammo):
         super(Projectile, self).__init__(name, value, image, x, y)
         self.dest = (self.rect[0],self.rect[1])
         self.speed = speed
         self.dmg_modif = dmg_modif
         self.dmg = dmg
         self.orientation = 0
+        self.ammo = ammo
         
     def random_dmg(self):
         attack_dmg = self.dmg+d10(self.dmg_modif)

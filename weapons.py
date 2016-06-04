@@ -8,14 +8,14 @@ import variables, random
 from classes import Weapon, Projectile
 
 class Arrow(Projectile):
-    def __init__(self): #name, value, image, x, y, dmg
+    def __init__(self, ammo): #name, value, image, x, y, dmg
         self.name = 'Arrows'
         self.value = 5
         self.image = variables.quiver_img
         self.speed = 4
         self.dmg = 2
         self.dmg_modif = 1
-        super(Arrow, self).__init__(self.name, self.value, self.image, 200, 150, self.speed, self.dmg, self.dmg_modif)
+        super(Arrow, self).__init__(self.name, self.value, self.image, 200, 150, self.speed, self.dmg, self.dmg_modif, ammo)
 
 class Sword(Weapon):
     def __init__(self): #name, value, image, x, y, dmg
