@@ -133,8 +133,9 @@ class Level1(Level):
         
     def execute(self):
         if self.run == True:
-            var.current_level = self
-            [x for x in self.player_list][0].level = self
+#            var.current_level = self
+#            [x for x in self.player_list][0].level = self
+            super(Level1, self).execute()
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
