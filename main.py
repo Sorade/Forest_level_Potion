@@ -7,14 +7,13 @@ Created on Sat Apr 23 10:40:43 2016
 
 import pygame, sys
 import variables as v
+import levels as lvl
 from pygame.locals import *
 from classes import *
 from functions import *
 from characters import *
 from items import *
 from instances import *
-import levels as lvl
-
 
 '''Game Init'''
 pygame.init()

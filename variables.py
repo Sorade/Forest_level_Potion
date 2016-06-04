@@ -24,7 +24,28 @@ do_once = True
 has_shot = False
 game_running = True
 
-current_level = 0
+
+class Level(object):
+    def __init__(self, lvl_num):
+        self.lvl_num = lvl_num
+        self.run = False
+        #create sprite groups
+        self.player_list = pygame.sprite.Group()
+        self.char_list = pygame.sprite.Group()
+        self.ennemi_list = pygame.sprite.Group()
+        self.item_list = pygame.sprite.Group()
+        self.building_list = pygame.sprite.Group()
+        self.projectile_list = pygame.sprite.Group()
+        self.all_sprites_list = pygame.sprite.Group()
+        self.deleted_list = pygame.sprite.Group()
+        self.dead_sprites_list = pygame.sprite.Group()
+        self.message_list = pygame.sprite.Group()
+        self.to_blit_list = pygame.sprite.Group()
+        
+        self.sprite_group_list = []
+        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
+
+current_level = Level(1)
 #Importing Chars
 #walk
 #player_down_1 = pygame.image.load('Character_Sprites\\Down_1.png').convert()

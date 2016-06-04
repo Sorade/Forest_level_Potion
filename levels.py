@@ -23,6 +23,7 @@ class Level1(Level):
             sprite.level = self
     
     def __init__(self):
+        variables.current_level = self
         super(Level1, self).__init__(1)
         
         ##Instances
@@ -128,7 +129,7 @@ class Level1(Level):
         add_ennemies(10)
         add_chests(10)
         
-        self.set_level(self.all_sprites_list)
+        #self.set_level(self.all_sprites_list)
         
         
     def execute(self):
