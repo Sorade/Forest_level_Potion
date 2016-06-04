@@ -66,10 +66,11 @@ class Level1(Level):
 #        sword2.rect = sword2.rect.move(10,10)
 #        helm = ar.Helm()
         house = Building('House',10, var.house1_img, 350, 80, 80)
+        portal = Portal(350,350)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
-        self.all_sprites_list.add(house,ins.hero) 
+        self.all_sprites_list.add(house,ins.hero,portal) 
         self.player_list.add(ins.hero)
-        self.building_list.add(house)
+        self.building_list.add(house,portal)
         
         #random obstacles
         def add_obstacles(int):
@@ -225,7 +226,10 @@ class Level1(Level):
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
             
-            self.leave(2)
+            #self.go_to(2)
+            for x in self.building_list:
+                if isinstance(x, Portal):
+                    x.activate(ins.hero,2)
                     
                     
 class Level2(Level):
@@ -276,11 +280,12 @@ class Level2(Level):
 #        sword2.name = 'axe'
 #        sword2.rect = sword2.rect.move(10,10)
 #        helm = ar.Helm()
+        portal = Portal(650,750)
         house = Building('House',10, var.house1_img, 350, 80, 80)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
-        self.all_sprites_list.add(house,ins.hero) 
+        self.all_sprites_list.add(house,ins.hero, portal) 
         self.player_list.add(ins.hero)
-        self.building_list.add(house)
+        self.building_list.add(house, portal)
         
         #random obstacles
         def add_obstacles(int):
@@ -433,11 +438,14 @@ class Level2(Level):
                 if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
-
-        #self.leave(1)
-        if pygame.key.get_pressed()[pygame.K_v]:
-            new_level = var.level_list[0]
-            self.run = False
-            [x for x in self.player_list][0].level = new_level
-            new_level.run = True
-            var.current_level = new_level
+                    
+            for x in self.building_list:
+                if isinstance(x, Portal):
+                    x.activate(ins.hero,1)
+        #self.go_to(1)
+#        if pygame.key.get_pressed()[pygame.K_v]:
+#            new_level = var.level_list[0]
+#            self.run = False
+#            [x for x in self.player_list][0].level = new_level
+#            new_level.run = True
+#            var.current_level = new_level

@@ -147,6 +147,8 @@ dead_ennemi = pygame.image.load('Skeleton_Sprites\\dead.png').convert_alpha()
 
 '''object import'''
 
+portal_img = pygame.image.load('Object_Sprites\\portal.png').convert_alpha()
+
 chest_img = pygame.image.load('Object_Sprites\\chest.png').convert()
 sword_img = pygame.image.load('Object_Sprites\\sword_small.png').convert()
 sword_img.set_colorkey((0,0,0))

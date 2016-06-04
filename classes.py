@@ -32,14 +32,14 @@ class Level(object):
         self.sprite_group_list = []
         self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
-    def leave(self,new_lvl):
+    def go_to(self,new_lvl):
         '''change level'''
-        if pygame.key.get_pressed()[pygame.K_c]:
-            new_level = variables.level_list[new_lvl-1]
-            self.run = False
-            [x for x in self.player_list][0].level = new_level
-            new_level.run = True
-            variables.current_level = new_level
+        #if pygame.key.get_pressed()[pygame.K_c]:
+        new_level = variables.level_list[new_lvl-1]
+        self.run = False
+        [x for x in self.player_list][0].level = new_level
+        new_level.run = True
+        variables.current_level = new_level
             
     def execute(self):
             variables.current_level = self
@@ -70,11 +70,12 @@ class MySprite(pygame.sprite.Sprite):
         
     def pop_around(self,item,xzone,yzone):
         collides = True
-        while collides == True: #number of wanted enemies
+        while collides == True:
             item.rect = Rect((random.randint(self.rect.x-xzone,self.rect.x+self.rect.width+xzone),random.randint(self.rect.y-yzone,self.rect.y+self.rect.height+yzone)),(item.rect.width,item.rect.height))
             for c in self.level.all_sprites_list:
                 if c.rect.inflate(-5,-5).collidepoint(item.rect.center) == False and self.rect.inflate(xzone,yzone).contains(item.rect) == True:
                     collides = False
+                    break
         return item.rect
     
         
@@ -863,6 +864,25 @@ class Projectile(Item):
         self.dest = (self.dest[0]-xoffset+variables.xoffset,self.dest[1]-yoffset+variables.yoffset)
         
 
+class Level_Change(Building):
+    def __init__(self, name, image, x, y):
+        self.hp = 1000
+        self.value = 1000
+        super(Level_Change, self).__init__(name, self.value, image, x, y, self.hp)
+        
+    def activate(self,char,new_level):
+        if char.rect.collidepoint(self.rect.midbottom):
+            self.level.go_to(new_level)
+            
+class Portal(Level_Change):
+    def __init__(self, x, y):
+        self.name = 'Portal'
+        self.image = variables.portal_img
+        super(Portal,self).__init__(self.name,self.image,x,y)
+        
+    
+    
+    
 
     
     
