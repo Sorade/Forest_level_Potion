@@ -35,11 +35,21 @@ class Level(object):
     def go_to(self,new_lvl):
         '''change level'''
         #if pygame.key.get_pressed()[pygame.K_c]:
+        player = [x for x in self.player_list][0]
         new_level = variables.level_list[new_lvl-1]
         self.run = False
-        [x for x in self.player_list][0].level = new_level
+        player.level = new_level
         new_level.run = True
         variables.current_level = new_level
+        
+        refx = new_level.portal.rect.bottomright[0]-variables.screenWIDTH/2
+        refy = new_level.portal.rect.bottomright[1]+50-variables.screenHEIGHT/2
+        for sprite in new_level.all_sprites_list:
+            sprite.rect = sprite.rect.move(-refx,-refy)
+            
+        new_level.scroll_map.rect =  new_level.scroll_map.rect.move(-refx,-refy) 
+        player.rect.center = (variables.screenWIDTH/2,variables.screenHEIGHT/2)
+        player.dest = player.rect.topleft
             
     def execute(self):
             variables.current_level = self
@@ -865,20 +875,42 @@ class Projectile(Item):
         
 
 class Level_Change(Building):
-    def __init__(self, name, image, x, y):
+    def __init__(self, name, image, x, y, image_list):
         self.hp = 1000
         self.value = 1000
+        self.image_list = image_list
         super(Level_Change, self).__init__(name, self.value, image, x, y, self.hp)
+        '''anim timer'''
+        self.anim_time = pygame.time.Clock()
+        self.anim_time_left = 0        
+        self.anim_speed = 1000/len(self.image_list)
+        self.anim_counter = 0
+        
+    def anim(self):
+        #updates anim timer
+        self.anim_time.tick()
+        self.anim_time_left += self.anim_time.get_time()
+        #checks which anim to display based on the direction and if sprite is moving and alive
+        if self.anim_time_left >= self.anim_speed: #checks time to animate
+                if self.anim_counter >= len(self.image_list):
+                    self.anim_counter = 0
+                self.image = self.image_list[self.anim_counter]
+                self.anim_time_left = 0
+                self.anim_counter += 1
+                
         
     def activate(self,char,new_level):
+        self.anim()
         if char.rect.collidepoint(self.rect.midbottom):
             self.level.go_to(new_level)
+
             
 class Portal(Level_Change):
     def __init__(self, x, y):
         self.name = 'Portal'
-        self.image = variables.portal_img
-        super(Portal,self).__init__(self.name,self.image,x,y)
+        self.image_list = variables.portal_images
+        self.image = self.image_list[0]
+        super(Portal,self).__init__(self.name,self.image,x,y, self.image_list)
         
     
     

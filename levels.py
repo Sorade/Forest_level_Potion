@@ -25,14 +25,6 @@ class Level1(Level):
     def __init__(self):
         super(Level1, self).__init__(1)
         
-        ##Instances
-        #Characters
-        #Creating the characters
-#        chars = []
-        #hero = ins.hero
-#        sword_h = wp.Sword()
-#        sword_h.rect = sword_h.rect.move(50,50)
-        
         #Level Edges
         for x in range(0,26):
             y = random.randint(1,2)
@@ -57,30 +49,23 @@ class Level1(Level):
             
            
         #Objects
-#        #chest = Chest('Chest',2,var.chest_img, 300, 300, Sword())
-#        sword = wp.Sword()
-#        sword.name = 'warhammer'
-#        sword.wield = 'two_handed'
-#        sword2 = wp.Sword()
-#        sword2.name = 'axe'
-#        sword2.rect = sword2.rect.move(10,10)
-#        helm = ar.Helm()
         house = Building('House',10, var.house1_img, 350, 80, 80)
-        portal = Portal(350,350)
+        self.portal = Portal(350,350)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
-        self.all_sprites_list.add(house,ins.hero,portal) 
+        self.all_sprites_list.add(house,ins.hero,self.portal) 
         self.player_list.add(ins.hero)
-        self.building_list.add(house,portal)
+        self.building_list.add(house,self.portal)
         
         #random obstacles
         def add_obstacles(int):
             count = 0
             while count < 75:
-                collides = True
                 w = Building('obstacles',0,random.choice(var.obs_list),random.randint(25,1800),random.randint(75,1800),1000)
-                collide_list = []
+                old_rect = w.rect
+                w.rect = w.rect.inflate(10,125)
                 test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
                 if test is None:
+                    w.rect = old_rect
                     self.building_list.add(w)
                     self.all_sprites_list.add(w)
                     count += 1
@@ -239,14 +224,9 @@ class Level2(Level):
     
     def __init__(self):
         super(Level2, self).__init__(1)
-        
-        ##Instances
-        #Characters
-        #Creating the characters
-#        chars = []
-#        #hero = ins.hero
-#        sword_h = wp.Sword()
-#        sword_h.rect = sword_h.rect.move(50,50)
+        self.scroll_map = Item('Map',0,var.background, 0, 0)
+        #xstart = self.scroll_map.rect.x
+        #ystart = self.scroll_map.rect.y
         
         #Level Edges
         for x in range(0,26):
@@ -272,30 +252,21 @@ class Level2(Level):
             
            
         #Objects
-        #chest = Chest('Chest',2,var.chest_img, 300, 300, Sword())
-#        sword = wp.Sword()
-#        sword.name = 'warhammer'
-#        sword.wield = 'two_handed'
-#        sword2 = wp.Sword()
-#        sword2.name = 'axe'
-#        sword2.rect = sword2.rect.move(10,10)
-#        helm = ar.Helm()
-        portal = Portal(650,750)
-        house = Building('House',10, var.house1_img, 350, 80, 80)
-        self.scroll_map = Item('Map',0,var.background, 0, 0)
-        self.all_sprites_list.add(house,ins.hero, portal) 
+        self.portal = Portal(50,800)
+        self.all_sprites_list.add(ins.hero, self.portal) 
         self.player_list.add(ins.hero)
-        self.building_list.add(house, portal)
+        self.building_list.add(self.portal)
         
         #random obstacles
         def add_obstacles(int):
             count = 0
             while count < 75:
-                collides = True
                 w = Building('obstacles',0,random.choice(var.obs_list),random.randint(25,1800),random.randint(75,1800),1000)
-                collide_list = []
+                old_rect = w.rect
+                w.rect = w.rect.inflate(10,125)
                 test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
                 if test is None:
+                    w.rect = old_rect
                     self.building_list.add(w)
                     self.all_sprites_list.add(w)
                     count += 1
@@ -304,7 +275,7 @@ class Level2(Level):
         def add_ennemies(int):
             count = 0           
             while count < 10: #number of wanted enemies
-                o = ch.Ranger(random.randint(450,1500),random.randint(450,1000))
+                o = ch.Ranger(random.randint(75,1500),random.randint(150,1000))
                 if random.randint(0,1) == 1:
                     o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-3,5)))
                 test = pygame.sprite.spritecollideany(o, self.all_sprites_list, collided = None)
