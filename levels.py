@@ -225,8 +225,6 @@ class Level2(Level):
     def __init__(self):
         super(Level2, self).__init__(1)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
-        #xstart = self.scroll_map.rect.x
-        #ystart = self.scroll_map.rect.y
         
         #Level Edges
         for x in range(0,26):
@@ -263,7 +261,7 @@ class Level2(Level):
             while count < 75:
                 w = Building('obstacles',0,random.choice(var.obs_list),random.randint(25,1800),random.randint(75,1800),1000)
                 old_rect = w.rect
-                w.rect = w.rect.inflate(10,125)
+                w.rect = w.rect.inflate(25,125)
                 test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
                 if test is None:
                     w.rect = old_rect
@@ -314,9 +312,6 @@ class Level2(Level):
         add_obstacles(75)
         add_ennemies(10)
         add_chests(10)
-        
-        #self.set_level(self.all_sprites_list)
-        
         
     def execute(self):
         if self.run == True:

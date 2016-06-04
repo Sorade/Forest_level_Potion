@@ -428,6 +428,7 @@ class Character(MySprite):
         else:
             self.kill()
             self.level.dead_sprites_list.add(self) #adds the character to the deleted sprite list
+            self.level.all_sprites_list.add(self)
             self.image = self.dead_image
             return False
     

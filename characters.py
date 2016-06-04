@@ -47,38 +47,6 @@ class Ranger(Character):
 #                if isinstance(item,Shied()):
 #                    self.image_list = variables.pshield_images
         
-#    def anim_move1(self):
-#        #updates attack timer
-#        self.attack_time.tick()
-#        self.attack_time_left += self.attack_time.get_time()
-#        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-#        if  self.attack_time_left <= self.attack_speed and self.has_attack == True: #
-#            self.anim_list = self.attack_images
-#        else:
-#            self.has_attack = False
-#            self.anim_list = self.image_list
-#
-#        self.anim_time.tick()
-#        self.anim_time_left += self.anim_time.get_time()
-#        if self.anim_time_left >= self.anim_speed: #checks time to animate
-#            if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-#                if self.anim_counter == 4:
-#                    self.anim_counter = 0
-#                self.image = self.anim_list[self.anim_counter]
-#            elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-#                if self.anim_counter ==4:
-#                    self.anim_counter = 0
-#                self.image = self.anim_list[self.anim_counter+4]  
-#            elif self.orientation >= 321 or self.orientation <= 40: #checks orientation
-#                if self.anim_counter == 4:
-#                    self.anim_counter = 0
-#                self.image = self.anim_list[self.anim_counter+8]
-#            elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-#                if self.anim_counter == 4:
-#                    self.anim_counter = 0
-#                self.image = pygame.transform.flip(self.anim_list[self.anim_counter+4] , True, False)
-#            self.anim_time_left = 0
-#            self.anim_counter += 1
         
             
 class Player(Character):
