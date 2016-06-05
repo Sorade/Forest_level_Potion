@@ -60,7 +60,7 @@ class Level1(Level):
         
         self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Ranger])
-        self.add_chests(10,it.Chest,[wp.Arrow(random.randint(2,5))])#,wp.Sword(),wp.Bow(), ar.Helm()
+        self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
         #self.set_level(self.all_sprites_list)
         
@@ -206,7 +206,7 @@ class Level2(Level):
         
         self.add_obstacles(75,var.dirt_list)
         self.add_ennemies(10,[ch.Ranger])
-        self.add_chests(10,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
+        self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):
         if self.run == True:

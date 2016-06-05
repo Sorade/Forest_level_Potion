@@ -30,7 +30,6 @@ class Ranger(Character):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
         #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-        
         if  self.attack_time_left <= self.attack_speed and self.has_attack == True:
             images = self.attack_images
             

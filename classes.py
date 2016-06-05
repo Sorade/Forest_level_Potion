@@ -98,7 +98,7 @@ class Level(object):
     #random objects
     def add_chests(self,int,chest,obj):
         count = 0
-        while count < 10:
+        while count < int:
             #obj = [wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()]
             collides = False
             chest_contents = []
@@ -109,7 +109,7 @@ class Level(object):
             w.rect = pos
         
             for c in self.all_sprites_list:
-                if isinstance(c,chest) and w.rect.colliderect((c.rect.inflate(200,200))) == True:
+                if isinstance(c,chest) and w.rect.colliderect((c.rect.inflate(750,750))) == True:
                     collides = True
                     break
             test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
@@ -238,6 +238,8 @@ class Character(MySprite):
                     equiped.ammo += proj.ammo
                     self.inventory.contents.remove(proj)
                     equiped.name = '{} {}'.format(equiped.ammo,equiped.raw_name)
+                    
+                    
                     
     def anim_move(self):
         #updates anim timer
