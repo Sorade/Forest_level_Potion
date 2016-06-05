@@ -230,14 +230,16 @@ class Character(MySprite):
         self.inventory.combine_ammo() #merges all the ammo in the inventory only
         '''merges the ammo from inv with equipped ammo'''
         inv_projs = [x for x in self.inventory.contents if isinstance (x,Projectile)]
-        equiped = [x for x in self.equipement.contents if isinstance (x,Projectile)]
+        equiped = [y for y in self.equipement.contents if isinstance (y,Projectile)]
         if len(equiped) > 0:
             equiped = equiped[0]
             for proj in inv_projs:
                 if type(equiped) == type(proj):
+                    print equiped.ammo, proj.ammo
                     equiped.ammo += proj.ammo
-                    self.inventory.contents.remove(proj) 
-        
+                    self.inventory.contents.remove(proj)
+                    equiped.name = '{} {}'.format(equiped.ammo,equiped.raw_name)
+                    
     def anim_move(self):
         #updates anim timer
         self.anim_time.tick()
@@ -683,6 +685,7 @@ class Inventory(object):
                 if type(item) == type(other):
                     item.ammo += other.ammo
                     self.contents.remove(other)
+                    item.name = '{} {}'.format(item.ammo,item.raw_name)
                    
     def add(self, item):
         if len(self.contents) < 32:

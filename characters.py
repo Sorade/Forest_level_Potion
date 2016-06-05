@@ -61,7 +61,7 @@ class Player(Character):
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
         self.equipement.contents.extend([wp.Sword()])
-        #self.inventory.contents.extend([wp.Bow(),wp.Arrow(10)])
+        self.inventory.contents.extend([wp.Bow(),wp.Arrow(10)])
         self.attack_speed = 500
         self.F = 35
         self.E = 35
@@ -125,6 +125,7 @@ class Player(Character):
                     '''make sure if is correct rather than elif, might need a has_shot variable'''
                 elif Character.rect.inflate(10,10).colliderect(self.rect) == False and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                     for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
+                        proj.name = '{} {}'.format(proj.ammo, proj.raw_name)
                         if proj.ammo > 0:
                             proj.ammo -= 1
                             break
