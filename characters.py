@@ -108,6 +108,7 @@ class Player(Character):
         #self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed:
             if Character.is_alive() == True and Character.rect.inflate(15,15).collidepoint(pygame.mouse.get_pos()):
+                self.merge_ammo()
                 if Character.rect.colliderect(self.rect.inflate(self.rect.width,self.rect.height)) == True:
                     self.has_attack = True
                     test = random.randint(1,100) <= self.CC

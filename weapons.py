@@ -9,7 +9,8 @@ from classes import Weapon, Projectile
 
 class Arrow(Projectile):
     def __init__(self, ammo): #name, value, image, x, y, dmg
-        self.name = 'Arrows'
+        self.raw_name = 'Arrows'
+        self.name = '{} {}'.format(ammo, self.raw_name)
         self.value = 5
         self.image = variables.quiver_img
         self.speed = 4

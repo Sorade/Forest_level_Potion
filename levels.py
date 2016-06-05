@@ -50,7 +50,7 @@ class Level1(Level):
            
         #Objects
         house = Building('House',10, var.house1_img, 350, 80, 80)
-        self.portal = Portal(350,350)
+        self.portal = Portal(350,350,1)
         self.scroll_map = Item('Map',0,var.background, 0, 0)
         self.all_sprites_list.add(house,ins.hero,self.portal) 
         self.player_list.add(ins.hero)
@@ -213,7 +213,7 @@ class Level1(Level):
             
             #self.go_to(2)
             for x in self.building_list:
-                if isinstance(x, Portal):
+                if isinstance(x, Level_Change):
                     x.activate(ins.hero,2)
                     
                     
@@ -250,7 +250,7 @@ class Level2(Level):
             
            
         #Objects
-        self.portal = Portal(50,800)
+        self.portal = Portal(50,800,1)
         self.all_sprites_list.add(ins.hero, self.portal) 
         self.player_list.add(ins.hero)
         self.building_list.add(self.portal)
@@ -406,7 +406,7 @@ class Level2(Level):
                     ins.hero.open_inventory()
                     
             for x in self.building_list:
-                if isinstance(x, Portal):
+                if isinstance(x, Level_Change):
                     x.activate(ins.hero,1)
         #self.go_to(1)
 #        if pygame.key.get_pressed()[pygame.K_v]:

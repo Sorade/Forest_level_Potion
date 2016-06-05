@@ -32,24 +32,29 @@ class Level(object):
         self.sprite_group_list = []
         self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
-    def go_to(self,new_lvl):
+    def go_to(self,new_lvl, pair):
         '''change level'''
-        #if pygame.key.get_pressed()[pygame.K_c]:
-        player = [x for x in self.player_list][0]
-        new_level = variables.level_list[new_lvl-1]
-        self.run = False
-        player.level = new_level
-        new_level.run = True
-        variables.current_level = new_level
         
-        refx = new_level.portal.rect.bottomright[0]-variables.screenWIDTH/2
-        refy = new_level.portal.rect.bottomright[1]+50-variables.screenHEIGHT/2
-        for sprite in new_level.all_sprites_list:
-            sprite.rect = sprite.rect.move(-refx,-refy)
+        new_level = variables.level_list[new_lvl-1]
+        paired_portal_list = [x for x in new_level.all_sprites_list if isinstance (x,Level_Change)]
+        
+        if len(paired_portal_list) > 0:
+            player = [x for x in self.player_list][0]
+            self.run = False
+            player.level = new_level
+            new_level.run = True
+            variables.current_level = new_level
             
-        new_level.scroll_map.rect =  new_level.scroll_map.rect.move(-refx,-refy) 
-        player.rect.center = (variables.screenWIDTH/2,variables.screenHEIGHT/2)
-        player.dest = player.rect.topleft
+            dest_port = random.choice(paired_portal_list) #select a random destination amongst the paired portals
+        
+            refx = dest_port.rect.bottomright[0]-variables.screenWIDTH/2
+            refy = dest_port.rect.bottomright[1]+50-variables.screenHEIGHT/2
+            for sprite in new_level.all_sprites_list:
+                sprite.rect = sprite.rect.move(-refx,-refy)
+                
+            new_level.scroll_map.rect =  new_level.scroll_map.rect.move(-refx,-refy) 
+            player.rect.center = (variables.screenWIDTH/2,variables.screenHEIGHT/2)
+            player.dest = player.rect.topleft
             
     def execute(self):
             variables.current_level = self
@@ -161,7 +166,18 @@ class Character(MySprite):
         self.inv_time = pygame.time.Clock()
         self.inv_time_left = 0        
         self.inv_delay = 400
-
+        
+    def merge_ammo(self):
+        self.inventory.combine_ammo() #merges all the ammo in the inventory only
+        '''merges the ammo from inv with equipped ammo'''
+        inv_projs = [x for x in self.inventory.contents if isinstance (x,Projectile)]
+        equiped = [x for x in self.equipement.contents if isinstance (x,Projectile)]
+        if len(equiped) > 0:
+            equiped = equiped[0]
+            for proj in inv_projs:
+                if type(equiped) == type(proj):
+                    equiped.ammo += proj.ammo
+                    self.inventory.contents.remove(proj) 
         
     def anim_move(self):
         #updates anim timer
@@ -290,6 +306,7 @@ class Character(MySprite):
         while self.inventory_opened == True:
             variables.screen.blit(self.inventory.inv_bg, self.inventory.inv_bg.get_rect())
             if self.do_once == True:
+                self.merge_ammo()
                 self.inventory.create(self,10,10,0,50)
                 self.equipement.create(self,variables.screenWIDTH/2+50,10,0,50)
                 self.dropbut = Button('discard', 50,450,50,20)            
@@ -606,12 +623,12 @@ class Inventory(object):
                 if type(item) == type(other):
                     item.ammo += other.ammo
                     self.contents.remove(other)
-                    
+                   
     def add(self, item):
         if len(self.contents) < 32:
             self.contents.append(item)
             item.inv_pos = len(self.contents)
-            self.combine_ammo()
+            #self.combine_ammo()
     
     def rem(self, item):
         try:
@@ -801,6 +818,16 @@ class Projectile(Item):
         self.orientation = 0
         self.ammo = ammo
         
+#    @property
+#    def name(self):
+#        return self.___name  
+#        
+#    @name.setter
+#    def name(self, raw_name, ammo):
+#        if '{} {}'.format(raw_name,ammo) == self.___name:
+#            self.___name = '{} {}'.format(raw_name,ammo)
+
+            
     def random_dmg(self):
         attack_dmg = self.dmg+d10(self.dmg_modif)
         return attack_dmg
@@ -892,11 +919,13 @@ class Projectile(Item):
         
 
 class Level_Change(Building):
-    def __init__(self, name, image, x, y, image_list):
+    def __init__(self, name, image, x, y, image_list, pair):
         self.hp = 1000
         self.value = 1000
         self.image_list = image_list
+        self.pair = pair
         super(Level_Change, self).__init__(name, self.value, image, x, y, self.hp)
+        
         '''anim timer'''
         self.anim_time = pygame.time.Clock()
         self.anim_time_left = 0        
@@ -919,15 +948,15 @@ class Level_Change(Building):
     def activate(self,char,new_level):
         self.anim()
         if char.rect.collidepoint(self.rect.midbottom):
-            self.level.go_to(new_level)
+            self.level.go_to(new_level, self.pair)
 
             
 class Portal(Level_Change):
-    def __init__(self, x, y):
+    def __init__(self, x, y, pair):
         self.name = 'Portal'
         self.image_list = variables.portal_images
         self.image = self.image_list[0]
-        super(Portal,self).__init__(self.name,self.image,x,y, self.image_list)
+        super(Portal,self).__init__(self.name,self.image,x,y, self.image_list, pair)
         
     
     
