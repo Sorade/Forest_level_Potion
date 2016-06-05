@@ -72,7 +72,7 @@ class Level(object):
             choice = choice if random.randint(0,1) == 1 else pygame.transform.flip(choice, True, False)
             w = Building('obstacles',0,choice,random.randint(25,1800),random.randint(75,1800),1000)
             old_rect = w.rect
-            w.rect = w.rect.inflate(100,125)
+            w.rect = w.rect.inflate(150,150)
             test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
             if test is None:
                 w.rect = old_rect
@@ -235,7 +235,6 @@ class Character(MySprite):
             equiped = equiped[0]
             for proj in inv_projs:
                 if type(equiped) == type(proj):
-                    print equiped.ammo, proj.ammo
                     equiped.ammo += proj.ammo
                     self.inventory.contents.remove(proj)
                     equiped.name = '{} {}'.format(equiped.ammo,equiped.raw_name)

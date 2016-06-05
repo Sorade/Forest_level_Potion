@@ -74,13 +74,13 @@ class Player(Character):
                 #check x xollision
                 test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
                 test_rect = test_rect.move(-variables.xoffset,0)#.inflate(-test_rect.width/8,-test_rect.height/10)
-                if test_rect.colliderect(sprite.rect.inflate(-sprite.rect.width/3,-sprite.rect.height/10)):
+                if test_rect.colliderect(sprite.rect.inflate(-self.rect.width/1.2,-sprite.rect.height/10)):
                     variables.xoffset = 0 #set x offset to 0 for global use
                     variables.yoffset += variables.xoffset
                 #check y collision
                 test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2)) #resets test_rect to initial sprite position
                 test_rect = test_rect.move(0,-variables.yoffset)#.inflate(-10,-5)
-                if test_rect.colliderect(sprite.rect.inflate(-sprite.rect.width/3,-sprite.rect.height/10)):
+                if test_rect.colliderect(sprite.rect.inflate(-self.rect.width/1.2,-sprite.rect.height/10)):
                     variables.yoffset = 0 #set y offset to 0 for global use
                     variables.xoffset += variables.yoffset
 

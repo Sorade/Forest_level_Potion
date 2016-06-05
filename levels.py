@@ -50,8 +50,8 @@ class Level1(Level):
            
         #Objects
         house = Building('House',10, var.house1_img, 350, 80, 80)
-        self.portal = Portal(750,100,1)
-        self.portal2 = Portal(350,1850,1)
+        self.portal = Portal(1500,200,1)
+        self.portal2 = Portal(100,1720,1)
         
         self.scroll_map = Item('Map',0,var.background, 0, 0)
         self.all_sprites_list.add(house,ins.hero,self.portal,self.portal2) 
