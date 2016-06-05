@@ -181,6 +181,7 @@ inv_bg.set_colorkey((0,0,0))
 but_bg = pygame.image.load('Object_Sprites\\Button_bg2.png').convert()
 but_bg.set_colorkey((0,0,0))
 #importing background
+dirt_map = pygame.image.load('Object_Sprites\\dirt_map.png').convert()
 background = pygame.image.load('Object_Sprites\\grass_map.png').convert()
 
 #importing level_edges

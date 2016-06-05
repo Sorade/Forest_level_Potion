@@ -65,10 +65,10 @@ class Level(object):
             [x for x in self.player_list][0].level = self
             
     #random obstacles
-    def add_obstacles(self,int):
+    def add_obstacles(self,int,obs_list):
         count = 0
         while count < 75:
-            w = Building('obstacles',0,random.choice(var.obs_list),random.randint(25,1800),random.randint(75,1800),1000)
+            w = Building('obstacles',0,random.choice(obs_list),random.randint(25,1800),random.randint(75,1800),1000)
             old_rect = w.rect
             w.rect = w.rect.inflate(10,125)
             test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
@@ -77,7 +77,46 @@ class Level(object):
                 self.building_list.add(w)
                 self.all_sprites_list.add(w)
                 count += 1
+                
+    #Random ennemies
+    def add_ennemies(self,int,list):
+        count = 0           
+        while count < 10: #number of wanted enemies
+            o = random.choice(list)(random.randint(450,1500),random.randint(450,1000))
+            if random.randint(0,1) == 1:
+                o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-3,5)))
+            test = pygame.sprite.spritecollideany(o, self.all_sprites_list, collided = None)
+            if test is None:      
+                count += 1
+                self.char_list.add(o)
+                self.ennemi_list.add(o)
+                self.all_sprites_list.add(o)
+                for item in o.equipement.contents: self.all_sprites_list.add(item)
+            
+    #random objects
+    def add_chests(self,int,chest,obj):
+        count = 0
+        while count < 10:
+            #obj = [wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()]
+            collides = False
+            chest_contents = []
+            for n in range(0,random.randint(1,3)):
+                chest_contents.append(random.choice(obj))
+            pos = Rect(random.randint(50,var.background.get_rect()[2]),random.randint(80,var.background.get_rect()[3]),var.chest_img.get_rect().width,var.chest_img.get_rect().height)
+            w = chest(0,0, chest_contents)
+            w.rect = pos
         
+            for c in self.all_sprites_list:
+                if isinstance(c,chest) and w.rect.colliderect((c.rect.inflate(200,200))) == True:
+                    collides = True
+                    break
+            test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
+            if test is None and collides == False:
+                self.building_list.add(w)
+                self.all_sprites_list.add(w)
+                for item in w.inventory.contents:
+                    self.all_sprites_list.add(item)
+                count +=1        
         
 class Lifebar(object):
     def __init__(self,character):
@@ -207,25 +246,25 @@ class Character(MySprite):
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[0]
             elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[4]
             elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[8]
             elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[12]
             self.anim_time_left = 0
             self.anim_counter += 1
@@ -497,7 +536,7 @@ class Character(MySprite):
     def behaviour(self,Character):
         self.dest_time.tick()
         self.dest_time_left += self.dest_time.get_time()
-        if self.dest_time_left >= self.dest_speed: # checks if time to set new dest
+        if self.dest_time_left >= self.dest_speed  and self.has_attack == False: # checks if time to set new dest
             self.dest_time_left = 0 #resets timer
             if self.rect.inflate(250,250).colliderect(Character.rect) == True:
                 if self.speed < 2:
@@ -512,7 +551,8 @@ class Character(MySprite):
                 if self.speed > int(48.0/(var.FPS*0.7)):
                     self.speed = int(48.0/(var.FPS*0.7))
                 self.set_rand_dest()
-            
+                
+           
     def move_collision(self,EW,SN):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
         for obstacle in itertools.chain.from_iterable([self.level.building_list,self.level.player_list]):
