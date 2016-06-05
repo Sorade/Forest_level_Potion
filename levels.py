@@ -51,24 +51,13 @@ class Level1(Level):
         #Objects
         house = Building('House',10, var.house1_img, 350, 80, 80)
         self.portal = Portal(350,350,1)
-        self.scroll_map = Item('Map',0,var.background, 0, 0)
-        self.all_sprites_list.add(house,ins.hero,self.portal) 
-        self.player_list.add(ins.hero)
-        self.building_list.add(house,self.portal)
+        self.portal2 = Portal(600,400,2)
         
-        #random obstacles
-        def add_obstacles(int):
-            count = 0
-            while count < 75:
-                w = Building('obstacles',0,random.choice(var.obs_list),random.randint(25,1800),random.randint(75,1800),1000)
-                old_rect = w.rect
-                w.rect = w.rect.inflate(10,125)
-                test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
-                if test is None:
-                    w.rect = old_rect
-                    self.building_list.add(w)
-                    self.all_sprites_list.add(w)
-                    count += 1
+        self.scroll_map = Item('Map',0,var.background, 0, 0)
+        self.all_sprites_list.add(house,ins.hero,self.portal,self.portal2) 
+        self.player_list.add(ins.hero)
+        self.building_list.add(house,self.portal,self.portal2)
+        
                 
         #Random ennemies
         def add_ennemies(int):
@@ -110,7 +99,7 @@ class Level1(Level):
                         self.all_sprites_list.add(item)
                     count +=1
                     
-        add_obstacles(75)
+        self.add_obstacles(75)
         add_ennemies(10)
         add_chests(10)
         
@@ -251,9 +240,10 @@ class Level2(Level):
            
         #Objects
         self.portal = Portal(50,800,1)
-        self.all_sprites_list.add(ins.hero, self.portal) 
+        self.portal2 = Portal(600,400,2)
+        self.all_sprites_list.add(ins.hero, self.portal,self.portal2) 
         self.player_list.add(ins.hero)
-        self.building_list.add(self.portal)
+        self.building_list.add(self.portal,self.portal2)
         
         #random obstacles
         def add_obstacles(int):
