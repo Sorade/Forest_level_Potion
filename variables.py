@@ -154,6 +154,8 @@ for x in range(1,7):
 chest_img = pygame.image.load('Object_Sprites\\chest.png').convert()
 sword_img = pygame.image.load('Object_Sprites\\sword_small.png').convert()
 sword_img.set_colorkey((0,0,0))
+axe_img = pygame.image.load('Object_Sprites\\axe.png').convert_alpha()
+
 
 bow_img = pygame.image.load('Object_Sprites\\longbow.png').convert()
 bow_img.set_colorkey((0,0,0))
@@ -161,7 +163,7 @@ bow_img.set_colorkey((0,0,0))
 quiver_img = pygame.image.load('Object_Sprites\\quiver.png').convert_alpha()
 quiver_img = pygame.transform.rotate(quiver_img, 45.0)
 
-
+plate_armor_img = pygame.image.load('Object_Sprites\\plate_armor.png').convert_alpha()
 leather_armor_img = pygame.image.load('Object_Sprites\\leather_armor.png').convert_alpha()
 
 health_potion_img = pygame.image.load('Object_Sprites\\health_potion.png').convert_alpha()

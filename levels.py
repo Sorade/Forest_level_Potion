@@ -50,7 +50,7 @@ class Level1(Level):
            
         #Objects
         house = Building('House',10, var.house1_img, 350, 80, 80)
-        self.portal = Portal(800,100,1)
+        self.portal = Portal(750,100,1)
         self.portal2 = Portal(350,1850,1)
         
         self.scroll_map = Item('Map',0,var.background, 0, 0)
@@ -206,7 +206,7 @@ class Level2(Level):
         
         self.add_obstacles(75,var.dirt_list)
         self.add_ennemies(10,[ch.Ranger])
-        self.add_chests(10,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])
+        self.add_chests(10,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):
         if self.run == True:

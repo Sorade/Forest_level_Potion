@@ -61,7 +61,7 @@ class Player(Character):
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
         self.equipement.contents.extend([wp.Sword()])
-        self.inventory.contents.extend([wp.Bow(),wp.Arrow(10)])
+        #self.inventory.contents.extend([wp.Bow(),wp.Arrow(10)])
         self.attack_speed = 500
         self.F = 35
         self.E = 35
@@ -150,10 +150,12 @@ class Player(Character):
             if isinstance(item,wp.Bow):
                 self.image_list = self.temp[1]
                 break
+            if isinstance(item,wp.Axe):
+                self.image_list = self.temp[0]
+                break
             if isinstance(item,wp.Sword):
                 self.image_list = self.temp[0]
-#                if isinstance(item,Shied()):
-#                    self.image_list = variables.pshield_images
+
 
             
     def anim_move(self):

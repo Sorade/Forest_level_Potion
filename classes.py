@@ -799,8 +799,7 @@ class Torso_armor(Armor):
         self.name = name
         self.value = value
         self.arm = arm
-        self.image = var.leather_armor_img
-        super(Torso_armor, self).__init__(self.name, self.value, self.image, 200, 150, self.arm)
+        super(Torso_armor, self).__init__(self.name, self.value, image, 200, 150, self.arm)
 
 class Potion(Item):
     def __init__(self, value, regen):

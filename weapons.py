@@ -29,6 +29,19 @@ class Sword(Weapon):
         self.value = 12
         self.image = variables.sword_img
         super(Sword, self).__init__(self.name, self.value, self.image, 150, 150, self.dmg, self.dmg_modif)
+
+class Axe(Weapon):
+    def __init__(self): #name, value, image, x, y, dmg
+        self.type = 'CC'
+        self.wield = 'two_handed'
+        self.range = 15
+        self.dmg = 3
+        self.dmg_modif = 1
+        self.name = 'Axe'
+        self.value = 24
+        self.image = variables.axe_img
+        super(Axe, self).__init__(self.name, self.value, self.image, 150, 150, self.dmg, self.dmg_modif)
+
         
 class Bow(Weapon):
     def __init__(self): #name, value, image, x, y, dmg

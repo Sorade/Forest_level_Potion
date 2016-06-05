@@ -23,4 +23,13 @@ class Leather_armor(Torso_armor):
         self.arm = 1
         self.image = variables.leather_armor_img
         super(Leather_armor, self).__init__(self.name, self.value, self.image, self.arm)
-        
+  
+class Plate_armor(Torso_armor):
+    def __init__(self): #name, value, image, x, y, dmg
+        self.name = 'Plate armor'
+        self.value = 5
+        self.arm = 3
+        self.image = variables.plate_armor_img
+        super(Plate_armor, self).__init__(self.name, self.value, self.image, self.arm)
+
+      
