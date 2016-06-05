@@ -193,14 +193,25 @@ tree_pack_ew = pygame.image.load('Object_Sprites\\forest_EW_pack.png').convert_a
 forest_sample = pygame.image.load('Object_Sprites\\forest_sample.png').convert()
 forest_sample.set_colorkey((0,0,0))
 
-
-forest_rocks = pygame.image.load('Object_Sprites\\forest_rocks.png').convert()
-forest_rocks.set_colorkey((0,0,0))
-tree_stump = pygame.image.load('Object_Sprites\\tree_stump.png').convert()
+rock1 = pygame.image.load('Object_Sprites\\forest\\rock1.png').convert_alpha()
+rock2 = pygame.image.load('Object_Sprites\\forest\\rock2.png').convert()
+rock2.set_colorkey((0,0,0))
+tree_stump = pygame.image.load('Object_Sprites\\forest\\tree_stump.png').convert()
 tree_stump.set_colorkey((0,0,0))
-oak = pygame.image.load('Object_Sprites\\oaktree.png').convert()
-oak.set_colorkey((0,0,0))
-obs_list = [forest_rocks,tree_stump,oak,oak,oak,oak,forest_sample,forest_sample,forest_sample,pine_ns]
+mushrooms = pygame.image.load('Object_Sprites\\forest\\mushroom1.png').convert_alpha()
+log1 = pygame.image.load('Object_Sprites\\forest\\log1.png').convert_alpha()
+log2 = pygame.image.load('Object_Sprites\\forest\\log2.png').convert_alpha()
+log3 = pygame.transform.rotate(log1, -90)
+log4 = pygame.transform.rotate(log2, -90)
+
+trees = []
+for x in range(1,5):
+    image = pygame.image.load('Object_Sprites\\forest\\tree{}.png'.format(x)).convert_alpha()
+    image = pygame.transform.scale(image,(image.get_rect().width*5,image.get_rect().height*5))
+    image = pygame.transform.scale(image,(image.get_rect().width/3,image.get_rect().height/3))
+    trees.append(image)
+    
+obs_list = [rock1, rock2, rock1, tree_stump, mushrooms, log1, log2, log3, log4]+trees+trees+trees
 
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png

@@ -58,7 +58,7 @@ class Level1(Level):
         self.player_list.add(ins.hero)
         self.building_list.add(house,self.portal,self.portal2)
         
-        self.add_obstacles(75,var.obs_list)
+        self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Ranger])
         self.add_chests(10,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])
         

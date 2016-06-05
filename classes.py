@@ -68,7 +68,9 @@ class Level(object):
     def add_obstacles(self,int,obs_list):
         count = 0
         while count < 75:
-            w = Building('obstacles',0,random.choice(obs_list),random.randint(25,1800),random.randint(75,1800),1000)
+            choice = random.choice(obs_list)
+            choice = choice if random.randint(0,1) == 1 else pygame.transform.flip(choice, True, False)
+            w = Building('obstacles',0,choice,random.randint(25,1800),random.randint(75,1800),1000)
             old_rect = w.rect
             w.rect = w.rect.inflate(10,125)
             test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
