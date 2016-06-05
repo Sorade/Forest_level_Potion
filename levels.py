@@ -178,21 +178,21 @@ class Level2(Level):
         for x in range(0,26):
             y = random.randint(1,2)
             if y == 1:
-                image = var.tree_pack_ew
+                image = var.mound
             else:
-                image = pygame.transform.flip(var.tree_pack_ew, True, False)
+                image = pygame.transform.flip(var.mound, True, False)
             if x < 13:
-                w = Building('top_edge',0,image,x*152,-5, 1000)
+                w = Building('top_edge',0,image,x*153,-50, 1000)
             elif x < 50 :
-                w = Building('bot_edge',0,var.tree_pack_ew,(x-13)*152,1960, 1000)
+                w = Building('bot_edge',0,image,(x-13)*153,1960, 1000)
             self.building_list.add(w)
             self.all_sprites_list.add(w)
             
         for x in range(0,56):
             if x < 28:
-                w = Building('wall_left',0,var.pine_ns,-10,x*74, 1000)
+                w = Building('wall_left',0,var.rocks[5],-5,x*74, 1000)
             else:
-                w = Building('wall_right',0,var.pine_ns,2018,(x-28)*74, 1000)        
+                w = Building('wall_right',0,var.rocks[5],2000,(x-28)*74, 1000)        
             self.building_list.add(w)
             self.all_sprites_list.add(w)
             
@@ -204,7 +204,7 @@ class Level2(Level):
         self.player_list.add(ins.hero)
         self.building_list.add(self.portal,self.portal2)
         
-        self.add_obstacles(75,var.obs_list)
+        self.add_obstacles(75,var.dirt_list)
         self.add_ennemies(10,[ch.Ranger])
         self.add_chests(10,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])
         

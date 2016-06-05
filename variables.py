@@ -182,6 +182,7 @@ but_bg = pygame.image.load('Object_Sprites\\Button_bg2.png').convert()
 but_bg.set_colorkey((0,0,0))
 #importing background
 dirt_map = pygame.image.load('Object_Sprites\\dirt_map.png').convert()
+dirt_map.set_colorkey((255,255,255))
 background = pygame.image.load('Object_Sprites\\grass_map.png').convert()
 
 #importing level_edges
@@ -189,7 +190,7 @@ pine_ns = pygame.image.load('Object_Sprites\\2pine_NS.png').convert()
 pine_ns.set_colorkey((0,0,0))
 tree_pack_ew = pygame.image.load('Object_Sprites\\forest_EW_pack.png').convert_alpha()
 
-
+#importing forest assets
 forest_sample = pygame.image.load('Object_Sprites\\forest_sample.png').convert()
 forest_sample.set_colorkey((0,0,0))
 
@@ -212,6 +213,27 @@ for x in range(1,5):
     trees.append(image)
     
 obs_list = [rock1, rock2, rock1, tree_stump, mushrooms, log1, log2, log3, log4]+trees+trees+trees
+
+#importing dirt assets
+rocks = []
+for x in range(1,7):
+    image = pygame.image.load('Object_Sprites\\dirt\\rock{}.png'.format(x)).convert_alpha()
+    image = pygame.transform.scale(image,(image.get_rect().width*5,image.get_rect().height*5))
+    image = pygame.transform.scale(image,(image.get_rect().width/3,image.get_rect().height/3))
+    rocks.append(image)
+
+crystals = []
+for x in range(1,3):
+    image = pygame.image.load('Object_Sprites\\dirt\\crystal{}.png'.format(x)).convert_alpha()
+    image = pygame.transform.scale(image,(image.get_rect().width*5,image.get_rect().height*5))
+    image = pygame.transform.scale(image,(image.get_rect().width/3,image.get_rect().height/3))
+    crystals.append(image)
+    
+mound = pygame.image.load('Object_Sprites\\dirt\\mound1.png').convert_alpha()
+bone1 = pygame.image.load('Object_Sprites\\dirt\\bone1.png').convert_alpha()
+bone2 = pygame.image.load('Object_Sprites\\dirt\\bone2.png').convert_alpha()
+
+dirt_list = rocks+[mound]*10+[bone1,bone2]+crystals
 
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png
