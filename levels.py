@@ -98,8 +98,8 @@ class Level1(Level):
             
             for p in self.projectile_list: #moves projectiles
                 p.move()
-                for o in self.ennemi_list:
-                    p.hit_test(o)
+#                for o in self.ennemi_list:
+#                    p.hit_test(o)
                             
             ins.hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
             ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision

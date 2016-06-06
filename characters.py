@@ -20,10 +20,13 @@ class Ranger(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Ranger, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend([wp.Sword(),ar.Leather_armor()])
+        self.equipement.contents.extend([wp.Bow(), wp.Arrow(25), ar.Leather_armor()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
+        
+    def attack(self,Character):
+        super(Ranger, self).attack(Character, wp.Arrow(0))
 
     def update_images(self):
         #updates attack timer
@@ -39,7 +42,7 @@ class Ranger(Character):
             
         for item in self.equipement.contents:
             if isinstance(item,wp.Bow):
-                self.image_list = images[1]
+                self.image_list = images[0]#should be 1
                 break
             if isinstance(item,wp.Sword):
                 self.image_list = images[0]
@@ -124,7 +127,7 @@ class Player(Character):
                     '''make sure if is correct rather than elif, might need a has_shot variable'''
                 elif Character.rect.inflate(10,10).colliderect(self.rect) == False and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                     for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
-                        proj.name = '{} {}'.format(proj.ammo, proj.raw_name)
+#                        proj.name = '{} {}'.format(proj.ammo, proj.raw_name)
                         if proj.ammo > 0:
                             proj.ammo -= 1
                             break

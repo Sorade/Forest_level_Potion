@@ -12,11 +12,12 @@ class Arrow(Projectile):
         self.raw_name = 'Arrows'
         self.name = '{} {}'.format(ammo, self.raw_name)
         self.value = 5
+        self.range = 400
         self.image = variables.quiver_img
         self.speed = 4
         self.dmg = 2
         self.dmg_modif = 1
-        super(Arrow, self).__init__(self.name, self.value, self.image, 200, 150, self.speed, self.dmg, self.dmg_modif, ammo)
+        super(Arrow, self).__init__(self.name, self.value, self.image, 200, 150, self.speed, self.dmg, self.dmg_modif, ammo , self.range)
 
 class Sword(Weapon):
     def __init__(self): #name, value, image, x, y, dmg
@@ -47,7 +48,7 @@ class Bow(Weapon):
     def __init__(self): #name, value, image, x, y, dmg
         self.type = 'CT'
         self.wield = 'two_handed'
-        self.range = 50
+        self.range = 500
         self.dmg = 1
         self.dmg_modif = 1
         self.name = 'Bow'

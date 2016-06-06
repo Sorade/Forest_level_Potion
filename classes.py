@@ -5,6 +5,7 @@ Created on Sat Apr 23 10:35:10 2016
 @author: Julien
 """
 import pygame, sys, random
+import functions as fn
 import variables as var
 from pygame.locals import *
 import itertools
@@ -237,7 +238,7 @@ class Character(MySprite):
                 if type(equiped) == type(proj):
                     equiped.ammo += proj.ammo
                     self.inventory.contents.remove(proj)
-                    equiped.name = '{} {}'.format(equiped.ammo,equiped.raw_name)
+#                    equiped.name = '{} {}'.format(equiped.ammo,equiped.raw_name)
                     
                     
                     
@@ -511,7 +512,7 @@ class Character(MySprite):
             self.image = self.dead_image
             return False
     
-    def attack(self, Character):
+    def attack(self, Character, projectile_used):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed: # needs to be added as a variable
@@ -527,7 +528,20 @@ class Character(MySprite):
                         dmg = (dmg+self.F/10)-(arm+Character.E/10)
                     Character.hp -=  dmg
                     print 'mob deals {} dmg'.format(dmg)
-                self.attack_time_left = 0
+                    self.attack_time_left = 0
+            elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
+                range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
+                if self.rect.inflate(range_,range_).colliderect(Character.rect):
+                    print 'shoot'
+                    for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
+#                        proj.name = '{} {}'.format(proj.ammo, proj.raw_name)
+                        if proj.ammo > 0:
+                            proj.ammo -= 1
+                            break
+                    projectile = projectile_used
+                    projectile.fire(self) #in this function the pojectile level attribute needs to be already set
+                    self.attack_time_left = 0
+
            
     def set_rand_dest(self):
         self.dest_rect = self.rect.inflate(200,200)
@@ -686,7 +700,7 @@ class Inventory(object):
                 if type(item) == type(other):
                     item.ammo += other.ammo
                     self.contents.remove(other)
-                    item.name = '{} {}'.format(item.ammo,item.raw_name)
+#                    item.name = '{} {}'.format(item.ammo,item.raw_name)
                    
     def add(self, item):
         if len(self.contents) < 32:
@@ -872,23 +886,25 @@ class Building(Item):
         #self.rect = self.image.get_rect().move(x, y) #initial placement
         
 class Projectile(Item):
-    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif, ammo):
+    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif, ammo, range_):
         super(Projectile, self).__init__(name, value, image, x, y)
         self.dest = (self.rect[0],self.rect[1])
         self.speed = speed
         self.dmg_modif = dmg_modif
         self.dmg = dmg
         self.orientation = 0
+        self.range = range_
         self.ammo = ammo
         
-#    @property
-#    def name(self):
-#        return self.___name  
-#        
-#    @name.setter
-#    def name(self, raw_name, ammo):
-#        if '{} {}'.format(raw_name,ammo) == self.___name:
-#            self.___name = '{} {}'.format(raw_name,ammo)
+    @property
+    def ammo(self):
+        return self._ammo
+
+    @ammo.setter
+    def ammo(self, ammo):
+        raw_name = ''.join([i for i in self.name if not i.isdigit()])
+        self.name = str(ammo) + raw_name
+        self._ammo = ammo
 
             
     def random_dmg(self):

@@ -5,10 +5,78 @@ Created on Tue Apr 26 19:58:44 2016
 @author: Julien
 """
 
-import pygame, variables, instances, random
+import pygame, variables#, instances, random
 import numpy as np
 from pygame.locals import *
 
+def get_line(start, end):
+    """Bresenham's Line Algorithm
+    Produces a list of tuples from start and end
+ 
+    >>> points1 = get_line((0, 0), (3, 4))
+    >>> points2 = get_line((3, 4), (0, 0))
+    >>> assert(set(points1) == set(points2))
+    >>> print points1
+    [(0, 0), (1, 1), (1, 2), (2, 3), (3, 4)]
+    >>> print points2
+    [(3, 4), (2, 3), (1, 2), (1, 1), (0, 0)]
+    """
+    # Setup initial conditions
+    x1, y1 = start
+    x2, y2 = end
+    dx = x2 - x1
+    dy = y2 - y1
+ 
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
+ 
+    # Rotate line
+    if is_steep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+ 
+    # Swap start and end points if necessary and store swap state
+    swapped = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        swapped = True
+ 
+    # Recalculate differentials
+    dx = x2 - x1
+    dy = y2 - y1
+ 
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y1 < y2 else -1
+ 
+    # Iterate over bounding box generating points between start and end
+    y = y1
+    points = []
+    for x in range(x1, x2 + 1):
+        coord = (y, x) if is_steep else (x, y)
+        points.append(coord)
+        error -= abs(dy)
+        if error < 0:
+            y += ystep
+            error += dx
+ 
+    # Reverse the list if the coordinates were swapped
+    if swapped:
+        points.reverse()
+    return points
+
+def in_sight(shooter, target, range_, obstacles):
+    line_of_sight = get_line(shooter.rect.center, target.rect.center)
+    zone = shooter.rect.inflate(range_,range_)
+    obstacles_in_sight = zone.collidelistall(obstacles)
+    for x in range(1,len(line_of_sight),5):
+        for obs in obstacles_in_sight:
+            if obs.rect.collidepoint(x):
+                return False
+    return True
+            
+            
 
 def group_collision_check(group,character):
 #    col_y = False
