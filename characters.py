@@ -61,8 +61,8 @@ class Player(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
-        self.equipement.contents.extend([wp.Sword()])
-        #self.inventory.contents.extend([wp.Bow(),wp.Arrow(10)])
+        self.equipement.contents.extend([wp.Sword(),wp.Bow()])
+        self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Sword()])
         self.attack_speed = 500
         self.F = 35
         self.E = 35

@@ -466,9 +466,23 @@ class Character(MySprite):
                                     print 'Can t have both a two and one handed weapon'
                             if len(x) != 2 and already_has == False:
                                 print 'weapon  added to eq'
-                                self.equipement.contents.append(self.inventory.contents[self.selected_button]) #add's item to inv
+                                self.equipement.contents.append(self.inventory.contents[self.selected_button]) #add's item to eq
                                 self.inventory.contents.pop(self.selected_button) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
                                 self.buttons_list.pop(self.selected_button) #remove's the item from it's button list position
+                            elif already_has == True:
+                                '''send item in eq to inv'''
+                                if self.inventory.contents[self.selected_button].wield == 'two_handed':
+                                    for item in x: #removes all weapons in eq
+                                        self.inventory.contents.append(item) #add's item to inv
+                                        self.equipement.contents.remove(item) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
+                                else: #i.e. one handed
+                                    self.inventory.contents.append(x[0]) #add's item to inv
+                                    self.equipement.contents.remove(x[0]) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
+                                '''adds item to eq'''
+                                self.equipement.contents.append(self.inventory.contents[self.selected_button]) #add's item to eq
+                                self.inventory.contents.pop(self.selected_button) #removes item in player's inv located at the index specified by the position of the button corresponding to this item in the button list
+                                self.buttons_list.pop(self.selected_button) #remove's the item from it's button list position
+                                
                         elif isinstance(self.inventory.contents[self.selected_button],Projectile): #checks if item is a projectile
                             x = [item for item in self.equipement.contents if isinstance(item,Projectile) == True] #creates a list of all projectile items already in  the equipment
                             if len(x) == 0:
