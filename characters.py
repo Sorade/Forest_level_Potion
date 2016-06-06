@@ -52,7 +52,7 @@ class Ranger(Character):
             
 class Player(Character):
     def __init__(self):
-        self.hp = 14
+        self.hp = 20
         self.image = variables.walk_images[0][0]
         self.x = (variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         self.y = (variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)

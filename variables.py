@@ -214,7 +214,7 @@ for x in range(1,5):
     image = pygame.transform.scale(image,(image.get_rect().width/3,image.get_rect().height/3))
     trees.append(image)
     
-obs_list = [rock1, rock2, rock1, tree_stump, mushrooms, log1, log2, log3, log4]+trees+trees+trees
+obs_list = [rock1, rock2, rock1, tree_stump, mushrooms, log1, log2, log3, log4]+trees*4
 
 #importing dirt assets
 rocks = []

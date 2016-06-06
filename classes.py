@@ -939,7 +939,7 @@ class Projectile(Item):
         
     def hit_test(self,character):
         test = pygame.sprite.spritecollideany(self, self.level.building_list, collided = None)
-        if self.rect.colliderect(character.rect.inflate(-character.rect.width/5,-character.rect.height/5)) == True:
+        if self.rect.colliderect(character.rect.inflate(-character.rect.width/4,-character.rect.height/4)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
             dmg = self.random_dmg() - (character.E/10+arm)
             if dmg < 0:
