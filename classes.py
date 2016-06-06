@@ -25,6 +25,7 @@ class Level(object):
         self.item_list = pygame.sprite.Group()
         self.building_list = pygame.sprite.Group()
         self.projectile_list = pygame.sprite.Group()
+        self.projectile_ennemy_list = pygame.sprite.Group()
         self.all_sprites_list = pygame.sprite.Group()
         self.deleted_list = pygame.sprite.Group()
         self.dead_sprites_list = pygame.sprite.Group()
@@ -58,8 +59,6 @@ class Level(object):
             player.rect.center = (var.screenWIDTH/2,var.screenHEIGHT/2)
             player.dest = player.rect.topleft
             
-            
-
             
     def execute(self):
             var.current_level = self
@@ -512,7 +511,7 @@ class Character(MySprite):
             self.image = self.dead_image
             return False
     
-    def attack(self, Character, projectile_used):
+    def attack(self, Character):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed: # needs to be added as a variable
@@ -531,15 +530,20 @@ class Character(MySprite):
                     self.attack_time_left = 0
             elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                 range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
-                if self.rect.inflate(range_,range_).colliderect(Character.rect):
+                #print fn.in_sight(self,Character, range_, self.level.building_list)
+                if self.rect.inflate(range_,range_).colliderect(Character.rect) \
+                and self.rect.inflate(300,300).colliderect(Character.rect) == False \
+                and fn.in_sight(self,Character, range_, self.level.building_list):
                     print 'shoot'
+                    '''creates an instance by getting the type of the proj in eq'''
+                    proj_used = type([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0][0])(0)
                     for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
-#                        proj.name = '{} {}'.format(proj.ammo, proj.raw_name)
                         if proj.ammo > 0:
                             proj.ammo -= 1
                             break
-                    projectile = projectile_used
-                    projectile.fire(self) #in this function the pojectile level attribute needs to be already set
+                    wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
+                    proj_used.dmg += wep_used.dmg
+                    proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
 
            
@@ -911,12 +915,12 @@ class Projectile(Item):
         attack_dmg = self.dmg+d10(self.dmg_modif)
         return attack_dmg
 
-    def fire(self,shooter):
+    def fire(self,shooter, target_pos, dest_list):
         self.rect.center = shooter.rect.center#place's the projectile at shooter's position
-        self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset
+        self.dest = target_pos#pygame.mouse.get_pos() #set's destination, will need to be offset
         self.dmg = int(shooter.F/10.0)
         self.image = var.arrow_img
-        self.level.projectile_list.add(self)
+        dest_list.add(self) #for player firing : self.level.projectile_list, for mobs self.level.projectile_ennemy_list
         var.has_shot = True
         
     def hit_test(self,character):
@@ -946,7 +950,7 @@ class Projectile(Item):
         ym = m_pos[1]-self.rect[3]
         
         dx = xm-xp
-        dy= float(ym-yp) 
+        dy = ym-yp 
         #dist = (dx**2+dy**2)**0.5 #get lenght to travel
         
         #calculates angle and sets quadrant

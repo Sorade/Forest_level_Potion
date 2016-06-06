@@ -5,6 +5,7 @@ Created on Wed May 11 18:54:14 2016
 @author: Julien
 """
 import variables, random
+from functions import d10
 from classes import Weapon, Projectile
 
 class Arrow(Projectile):
@@ -15,7 +16,7 @@ class Arrow(Projectile):
         self.range = 400
         self.image = variables.quiver_img
         self.speed = 4
-        self.dmg = 2
+        self.dmg = 1
         self.dmg_modif = 1
         super(Arrow, self).__init__(self.name, self.value, self.image, 200, 150, self.speed, self.dmg, self.dmg_modif, ammo , self.range)
 
@@ -48,7 +49,7 @@ class Bow(Weapon):
     def __init__(self): #name, value, image, x, y, dmg
         self.type = 'CT'
         self.wield = 'two_handed'
-        self.range = 500
+        self.range = 400+d10(2)
         self.dmg = 1
         self.dmg_modif = 1
         self.name = 'Bow'

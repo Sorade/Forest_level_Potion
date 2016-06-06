@@ -98,8 +98,12 @@ class Level1(Level):
             
             for p in self.projectile_list: #moves projectiles
                 p.move()
-#                for o in self.ennemi_list:
-#                    p.hit_test(o)
+                for o in self.ennemi_list:
+                    p.hit_test(o)
+                    
+            for p in self.projectile_ennemy_list: 
+                p.move() #moves enemy projectiles
+                p.hit_test(ins.hero)
                             
             ins.hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
             ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision
@@ -125,6 +129,7 @@ class Level1(Level):
             group_offset(self.ennemi_list)
             group_offset(self.dead_sprites_list)
             group_offset(self.projectile_list)
+            group_offset(self.projectile_ennemy_list)
             
             #check if characters are dead before blitting:
             for Character in itertools.chain.from_iterable([self.char_list,self.player_list]):
@@ -135,6 +140,7 @@ class Level1(Level):
             var.screen.blit(self.scroll_map.image, self.scroll_map.rect) # blits the grass map to new pos
             self.building_list.draw(var.screen) #blits the buildings to new pos
             self.projectile_list.draw(var.screen)
+            self.projectile_ennemy_list.draw(var.screen)
                     
             if pygame.key.get_pressed()[pygame.K_e]: #blits highlight if e pressed
                 for x in self.item_list:

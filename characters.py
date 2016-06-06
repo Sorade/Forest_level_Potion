@@ -7,6 +7,7 @@ Created on Fri May 13 19:43:28 2016
 import pygame
 import variables
 import random
+from functions import d10
 from classes import Character,Projectile,Weapon,Armor
 import weapons as wp
 import armors as ar
@@ -20,13 +21,11 @@ class Ranger(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Ranger, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend([wp.Bow(), wp.Arrow(25), ar.Leather_armor()])
+        self.equipement.contents.extend([wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
         
-    def attack(self,Character):
-        super(Ranger, self).attack(Character, wp.Arrow(0))
 
     def update_images(self):
         #updates attack timer
@@ -132,7 +131,7 @@ class Player(Character):
                             proj.ammo -= 1
                             break
                     projectile = wp.Arrow(0)
-                    projectile.fire(self) #in this function the pojectile level attribute needs to be already set
+                    projectile.fire(self,pygame.mouse.get_pos(),self.level.projectile_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
     
     def update_images(self):

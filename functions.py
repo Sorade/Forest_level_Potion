@@ -7,7 +7,15 @@ Created on Tue Apr 26 19:58:44 2016
 
 import pygame, variables#, instances, random
 import numpy as np
+import random
 from pygame.locals import *
+
+def d10(int):
+    rng = range(0,int)
+    total = 0
+    for x in rng:
+        total += random.randint(0,10)
+    return total
 
 def get_line(start, end):
     """Bresenham's Line Algorithm
@@ -69,10 +77,11 @@ def get_line(start, end):
 def in_sight(shooter, target, range_, obstacles):
     line_of_sight = get_line(shooter.rect.center, target.rect.center)
     zone = shooter.rect.inflate(range_,range_)
-    obstacles_in_sight = zone.collidelistall(obstacles)
+    obstacles_list = [rectangle.rect for rectangle in obstacles] #to support indexing
+    obstacles_in_sight = zone.collidelistall(obstacles_list)
     for x in range(1,len(line_of_sight),5):
-        for obs in obstacles_in_sight:
-            if obs.rect.collidepoint(x):
+        for obs_index in obstacles_in_sight:
+            if obstacles_list[obs_index].collidepoint(line_of_sight[x]):
                 return False
     return True
             
