@@ -145,6 +145,8 @@ skl_attack_images = [skl_a_sword_images]
 dead_ennemi = pygame.image.load('Skeleton_Sprites\\dead.png').convert_alpha()
 
 
+orc_ss = pygame.image.load('Orc_Sprites\\Orc_Sprite_Sheet.png').convert_alpha()
+
 '''object import'''
 
 portal_images = []

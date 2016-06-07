@@ -78,7 +78,7 @@ def add_obstacles(int):
 def add_ennemies(int):
     count = 0           
     while count < 10: #number of wanted enemies
-        o = ch.Ranger(random.randint(450,1500),random.randint(450,1000))
+        o = ch.Skeleton(random.randint(450,1500),random.randint(450,1000))
         if random.randint(0,1) == 1:
             o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-3,5)))
         test = pygame.sprite.spritecollideany(o, variables.all_sprites_list, collided = None)

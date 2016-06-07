@@ -59,10 +59,22 @@ class Level1(Level):
         self.building_list.add(house,self.portal,self.portal2)
         
         self.add_obstacles(150,var.obs_list)
-        self.add_ennemies(10,[ch.Ranger])
+        self.add_ennemies(10,[ch.Skeleton])
         self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
-        #self.set_level(self.all_sprites_list)
+        '''testing spritesheet'''
+#        ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
+#        # Sprite is 16x16 pixels at location 0,0 in the file...
+#        image = ss.image_at((0, 0, 50, 50))
+#        images = []
+#        # Load two images into an array, their transparent bit is (255, 255, 255)
+#        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
+#        print images
+        
+        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', (0,710,64,64), 9, None, True, var.FPS/8)]       
+        self.n = 0
+        self.strips[self.n].iter()
+        self.image = self.strips[self.n].next()
         
         
     def execute(self):
@@ -87,13 +99,13 @@ class Level1(Level):
                     for i in self.building_list:
                         if isinstance(i,it.Chest):
                             i.open_(ins.hero)
-                                
+                            
             for o in self.char_list: 
-                if isinstance(o, ch.Ranger): #sets mobs dest characters
+                if isinstance(o, ch.Skeleton): #sets mobs dest characters
                     o.behaviour(ins.hero)
         
             for o in self.char_list: 
-                if isinstance(o, ch.Ranger): #moves characters
+                if isinstance(o, ch.Skeleton): #moves characters
                     o.move()
             
             for p in self.projectile_list: #moves projectiles
@@ -170,7 +182,10 @@ class Level1(Level):
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,2)
                     
-                    
+            var.screen.blit(self.image, (0,0))       #spritesheet test
+            self.image = self.strips[self.n].next()
+            #self.n += 1
+            
 class Level2(Level):
     def set_level(self, sprite_grp):
         for sprite in sprite_grp:
@@ -211,7 +226,7 @@ class Level2(Level):
         self.building_list.add(self.portal,self.portal2)
         
         self.add_obstacles(75,var.dirt_list)
-        self.add_ennemies(10,[ch.Ranger])
+        self.add_ennemies(10,[ch.Skeleton])
         self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):
@@ -236,11 +251,11 @@ class Level2(Level):
                             i.open_(ins.hero)
                                 
             for o in self.char_list: 
-                if isinstance(o, ch.Ranger): #sets mobs dest characters
+                if isinstance(o, ch.Skeleton): #sets mobs dest characters
                     o.behaviour(ins.hero)
         
             for o in self.char_list: 
-                if isinstance(o, ch.Ranger): #moves characters
+                if isinstance(o, ch.Skeleton): #moves characters
                     o.move()
             
             for p in self.projectile_list: #moves projectiles
