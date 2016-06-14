@@ -28,15 +28,15 @@ class Skeleton(Character):# to change to Orc
         
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Sword
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       SpriteStripAnim(variables.orc_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.orc_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.orc_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.orc_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
                        #Attacking Sword
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1416,71,60), 6, None, True, variables.FPS/6),#North
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6),#West
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1800,71,60), 6, None, True, variables.FPS/6),#South
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,2000,71,60), 6, None, True, variables.FPS/6)]#East
+                       SpriteStripAnim(variables.orc_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.orc_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.orc_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.orc_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/6)]#East
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()

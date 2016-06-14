@@ -73,8 +73,9 @@ class SpriteStripAnim(object):
         frames is the number of ticks to return the same image before
         the iterator advances to the next image.
         """
-        self.filename = filename
-        ss = spritesheet(filename)
+        #self.filename = filename
+        #ss = spritesheet(filename)
+        ss = filename
         self.images = ss.load_strip(spacing, rect, count, colorkey)
         self.i = 0
         self.loop = loop
