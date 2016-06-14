@@ -189,7 +189,7 @@ class Player(Character):
     def character_collisions(self):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
         for obstacle in self.level.ennemi_list:
-            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:
+            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/5,-obstacle.rect.height/10)) == True:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
                 if dx > 0 and  0 < variables.orientation < 180:
