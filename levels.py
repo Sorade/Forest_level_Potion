@@ -71,7 +71,7 @@ class Level1(Level):
 #        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
 #        print images
         
-        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,710,32,60), 9, None, True, var.FPS/8)]       
+        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6)]       
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
@@ -230,7 +230,7 @@ class Level2(Level):
         self.building_list.add(self.portal,self.portal2)
         
         self.add_obstacles(75,var.dirt_list)
-        self.add_ennemies(10,[ch.Skeleton])
+        self.add_ennemies(0,[ch.Skeleton])
         self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):

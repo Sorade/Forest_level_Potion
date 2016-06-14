@@ -633,7 +633,6 @@ class Character(MySprite):
                         dmg = (dmg+self.F/10)-(arm+Character.E/10)
                     Character.hp -=  dmg
                     print 'mob deals {} dmg'.format(dmg)
-                    self.has_attack = True
                     self.attack_time_left = 0
             elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                 range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
@@ -651,7 +650,6 @@ class Character(MySprite):
                     wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
                     proj_used.dmg += wep_used.dmg
                     proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
-                    self.has_attack = True
                     self.attack_time_left = 0
 
            

@@ -27,10 +27,16 @@ class Skeleton(Character):# to change to Orc
         self.E = 20
         
         '''Sprite Sheet Variables'''
-        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,524,32,60), 9, None, True, variables.FPS/8),#North
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,592,32,60), 9, None, True, variables.FPS/8),#West
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,656,32,60), 9, None, True, variables.FPS/8),#South
-                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,710,32,60), 9, None, True, variables.FPS/8)]#East     
+        self.strips = [#Walking Sword
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Sword
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1416,71,60), 6, None, True, variables.FPS/6),#North
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6),#West
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1800,71,60), 6, None, True, variables.FPS/6),#South
+                       SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,2000,71,60), 6, None, True, variables.FPS/6)]#East
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
@@ -53,22 +59,23 @@ class Skeleton(Character):# to change to Orc
                     self.n = 3
                     self.image = self.strips[self.n].next()
                     
-            elif self.has_attack == True: #checks time to animate
+            if self.has_attack == True: #checks time to animate
+                print 'anim attack'
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 0
+                    self.n = 5
                     self.image = self.strips[self.n].next()
                     #self.strips[self.n].iter()
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 0
+                    self.n = 6
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 0
+                    self.n = 4
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 0
+                    self.n = 7
                     self.image = self.strips[self.n].next()
                     
-            else:
+            if self.has_attack == False and self.is_moving == False:
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
                     self.n = 2
                     self.image = self.strips[self.n].images[0]
@@ -87,25 +94,26 @@ class Skeleton(Character):# to change to Orc
                 
                 
     def update_images(self):
-        #updates attack timer
-        self.attack_time.tick()
-        self.attack_time_left += self.attack_time.get_time()
-        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-        if  self.attack_time_left <= self.attack_speed and self.has_attack == True:
-            images = self.attack_images
-            
-        else:
-            self.has_attack = False
-            images = self.walk_images
-            
-        for item in self.equipement.contents:
-            if isinstance(item,wp.Bow):
-                self.image_list = images[0]#should be 1
-                break
-            if isinstance(item,wp.Sword):
-                self.image_list = images[0]
-#                if isinstance(item,Shied()):
-#                    self.image_list = variables.pshield_images
+        pass
+#        #updates attack timer
+#        self.attack_time.tick()
+#        self.attack_time_left += self.attack_time.get_time()
+#        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
+#        if  self.attack_time_left <= self.attack_speed and self.has_attack == True:
+#            images = self.attack_images
+#            
+#        else:
+#            self.has_attack = False
+#            images = self.walk_images
+#            
+#        for item in self.equipement.contents:
+#            if isinstance(item,wp.Bow):
+#                self.image_list = images[0]#should be 1
+#                break
+#            if isinstance(item,wp.Sword):
+#                self.image_list = images[0]
+##                if isinstance(item,Shied()):
+##                    self.image_list = variables.pshield_images
 
 class Orc(Character): #to change to Skeleton
     def __init__(self, x, y):
@@ -146,7 +154,7 @@ class Orc(Character): #to change to Skeleton
             
 class Player(Character):
     def __init__(self):
-        self.hp = 20
+        self.hp = 250
         self.image = variables.walk_images[0][0]
         self.x = (variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         self.y = (variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
