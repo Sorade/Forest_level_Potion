@@ -61,11 +61,11 @@ class Skeleton(Character):# to change to Orc
                     
             if self.has_attack == True: #checks time to animate
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 5
+                    self.n = 6
                     self.image = self.strips[self.n].next()
                     #self.strips[self.n].iter()
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 7
+                    self.n = 5
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
                     self.n = 4
@@ -163,7 +163,7 @@ class Player(Character):
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
         self.equipement.contents.extend([wp.Sword()])
-        #self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Sword()])
+        self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Axe()])
         self.attack_speed = 500
         self.F = 35
         self.E = 35
@@ -171,15 +171,35 @@ class Player(Character):
 
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Sword
-                       SpriteStripAnim(variables.player_ss, 32, (16,515,32,55), 9, None, True, variables.FPS/8),#North
-                       SpriteStripAnim(variables.player_ss, 32, (16,583,32,55), 9, None, True, variables.FPS/8),#West
-                       SpriteStripAnim(variables.player_ss, 32, (16,647,32,55), 9, None, True, variables.FPS/8),#South
-                       SpriteStripAnim(variables.player_ss, 32, (16,701,32,55), 9, None, True, variables.FPS/8),#East
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,520,32,55), 9, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,580,32,60), 9, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,650,32,55), 9, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/8),#East
                        #Attacking Sword
-                       SpriteStripAnim(variables.player_ss, 120, (56,1416,71,55), 6, None, True, variables.FPS/8),#North
-                       SpriteStripAnim(variables.player_ss, 120, (56,1608,71,55), 6, None, True, variables.FPS/8),#West
-                       SpriteStripAnim(variables.player_ss, 120, (56,1800,71,55), 6, None, True, variables.FPS/8),#South
-                       SpriteStripAnim(variables.player_ss, 120, (56,2000,71,55), 6, None, True, variables.FPS/8)]#East
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1607,71,60), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1993,71,60), 6, None, True, variables.FPS/8),#East
+                       #Walking Bow
+                       SpriteStripAnim(variables.player_bow_ss, 32, (16,520,32,55), 9, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_bow_ss, 32, (16,580,32,60), 9, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_bow_ss, 32, (16,650,32,55), 9, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_bow_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/8),#East
+                       #Attacking Bow
+                       SpriteStripAnim(variables.player_bow_ss, 4, (0,1031,60,60), 13, None, True, variables.FPS/13),#North
+                       SpriteStripAnim(variables.player_bow_ss, 4, (0,1096,60,60), 13, None, True, variables.FPS/13),#West
+                       SpriteStripAnim(variables.player_bow_ss, 4, (0,1157,60,60), 13, None, True, variables.FPS/13),#South
+                       SpriteStripAnim(variables.player_bow_ss, 4, (0,1224,60,60), 13, None, True, variables.FPS/13),
+                        #Walking Mace
+                       SpriteStripAnim(variables.player_mace_ss, 32, (16,520,32,55), 9, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_mace_ss, 32, (16,580,32,60), 9, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_mace_ss, 32, (16,650,32,55), 9, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_mace_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/8),#East
+                       #Attacking Mace
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1607,71,60), 6, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1993,71,60), 6, None, True, variables.FPS/6)]#East
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
@@ -206,7 +226,7 @@ class Player(Character):
     def character_collisions(self):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
         for obstacle in self.level.ennemi_list:
-            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/5,-obstacle.rect.height/10)) == True:
+            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
                 if dx > 0 and  0 < self.orientation < 180:
@@ -218,7 +238,7 @@ class Player(Character):
                 if dy < 0 and  (270 < self.orientation < 360) == True or (0 < self.orientation < 90) == True:
                     variables.yoffset = 0 #set y offset to 0 for global use
                 break
-                    
+            
     def attack(self, Character):
         if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) == True and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0:
             variables.has_shot = True
@@ -226,12 +246,12 @@ class Player(Character):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed:
-            self.has_attack = False
+            #self.has_attack = False
             if Character.is_alive() == True and Character.rect.inflate(15,15).collidepoint(pygame.mouse.get_pos()):
                 self.merge_ammo()
                 self.has_attack = True
-                if Character.rect.colliderect(self.rect.inflate(self.rect.width,self.rect.height)) == True:
-                    self.has_attack = True
+                if Character.rect.inflate(Character.rect.width,Character.rect.height).colliderect(self.rect.inflate(self.rect.width,self.rect.height)) == True:
+                    #self.has_attack = True
                     test = random.randint(1,100) <= self.CC
                     if test == True:
                         dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
@@ -253,7 +273,7 @@ class Player(Character):
                     projectile = wp.Arrow(0)
                     projectile.fire(self,pygame.mouse.get_pos(),self.level.projectile_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
-    
+        
     def update_images(self):
         pass
 #        #updates attack timer
@@ -315,52 +335,72 @@ class Player(Character):
 #            self.anim_counter += 1
             
     def anim_move(self):
-        print self.orientation
+        '''checks equipement to display'''
+        x = 0*8 #default value if no item is equiped
+        for item in self.equipement.contents:
+            if isinstance(item,wp.Bow):
+                x = 1*8
+                break
+            if isinstance(item,wp.Axe):
+                x = 2*8
+                break
+            if isinstance(item,wp.Sword):
+                x = 0*8
+
+        '''checks if attack anim needs to terminate'''
+        self.attack_time.tick()
+        self.attack_time_left += self.attack_time.get_time()
+        if self.attack_time_left >= self.attack_speed:
+            self.has_attack = False
+        
+        '''checks if player is stopped'''
         if variables.xoffset == 0 and variables.yoffset == 0:
             self.is_moving = False
         else:
             self.is_moving = True
-        #checks which anim to display based on the direction and if sprite is moving and alive
+            
+        '''checks which anim to display based on the direction
+        and if sprite is moving and alive'''
         if self.hp > 0:
             if self.is_moving == True: #checks time to animate
                 if self.orientation >= 140 and self.orientation <= 220: #South
-                    self.n = 2
+                    self.n = 2+x
                     self.image = self.strips[self.n].next()
                 elif self.orientation >= 220 and self.orientation <= 320: #West
-                    self.n = 1
+                    self.n = 1+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #North
-                    self.n = 0
+                    self.n = 0+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 40 and self.orientation <= 140: #East
-                    self.n = 3
+                    self.n = 3+x
                     self.image = self.strips[self.n].next()
                     
             if self.has_attack == True: #checks time to animate
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 5
+                    self.n = 6+x
                     self.image = self.strips[self.n].next()
                     #self.strips[self.n].iter()
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 7
+                    self.n = 5+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 4
+                    self.n = 4+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 7
+                    self.n = 7+x
                     self.image = self.strips[self.n].next()
                     
             if self.has_attack == False and self.is_moving == False:
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 2
+                    self.n = 2+x
                     self.image = self.strips[self.n].images[0]
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 1
+                    self.n = 1+x
                     self.image = self.strips[self.n].images[0]
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 0
+                    self.n = 0+x
                     self.image = self.strips[self.n].images[0]
                 elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 3
+                    self.n = 3+x
                     self.image = self.strips[self.n].images[0]

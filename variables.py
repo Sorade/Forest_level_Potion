@@ -176,7 +176,9 @@ dead_ennemi = pygame.image.load('Skeleton_Sprites\\dead.png').convert_alpha()
 
 '''Spritesheets'''
 orc_ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
-player_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
+player_sword_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
+player_bow_ss =spritesheet('Character_Sprites\\Archer_sheet.png')
+player_mace_ss =spritesheet('Character_Sprites\\Mace_sheet.png')
 
 '''object import'''
 

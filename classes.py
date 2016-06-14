@@ -403,42 +403,42 @@ class Character(MySprite):
             if dx == 0 and ym > yp:
                 xoffset = 0
                 yoffset = -speed
-                var.orientation = 180
+                self.orientation = 180
             elif dx == 0 and ym < yp:
                 xoffset = 0
                 yoffset = speed
-                var.orientation = 0
+                self.orientation = 0
             elif dy == 0 and xm > xp:
                 xoffset = 0
                 yoffset = -speed
-                var.orientation = 90
+                self.orientation = 90
             elif dy == 0 and xm < xp:
                 xoffset = 0
                 yoffset = speed
-                var.orientation = 270
+                self.orientation = 270
             else:
                 xoffset, yoffset = 0,0
-                var.orientation = 180
+                self.orientation = 180
         elif xm > xp and ym > yp:
             angle_rad = np.arctan((abs(dy)/abs(dx)))
             xoffset = -np.cos(angle_rad)*speed
             yoffset = -np.sin(angle_rad)*speed
-            var.orientation = angle_rad*(180.0/np.pi)+90
+            self.orientation = angle_rad*(180.0/np.pi)+90
         elif xm < xp and ym > yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset =  np.sin(angle_rad)*speed
             yoffset = -np.cos(angle_rad)*speed
-            var.orientation = angle_rad*(180.0/np.pi)+180
+            self.orientation = angle_rad*(180.0/np.pi)+180
         elif xm < xp and ym < yp:
             angle_rad = np.arctan((abs(dy)/abs(dx)))
             xoffset = np.cos(angle_rad)*speed
             yoffset = np.sin(angle_rad)*speed
-            var.orientation = angle_rad*(180.0/np.pi)+270
+            self.orientation = angle_rad*(180.0/np.pi)+270
         else:# xm > xp and ym < yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset = -np.sin(angle_rad)*speed
             yoffset =  np.cos(angle_rad)*speed
-            var.orientation = angle_rad*(180.0/np.pi)
+            self.orientation = angle_rad*(180.0/np.pi)
         
         var.xoffset = int(xoffset)
         var.yoffset = int(yoffset)
@@ -686,7 +686,7 @@ class Character(MySprite):
     def move_collision(self,EW,SN):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
         for obstacle in itertools.chain.from_iterable([self.level.building_list,self.level.player_list]):
-            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/5,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
+            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
                 if EW == True:
                     if self.dest[1] > self.rect.y:
                         mvt = self.speed
