@@ -71,7 +71,7 @@ class Level1(Level):
 #        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
 #        print images
         
-        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', (0,710,64,64), 9, None, True, var.FPS/8)]       
+        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 32, (16,710,32,60), 9, None, True, var.FPS/8)]       
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
@@ -163,6 +163,9 @@ class Level1(Level):
             self.ennemi_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
+            for e in self.ennemi_list:
+                e.image = e.strips[e.n].next()
+            
             Lifebar(ins.hero)
             for msg in self.message_list:
                 msg.show()
@@ -183,6 +186,7 @@ class Level1(Level):
                     x.activate(ins.hero,2)
                     
             var.screen.blit(self.image, (0,0))       #spritesheet test
+            #var.screen.blit(self.strips[self.n].images[2], (0,0))
             self.image = self.strips[self.n].next()
             #self.n += 1
             

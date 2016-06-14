@@ -36,11 +36,23 @@ class spritesheet(object):
         "Loads multiple images, supply a list of coordinates" 
         return [self.image_at(rect, colorkey) for rect in rects]
     # Load a whole strip of images
-    def load_strip(self, rect, image_count, colorkey = None):
+#    def load_strip(self, rect, image_count, colorkey = None):
+#        "Loads a strip of images and returns them as a list"
+#        tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
+#                for x in range(image_count)]
+#        return self.images_at(tups, colorkey)
+        
+    def load_strip(self,spacing, rect, image_count, colorkey = None):
         "Loads a strip of images and returns them as a list"
-        tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
-                for x in range(image_count)]
-        return self.images_at(tups, colorkey)
+#        tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
+#                for x in range(image_count)]:
+        tups = []          
+        for x in range(image_count):
+            if x != 0:
+                tups += [(rect[0]+(rect[2]+spacing)*x, rect[1], rect[2], rect[3])]
+            else:
+                tups += [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])]
+        return self.images_at(tups, colorkey)  
         
 class SpriteStripAnim(object):
     """sprite strip animator
@@ -49,7 +61,7 @@ class SpriteStripAnim(object):
     __add__() method for joining strips which comes in handy when a
     strip wraps to the next row.
     """
-    def __init__(self, filename, rect, count, colorkey=None, loop=False, frames=1):
+    def __init__(self, filename, spacing, rect, count, colorkey=None, loop=False, frames=1):
         """construct a SpriteStripAnim
         
         filename, rect, count, and colorkey are the same arguments used
@@ -63,7 +75,7 @@ class SpriteStripAnim(object):
         """
         self.filename = filename
         ss = spritesheet(filename)
-        self.images = ss.load_strip(rect, count, colorkey)
+        self.images = ss.load_strip(spacing, rect, count, colorkey)
         self.i = 0
         self.loop = loop
         self.frames = frames
@@ -288,6 +300,8 @@ class Character(MySprite):
         self.mvt_time = pygame.time.Clock()
         self.mvt_time_left = 0        
         self.mvt_speed = int(1000/(var.FPS*0.7))
+        
+        self.is_moving = False
         
         '''inventory opening attributes'''
         self.do_once = True
@@ -606,6 +620,7 @@ class Character(MySprite):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed: # needs to be added as a variable
+            self.has_attack = False #to prevent endless animation
             if Character.is_alive() == True and self.is_alive() == True and Character.rect.inflate(5,5).colliderect(self.rect):
                 self.has_attack = True
                 test = random.randint(1,100) <= self.CC
@@ -618,6 +633,7 @@ class Character(MySprite):
                         dmg = (dmg+self.F/10)-(arm+Character.E/10)
                     Character.hp -=  dmg
                     print 'mob deals {} dmg'.format(dmg)
+                    self.has_attack = True
                     self.attack_time_left = 0
             elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                 range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
@@ -635,6 +651,7 @@ class Character(MySprite):
                     wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
                     proj_used.dmg += wep_used.dmg
                     proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
+                    self.has_attack = True
                     self.attack_time_left = 0
 
            
@@ -701,6 +718,7 @@ class Character(MySprite):
         self.mvt_time_left += self.mvt_time.get_time()
         if  self.mvt_time_left >= self.mvt_speed:# checks time to animate
             if self.pos != self.dest: # cheks pos  animate
+                self.is_moving = True
                 self.mvt_time_left = 0
                 if self.dest[0] > self.rect[0]: #move E
                     self.move_speed = self.speed
@@ -722,6 +740,8 @@ class Character(MySprite):
                     self.pos = self.rect.topleft
             else:
                 self.anim_time_left = 0
+                self.is_moving = False
+
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
