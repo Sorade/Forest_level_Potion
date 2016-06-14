@@ -174,8 +174,9 @@ skl_attack_images = [skl_a_sword_images]
 
 dead_ennemi = pygame.image.load('Skeleton_Sprites\\dead.png').convert_alpha()
 
-
+'''Spritesheets'''
 orc_ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
+player_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
 
 '''object import'''
 

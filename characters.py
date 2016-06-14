@@ -33,10 +33,10 @@ class Skeleton(Character):# to change to Orc
                        SpriteStripAnim(variables.orc_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
                        SpriteStripAnim(variables.orc_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
                        #Attacking Sword
-                       SpriteStripAnim(variables.orc_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/6),#North
-                       SpriteStripAnim(variables.orc_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/6),#West
-                       SpriteStripAnim(variables.orc_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/6),#South
-                       SpriteStripAnim(variables.orc_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/6)]#East
+                       SpriteStripAnim(variables.orc_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.orc_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.orc_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.orc_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/8)]#East
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
@@ -169,6 +169,23 @@ class Player(Character):
         self.E = 35
         self.dead_image = variables.dead_player if random.randint(0,1) == 0 else pygame.transform.flip(variables.dead_player, True, False)
 
+        '''Sprite Sheet Variables'''
+        self.strips = [#Walking Sword
+                       SpriteStripAnim(variables.player_ss, 32, (16,515,32,55), 9, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_ss, 32, (16,583,32,55), 9, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_ss, 32, (16,647,32,55), 9, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_ss, 32, (16,701,32,55), 9, None, True, variables.FPS/8),#East
+                       #Attacking Sword
+                       SpriteStripAnim(variables.player_ss, 120, (56,1416,71,55), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_ss, 120, (56,1608,71,55), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_ss, 120, (56,1800,71,55), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_ss, 120, (56,2000,71,55), 6, None, True, variables.FPS/8)]#East
+        self.n = 0
+        self.strips[self.n].iter()
+        self.image = self.strips[self.n].next()
+
+
+
     def group_collision_check(self,group):
         for sprite in group: #checks if sprite collide with character using test_rect
             
@@ -192,13 +209,13 @@ class Player(Character):
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/5,-obstacle.rect.height/10)) == True:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
-                if dx > 0 and  0 < variables.orientation < 180:
+                if dx > 0 and  0 < self.orientation < 180:
                     variables.xoffset = 0 #set x offset to 0 for global use
-                if dx < 0 and  180 < variables.orientation < 360:
+                if dx < 0 and  180 < self.orientation < 360:
                     variables.xoffset = 0 #set x offset to 0 for global use
-                if dy > 0 and  90 < variables.orientation < 270:
+                if dy > 0 and  90 < self.orientation < 270:
                     variables.yoffset = 0 #set y offset to 0 for global use
-                if dy < 0 and  (270 < variables.orientation < 360) == True or (0 < variables.orientation < 90) == True:
+                if dy < 0 and  (270 < self.orientation < 360) == True or (0 < self.orientation < 90) == True:
                     variables.yoffset = 0 #set y offset to 0 for global use
                 break
                     
@@ -206,11 +223,13 @@ class Player(Character):
         if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) == True and len([x for x in self.equipement.contents if isinstance (x,Projectile)]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0:
             variables.has_shot = True
         '''attack timer update is done in the anim method'''
-        #self.attack_time.tick()
-        #self.attack_time_left += self.attack_time.get_time()
+        self.attack_time.tick()
+        self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed:
+            self.has_attack = False
             if Character.is_alive() == True and Character.rect.inflate(15,15).collidepoint(pygame.mouse.get_pos()):
                 self.merge_ammo()
+                self.has_attack = True
                 if Character.rect.colliderect(self.rect.inflate(self.rect.width,self.rect.height)) == True:
                     self.has_attack = True
                     test = random.randint(1,100) <= self.CC
@@ -236,61 +255,112 @@ class Player(Character):
                     self.attack_time_left = 0
     
     def update_images(self):
-        #updates attack timer
-        self.attack_time.tick()
-        self.attack_time_left += self.attack_time.get_time()
-        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-        self.temp = 0
-        if  (self.attack_time_left <= self.attack_speed and self.has_attack == True) or (self.attack_time_left <= self.attack_speed and self.anim_shot == True):
-            self.temp = self.attack_images
-            
-        else:
-            self.has_attack = False
-            self.anim_shot = False
-            self.temp = self.walk_images
-            
-        for item in self.equipement.contents:
-            if isinstance(item,wp.Bow):
-                self.image_list = self.temp[1]
-                break
-            if isinstance(item,wp.Axe):
-                self.image_list = self.temp[0]
-                break
-            if isinstance(item,wp.Sword):
-                self.image_list = self.temp[0]
+        pass
+#        #updates attack timer
+#        self.attack_time.tick()
+#        self.attack_time_left += self.attack_time.get_time()
+#        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
+#        self.temp = 0
+#        if  (self.attack_time_left <= self.attack_speed and self.has_attack == True) or (self.attack_time_left <= self.attack_speed and self.anim_shot == True):
+#            self.temp = self.attack_images
+#            
+#        else:
+#            self.has_attack = False
+#            self.anim_shot = False
+#            self.temp = self.walk_images
+#            
+#        for item in self.equipement.contents:
+#            if isinstance(item,wp.Bow):
+#                self.image_list = self.temp[1]
+#                break
+#            if isinstance(item,wp.Axe):
+#                self.image_list = self.temp[0]
+#                break
+#            if isinstance(item,wp.Sword):
+#                self.image_list = self.temp[0]
 
 
+            
+#    def anim_move(self):
+#        #updates anim timer
+#        self.anim_time.tick()
+#        self.anim_time_left += self.anim_time.get_time()
+#        #checks which anim to display based on the direction and if sprite is moving and alive
+#        if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
+#            if self.orientation >= 135 and self.orientation <= 225: # goes south checks orientation
+#                if self.anim_counter >= 4:
+#                    self.anim_counter = 0
+#                self.image = self.image_list[self.anim_counter]
+#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+#                    self.image = self.image_list[0]
+#            elif self.orientation >= 225 and self.orientation <= 315: #goes west checks orientation
+#                if self.anim_counter >= 4:
+#                    self.anim_counter = 0
+#                self.image =self.image_list[self.anim_counter+4]  
+#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+#                    self.image = self.image_list[4]
+#            elif self.orientation >= 315 or self.orientation <= 45: # goes North checks orientation
+#                if self.anim_counter >= 4:
+#                    self.anim_counter = 0
+#                self.image = self.image_list[self.anim_counter+8]
+#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+#                    self.image = self.image_list[8]
+#            elif self.orientation >= 45 and self.orientation <= 135: #goes East checks orientation
+#                if self.anim_counter >= 4:
+#                    self.anim_counter = 0
+#                self.image = self.image_list[self.anim_counter+12]
+#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
+#                    self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
+#            self.anim_time_left = 0
+#            self.anim_counter += 1
             
     def anim_move(self):
-        #updates anim timer
-        self.anim_time.tick()
-        self.anim_time_left += self.anim_time.get_time()
+        print self.orientation
+        if variables.xoffset == 0 and variables.yoffset == 0:
+            self.is_moving = False
+        else:
+            self.is_moving = True
         #checks which anim to display based on the direction and if sprite is moving and alive
-        if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-            if variables.orientation >= 135 and variables.orientation <= 225: # goes south checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image = self.image_list[self.anim_counter]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-                    self.image = self.image_list[0]
-            elif variables.orientation >= 225 and variables.orientation <= 315: #goes west checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image =self.image_list[self.anim_counter+4]  
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-                    self.image = self.image_list[4]
-            elif variables.orientation >= 315 or variables.orientation <= 45: # goes North checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image = self.image_list[self.anim_counter+8]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-                    self.image = self.image_list[8]
-            elif variables.orientation >= 45 and variables.orientation <= 135: #goes East checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image = self.image_list[self.anim_counter+12]
-                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-                    self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
-            self.anim_time_left = 0
-            self.anim_counter += 1
-
+        if self.hp > 0:
+            if self.is_moving == True: #checks time to animate
+                if self.orientation >= 140 and self.orientation <= 220: #South
+                    self.n = 2
+                    self.image = self.strips[self.n].next()
+                elif self.orientation >= 220 and self.orientation <= 320: #West
+                    self.n = 1
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 320 or self.orientation <= 40: #North
+                    self.n = 0
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 40 and self.orientation <= 140: #East
+                    self.n = 3
+                    self.image = self.strips[self.n].next()
+                    
+            if self.has_attack == True: #checks time to animate
+                if self.orientation >= 140 and self.orientation <= 220: #checks orientation
+                    self.n = 5
+                    self.image = self.strips[self.n].next()
+                    #self.strips[self.n].iter()
+                elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
+                    self.n = 7
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
+                    self.n = 4
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
+                    self.n = 7
+                    self.image = self.strips[self.n].next()
+                    
+            if self.has_attack == False and self.is_moving == False:
+                if self.orientation >= 140 and self.orientation <= 220: #checks orientation
+                    self.n = 2
+                    self.image = self.strips[self.n].images[0]
+                elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
+                    self.n = 1
+                    self.image = self.strips[self.n].images[0]
+                elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
+                    self.n = 0
+                    self.image = self.strips[self.n].images[0]
+                elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
+                    self.n = 3
+                    self.image = self.strips[self.n].images[0]
