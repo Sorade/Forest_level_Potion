@@ -60,13 +60,12 @@ class Skeleton(Character):# to change to Orc
                     self.image = self.strips[self.n].next()
                     
             if self.has_attack == True: #checks time to animate
-                print 'anim attack'
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
                     self.n = 5
                     self.image = self.strips[self.n].next()
                     #self.strips[self.n].iter()
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 6
+                    self.n = 7
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
                     self.n = 4
@@ -190,7 +189,7 @@ class Player(Character):
     def character_collisions(self):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
         for obstacle in self.level.ennemi_list:
-            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/3,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/2).collidepoint(x)]) >= 1:
+            if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
                 if dx > 0 and  0 < variables.orientation < 180:

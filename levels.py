@@ -71,10 +71,10 @@ class Level1(Level):
 #        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
 #        print images
         
-        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6)]       
-        self.n = 0
-        self.strips[self.n].iter()
-        self.image = self.strips[self.n].next()
+#        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6)]       
+#        self.n = 0
+#        self.strips[self.n].iter()
+#        self.image = self.strips[self.n].next()
         
         
     def execute(self):
@@ -185,9 +185,9 @@ class Level1(Level):
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,2)
                     
-            var.screen.blit(self.image, (0,0))       #spritesheet test
-            #var.screen.blit(self.strips[self.n].images[2], (0,0))
-            self.image = self.strips[self.n].next()
+#            var.screen.blit(self.image, (0,0))       #spritesheet test
+#            #var.screen.blit(self.strips[self.n].images[2], (0,0))
+#            self.image = self.strips[self.n].next()
             #self.n += 1
             
 class Level2(Level):
