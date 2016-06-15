@@ -10,6 +10,31 @@ import numpy as np
 import random
 from pygame.locals import *
 
+def move_item(char,item,inv_a,inv_b):
+    '''moves an item from one Inventory to another,
+    the item HAS TO BE IN the inventory to start with'''
+    #item_to_move = [x for x in char.inv_a.contents if isinstance(x, type(item)) == True][0]
+    inv_a.remove(item)
+    inv_b.append(item)
+    
+def exchange_item(char,item_a,item_b,inv_a,inv_b):
+    move_item(char,item_a,inv_a,inv_b)
+    move_item(char,item_b,inv_b,inv_a)
+    
+def attempt_exchange(char,item_a,item_b,inv_a,inv_b):
+    if len([x for x in char.inv_a.contents if isinstance(x, type(item_a)) == True]) > 0:
+        has_item_a = True 
+    else:
+        has_item_a = False
+    if len([x for x in char.inv_b.contents if isinstance(x, type(item_b)) == True]) > 0:
+        has_item_b = True 
+    else:
+        has_item_b = False
+     
+    if has_item_a == True and has_item_b == True:
+        exchange_item(char,item_a,item_b,inv_a,inv_b)
+        
+
 def d10(int):
     rng = range(0,int)
     total = 0

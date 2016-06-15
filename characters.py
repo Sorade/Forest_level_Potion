@@ -21,71 +21,100 @@ class Skeleton(Character):# to change to Orc
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Skeleton, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend(random.choice([[wp.Sword(),wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[wp.Sword(), ar.Leather_armor()]]))
+        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[wp.Sword(), ar.Leather_armor()]]))
+        self.inventory.contents.extend([wp.Sword(), ar.Leather_armor()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
         
         '''Sprite Sheet Variables'''
-        self.strips = [#Walking Sword
+        self.strips = [#Walking Mace
                        SpriteStripAnim(variables.orc_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
                        SpriteStripAnim(variables.orc_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
                        SpriteStripAnim(variables.orc_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
                        SpriteStripAnim(variables.orc_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
-                       #Attacking Sword
+                       #Attacking Mace
                        SpriteStripAnim(variables.orc_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
                        SpriteStripAnim(variables.orc_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/8),#West
                        SpriteStripAnim(variables.orc_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
-                       SpriteStripAnim(variables.orc_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/8)]#East
+                       SpriteStripAnim(variables.orc_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/8),
+                       #Walking Bow
+                       SpriteStripAnim(variables.orc_bow_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.orc_bow_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.orc_bow_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.orc_bow_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Bow
+                       SpriteStripAnim(variables.orc_bow_ss, 4, (0,1031,60,60), 13, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.orc_bow_ss, 4, (0,1096,60,60), 13, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.orc_bow_ss, 4, (0,1157,60,60), 13, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.orc_bow_ss, 4, (0,1224,60,60), 13, None, True, variables.FPS/8)]#East
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
 
         
     def anim_move(self):
+        '''checks equipement to display'''
+        x = 0*8 #default value if no item is equiped
+        for item in self.equipement.contents:
+            if isinstance(item,wp.Bow):
+                x = 1*8
+                break
+            if isinstance(item,wp.Axe):
+                x = 2*8
+                break
+            if isinstance(item,wp.Sword):
+                x = 0*8
+
+        '''checks if attack anim needs to terminate'''
+        self.attack_time.tick()
+        self.attack_time_left += self.attack_time.get_time()
+        if self.attack_time_left >= self.attack_speed:
+            self.has_attack = False
+             
         #checks which anim to display based on the direction and if sprite is moving and alive
         if self.hp > 0:
             if self.is_moving == True: #checks time to animate
                 if self.orientation >= 140 and self.orientation <= 220: #South
-                    self.n = 2
+                    self.n = 2+x
                     self.image = self.strips[self.n].next()
                 elif self.orientation >= 220 and self.orientation <= 320: #West
-                    self.n = 1
+                    self.n = 1+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #North
-                    self.n = 0
+                    self.n = 0+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 40 and self.orientation <= 140: #East
-                    self.n = 3
+                    self.n = 3+x
                     self.image = self.strips[self.n].next()
                     
             if self.has_attack == True: #checks time to animate
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 6
+                    self.n = 6+x
                     self.image = self.strips[self.n].next()
-                    #self.strips[self.n].iter()
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 5
+                    self.n = 5+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 4
+                    self.n = 4+x
                     self.image = self.strips[self.n].next()            
                 elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 7
+                    self.n = 7+x
                     self.image = self.strips[self.n].next()
                     
+            '''char is not moving, next is not invoked'''        
             if self.has_attack == False and self.is_moving == False:
                 if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 2
+                    self.n = 2+x
                     self.image = self.strips[self.n].images[0]
                 elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 1
+                    self.n = 1+x
                     self.image = self.strips[self.n].images[0]
                 elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 0
+                    self.n = 0+x
                     self.image = self.strips[self.n].images[0]
                 elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 3
+                    self.n = 3+x
                     self.image = self.strips[self.n].images[0]
              
             

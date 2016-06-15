@@ -10,6 +10,7 @@ import variables as var
 from pygame.locals import *
 import itertools
 import numpy as np
+from operator import attrgetter
 
 class spritesheet(object):
     def __init__(self, filename):
@@ -616,6 +617,23 @@ class Character(MySprite):
             self.level.all_sprites_list.add(self)
             self.image = self.dead_image
             return False
+            
+    def weapon_xchange(self,type_a,type_b): #attempt_exchange(char,item_a,item_b,inv_a,inv_b):
+        #try:
+            inv_item = max([x for x in [y for y in self.inventory.contents if isinstance (y,Weapon)] if x.type == type_a], key=attrgetter('dmg'))
+            eq_item = max([p for p in [m for m in self.equipement.contents if isinstance (m,Weapon)] if p.type == type_b], key=attrgetter('dmg'))
+            if inv_item.wield == 'two_handed':
+                '''removes all weapons from eq to inv'''
+                [fn.move_item(self,j,self.equipement.contents,self.inventory.contents) for j in self.equipement.contents if isinstance (j,Weapon)]
+                fn.move_item(self,inv_item,self.inventory.contents,self.equipement.contents)
+                
+            else:
+                print 'before',eq_item,self.inventory.contents
+                fn.exchange_item(self,inv_item,eq_item,self.inventory.contents,self.equipement.contents)
+                print 'after',eq_item,self.inventory.contents
+       # except:
+        #    print 'no weapon type requiered to attack'
+            return False
     
     def attack(self, Character):
         self.attack_time.tick()
@@ -624,6 +642,8 @@ class Character(MySprite):
             self.has_attack = False #to prevent endless animation
             if Character.is_alive() == True and self.is_alive() == True and Character.rect.inflate(5,5).colliderect(self.rect):
                 self.has_attack = True
+                if len([y for y in [x for x in self.equipement.contents if isinstance(x, Weapon) == True] if y.type == 'CC']) == 0:
+                    self.weapon_xchange('CC','CT')
                 test = random.randint(1,100) <= self.CC
                 if test == True:
                     dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
@@ -635,13 +655,17 @@ class Character(MySprite):
                     Character.hp -=  dmg
                     print 'mob deals {} dmg'.format(dmg)
                     self.attack_time_left = 0
-            elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0 and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
+            elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0:# and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
                 range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
                 #print fn.in_sight(self,Character, range_, self.level.building_list)
                 if self.rect.inflate(range_,range_).colliderect(Character.rect) \
                 and self.rect.inflate(300,300).colliderect(Character.rect) == False \
                 and fn.in_sight(self,Character, range_, self.level.building_list):
-                    print 'shoot'
+                    '''checks if char has a CT weapon accessible'''
+                    if len([y for y in [x for x in self.equipement.contents if isinstance(x, Weapon) == True] if y.type == 'CT']) == 0:
+                        if self.weapon_xchange('CT','CC') == False:
+                            pass
+                    self.has_attack = True    
                     '''creates an instance by getting the type of the proj in eq'''
                     proj_used = type([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0][0])(0)
                     for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
