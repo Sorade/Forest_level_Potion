@@ -681,6 +681,8 @@ class Character(MySprite):
                 if self.speed > int(48.0/(var.FPS*0.7)):
                     self.speed = int(48.0/(var.FPS*0.7))
                 self.set_rand_dest()
+        elif self.has_attack == True:
+            self.dest = self.rect.topleft
                 
            
     def move_collision(self,EW,SN):
