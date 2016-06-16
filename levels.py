@@ -122,7 +122,7 @@ class Level1(Level):
             ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                o.attack(ins.hero)
+                #o.attack(ins.hero)
                 o.update_images()
                 o.anim_move()
                 
