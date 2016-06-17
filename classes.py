@@ -637,50 +637,7 @@ class Character(MySprite):
         #    print 'no weapon type requiered to attack'
             return False
     
-    def attack(self, Character):
-        self.attack_time.tick()
-        self.attack_time_left += self.attack_time.get_time()
-        if self.attack_time_left >= self.attack_speed: # needs to be added as a variable
-            self.has_attack = False #to prevent endless animation
-            if Character.is_alive() == True and self.is_alive() == True and Character.rect.inflate(5,5).colliderect(self.rect):
-                self.has_attack = True
-#                if len([y for y in [x for x in self.equipement.contents if isinstance(x, Weapon) == True] if y.type == 'CC']) == 0:
-#                    self.weapon_xchange('CC','CT')
-                test = random.randint(1,100) <= self.CC
-                if test == True:
-                    dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
-                    arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
-                    if (dmg+self.F/10)-(arm+Character.E/10) < 0:
-                        dmg = 0
-                    else:
-                        dmg = (dmg+self.F/10)-(arm+Character.E/10)
-                    Character.hp -=  dmg
-                    print 'mob deals {} dmg'.format(dmg)
-                    self.attack_time_left = 0
-                    return True
-            elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0:# and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
-#                range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
-#                #print fn.in_sight(self,Character, range_, self.level.building_list)
-#                if self.rect.inflate(range_,range_).colliderect(Character.rect) \
-#                and self.rect.inflate(300,300).colliderect(Character.rect) == False \
-#                and fn.in_sight(self,Character, range_, self.level.building_list):
-#                    '''checks if char has a CT weapon accessible'''
-#                    if len([y for y in [x for x in self.equipement.contents if isinstance(x, Weapon) == True] if y.type == 'CT']) == 0:
-#                        if self.weapon_xchange('CT','CC') == False:
-#                            pass
-                    self.has_attack = True    
-                    '''creates an instance by getting the type of the proj in eq'''
-                    proj_used = type([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0][0])(0)
-                    for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
-                        if proj.ammo > 0:
-                            proj.ammo -= 1
-                            break
-                    wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
-                    proj_used.dmg += wep_used.dmg
-                    proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
-                    self.attack_time_left = 0
-                    return True
-    
+  
     def attack(self, Character, cat):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
@@ -715,34 +672,31 @@ class Character(MySprite):
                     return True
            
     def set_rand_dest(self):
-        self.dest_rect = self.rect.inflate(200,200)
-        self.dest = (random.randint(self.dest_rect[0],self.dest_rect[0]+self.dest_rect[2]),random.randint(self.dest_rect[1],self.dest_rect[1]+self.dest_rect[3]))
+        dest_rect = self.rect.inflate(200,200)
+        self.dest = (random.randint(dest_rect[0],dest_rect[0]+dest_rect[2]),random.randint(dest_rect[1],dest_rect[1]+dest_rect[3]))
         
     def set_charge_dest(self,charge_target):
         '''Charge destination randomly changed to allow the seek behaviour
         due to the move_collision function'''
         self.dest = charge_target.rect.x+random.randint(-10,10),charge_target.rect.y+random.randint(-10,10)
-        
-#    def behaviour(self,Character):
-#        self.dest_time.tick()
-#        self.dest_time_left += self.dest_time.get_time()
-#        if self.dest_time_left >= self.dest_speed  and self.has_attack == False: # checks if time to set new dest
-#            self.dest_time_left = 0 #resets timer
-#            if self.rect.inflate(250,250).colliderect(Character.rect) == True:
-#                if self.speed < 2:
-#                    self.speed *= 2
-#                self.set_charge_dest(Character)
-#            elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
-#                if self.speed > int(48.0/(var.FPS*0.7)):
-#                    self.speed = int(48.0/(var.FPS*0.7))
-#                my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
-#                random.choice(my_list)
-#            else:
-#                if self.speed > int(48.0/(var.FPS*0.7)):
-#                    self.speed = int(48.0/(var.FPS*0.7))
-#                self.set_rand_dest()
-#        elif self.has_attack == True:
-#            self.dest = self.rect.topleft
+  
+    def set_flee_dest(self,attacker):
+        '''sends the char away from the attack at speed'''
+        flee_dist = 1000
+        if self.rect.inflate(400,400).colliderect(attacker.rect):
+            if self.rect.centerx > attacker.rect.centerx\
+            and self.rect.centery > attacker.rect.centery:
+                self.dest = (self.rect.x+flee_dist,self.rect.y+flee_dist)
+            if self.rect.centerx < attacker.rect.centerx\
+            and self.rect.centery > attacker.rect.centery:
+                self.dest = (self.rect.x-flee_dist,self.rect.y+flee_dist)            
+            if self.rect.centerx < attacker.rect.centerx\
+            and self.rect.centery < attacker.rect.centery:
+                self.dest = (self.rect.x-flee_dist,self.rect.y-flee_dist)     
+            if self.rect.centerx > attacker.rect.centerx\
+            and self.rect.centery < attacker.rect.centery:
+                self.dest = (self.rect.x+flee_dist,self.rect.y-flee_dist)
+            print 'has fled'
             
     def behaviour(self,Character):
         
@@ -781,12 +735,13 @@ class Character(MySprite):
             self.dest = self.rect.topleft 
                     
         '''managing fleeing AI'''            
-        if self.hp <= 3:
+        if self.hp <= 5:
             if self.flee_test == True:
                 self.flee_test = False
-                '''Needs to add a set_flee_dest'''
-                self.set_rand_dest
-        elif self.hp > 3 and self.flee_test == False:
+                if self.speed < 5:
+                    self.speed *= 5
+                self.set_flee_dest(Character)
+        elif self.hp > 5 and self.flee_test == False:
             self.flee_test = True
             
         '''Managing movement AI'''
@@ -794,7 +749,7 @@ class Character(MySprite):
         self.dest_time_left += self.dest_time.get_time()
         if self.dest_time_left >= self.dest_speed  and self.has_attack == False: # checks if time to set new dest
             self.dest_time_left = 0 #resets timer
-            if self.rect.inflate(250,250).colliderect(Character.rect) == True:
+            if has_CC and self.rect.inflate(250,250).colliderect(Character.rect) == True:
                 if self.speed < 2:
                     self.speed *= 2
                 self.set_charge_dest(Character)

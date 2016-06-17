@@ -15,14 +15,14 @@ from pygame.locals import *
 
 class Skeleton(Character):# to change to Orc
     def __init__(self, x, y):
-        self.hp = 15
+        self.hp = 16
         self.speed = int(48.0/(variables.FPS*0.7))
         self.CC = 30.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Skeleton, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
         self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[wp.Sword(), ar.Leather_armor()]]))
-        self.inventory.contents.extend([wp.Sword(), ar.Leather_armor()])
+        self.inventory.contents.extend([ar.Leather_armor()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
