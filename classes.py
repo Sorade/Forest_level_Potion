@@ -185,7 +185,8 @@ class Level(object):
                 self.ennemi_list.add(o)
                 self.all_sprites_list.add(o)
                 for item in o.equipement.contents: self.all_sprites_list.add(item)
-            
+                for item in o.inventory.contents: self.all_sprites_list.add(item)
+                    
     #random objects
     def add_chests(self,int,chest,obj):
         count = 0
@@ -658,11 +659,11 @@ class Character(MySprite):
                     self.attack_time_left = 0
                     return True
             elif Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0:# and len([x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']) > 0: #checks clicks ennemi and has ammo 
-                range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
-                #print fn.in_sight(self,Character, range_, self.level.building_list)
-                if self.rect.inflate(range_,range_).colliderect(Character.rect) \
-                and self.rect.inflate(300,300).colliderect(Character.rect) == False \
-                and fn.in_sight(self,Character, range_, self.level.building_list):
+#                range_ = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0].range
+#                #print fn.in_sight(self,Character, range_, self.level.building_list)
+#                if self.rect.inflate(range_,range_).colliderect(Character.rect) \
+#                and self.rect.inflate(300,300).colliderect(Character.rect) == False \
+#                and fn.in_sight(self,Character, range_, self.level.building_list):
 #                    '''checks if char has a CT weapon accessible'''
 #                    if len([y for y in [x for x in self.equipement.contents if isinstance(x, Weapon) == True] if y.type == 'CT']) == 0:
 #                        if self.weapon_xchange('CT','CC') == False:
@@ -679,7 +680,39 @@ class Character(MySprite):
                     proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
                     return True
-
+    
+    def attack(self, Character, cat):
+        self.attack_time.tick()
+        self.attack_time_left += self.attack_time.get_time()
+        if self.attack_time_left >= self.attack_speed: # needs to be added as a variable
+            self.has_attack = False #to prevent endless animation
+            if cat == 'CC' and Character.is_alive() == True and self.is_alive() == True:
+                self.has_attack = True
+                test = random.randint(1,100) <= self.CC
+                if test == True:
+                    dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                    arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
+                    if (dmg+self.F/10)-(arm+Character.E/10) < 0:
+                        dmg = 0
+                    else:
+                        dmg = (dmg+self.F/10)-(arm+Character.E/10)
+                    Character.hp -=  dmg
+                    print 'mob deals {} dmg'.format(dmg)
+                    self.attack_time_left = 0
+                    return True
+            elif cat == 'CT' and Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0:#checks clicks ennemi and has ammo 
+                    self.has_attack = True    
+                    '''creates an instance by getting the type of the proj in eq'''
+                    proj_used = type([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0][0])(0)
+                    for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
+                        if proj.ammo > 0:
+                            proj.ammo -= 1
+                            break
+                    wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
+                    proj_used.dmg += wep_used.dmg
+                    proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
+                    self.attack_time_left = 0
+                    return True
            
     def set_rand_dest(self):
         self.dest_rect = self.rect.inflate(200,200)
@@ -735,14 +768,14 @@ class Character(MySprite):
         if has_CC and Character.rect.colliderect(self.rect.inflate(range_CC,range_CC)):
             if len(CC_eq) == 0:
                 self.weapon_xchange('CC','CT')
-            self.attack(Character)
+            self.attack(Character, 'CC')
         
         elif has_CT and self.rect.inflate(range_CT,range_CT).colliderect(Character.rect) \
                 and self.rect.inflate(275,275).colliderect(Character.rect) == False \
                 and fn.in_sight(self,Character, range_CT, self.level.building_list):
                     if len(CT_eq) == 0:
                         self.weapon_xchange('CT','CC')
-                    self.attack(Character)
+                    self.attack(Character, 'CT')
                     
         if self.has_attack == True:
             self.dest = self.rect.topleft 

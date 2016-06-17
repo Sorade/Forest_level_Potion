@@ -24,7 +24,7 @@ class Sword(Weapon):
     def __init__(self): #name, value, image, x, y, dmg
         self.type = 'CC'
         self.wield = 'one_handed'
-        self.range = 15
+        self.range = 7
         self.dmg = 1
         self.dmg_modif = 1
         self.name = 'Sword'
@@ -36,7 +36,7 @@ class Axe(Weapon):
     def __init__(self): #name, value, image, x, y, dmg
         self.type = 'CC'
         self.wield = 'two_handed'
-        self.range = 15
+        self.range = 5
         self.dmg = 3
         self.dmg_modif = 1
         self.name = 'Axe'
@@ -61,7 +61,7 @@ class Longbow(Bow):
     def __init__(self): #name, value, image, x, y, dmg
         self.type = 'CT'
         self.wield = 'two_handed'
-        self.range = 100
+        self.range = 450+d10(2)
         self.dmg = 2
         self.dmg_modif = 1
         self.name = 'Longbow'
