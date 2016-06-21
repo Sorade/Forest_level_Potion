@@ -12,6 +12,10 @@ from pygame.locals import *
 screenWIDTH = 800#680
 screenHEIGHT = 600#480
 screen = pygame.display.set_mode((screenWIDTH, screenHEIGHT), pygame.SRCALPHA, 32)
+'''getting screen corners and segments'''
+rct = screen.get_rect()
+screen_corners = [rct.topleft,rct.topright,rct.bottomright,rct.bottomleft]
+screen_segments = []
 xoffset = 0
 yoffset = 0
 dx = 0

@@ -9,6 +9,11 @@ import pygame, variables#, instances, random
 import numpy as np
 import random
 from pygame.locals import *
+from math import acos
+from math import sqrt
+from math import pi
+
+
 
 def move_item(char,item,inv_a,inv_b):
     '''moves an item from one Inventory to another,
@@ -41,7 +46,54 @@ def d10(int):
     for x in rng:
         total += random.randint(0,10)
     return total
+    
+def get_circle(radius):
+    "Bresenham complete circle algorithm in Python"
+    # init vars
+    switch = 3 - (2 * radius)
+    points = set()
+    x = 0
+    y = radius
+    dly = 0
+    # first quarter/octant starts clockwise at 12 o'clock
+    while x <= y:
+        if dly == 12:
+            dly = 0
+            # first quarter first octant
+            points.add((x,-y))
+            # first quarter 2nd octant
+            points.add((y,-x))
+            # second quarter 3rd octant
+            points.add((y,x))
+            # second quarter 4.octant
+            points.add((x,y))
+            # third quarter 5.octant
+            points.add((-x,y))        
+            # third quarter 6.octant
+            points.add((-y,x))
+            # fourth quarter 7.octant
+            points.add((-y,-x))
+            # fourth quarter 8.octant
+            points.add((-x,-y))
+        if switch < 0:
+            switch = switch + (4 * x) + 6
+        else:
+            switch = switch + (4 * (x - y)) + 10
+            y = y - 1
+        x = x + 1
+        dly += 1
+        
+    return points
 
+def shadow_gen(shadow_surf,source,cir_pt,obstacles):
+    #line_points = get_line(source.pos,cir_pt)
+    for line_pt in get_line(source.pos,cir_pt)[0::35]:#[0::3]:
+        for obs in obstacles:
+            if obs.rect.collidepoint(line_pt) or pygame.Rect(0,0,variables.screenWIDTH,variables.screenHEIGHT).collidepoint(line_pt) == False:
+                return
+#            if shadow_surf.get_at(line_pt) != (255, 255, 255, 255):
+            pygame.draw.circle(shadow_surf, (255,255,255), line_pt, 28, 0) #radius to 5px and 0 to fill the circle
+                
 def get_line(start, end):
     """Bresenham's Line Algorithm
     Produces a list of tuples from start and end
@@ -236,6 +288,87 @@ def check_null_offset():
         variables.dy, variables.dx = 0,0
         variables.yoffset, variables.xoffset = 0,0
         variables.has_shot = False
+        
+'''Shadow Generation And Geometry Functions'''
+def pop_poly_pts(source,corner,obstacles, poly_pts):
+    for pt in fn.get_line(source.pos,corner)[0::20]:
+        for obstacle in obstacles:
+            if obstacle.rect.collidepoint(pt):
+                print source.pos,pt
+                angle = angle_clockwise(source.pos,(source.pos[0],source.pos[1]-50),pt)
+                poly_pts[angle] = pt
+                return
+                
+def cast_multi(source,point,Ray):
+    '''casts a ray to the point and to 2 more nearby points'''
+    return [Ray(source,point,0),Ray(source,point,0.01),Ray(source,point,-0.01)]
+                
+def get_seg(rect,Segment):
+    return [Segment(rect.topleft,rect.topright),\
+           Segment(rect.topright,rect.bottomright),\
+           Segment(rect.bottomleft,rect.bottomright),\
+           Segment(rect.topleft,rect.bottomleft)]
+                
+def length(s,v):
+    return sqrt((s[0]-v[0])**2+(s[1]-v[1])**2)
+    
+'''a · b = ax × bx + ay × by'''
+def dot_product(s,v,w):
+   return (v[0]-s[0])*(w[0]-s[0])+(v[1]-s[1])*(w[1]-s[1])
+def determinant(s,v,w):
+   return (v[0]-s[0])*(w[1]-s[1])-(v[1]-s[1])*(w[0]-s[0])
+def inner_angle(s,v,w):
+    if (length(s,v)*length(s,w)) != 0:
+       cosx=dot_product(s,v,w)/(length(s,v)*length(s,w))
+       rad=acos(cosx) # in radians
+       return rad*180/pi # returns degrees
+    else:
+        return 0
+def angle_clockwise(s,A, B):
+    a = (float(A[0]),float(A[1]))
+    b = (float(B[0]),float(B[1]))
+    inner=inner_angle(s,a,b)
+    det = determinant(s,a,b)
+    if det<0: #this is a property of the det. If the det < 0 then B is clockwise of A
+        return inner
+    else: # if the det > 0 then A is immediately clockwise of B
+        return 360-inner    
+
+def isBetween(a, b, c):
+    a_x,a_y = a
+    b_x,b_y = b
+    c_x,c_y = c
+    a_x,a_y = float(a_x),float(a_y)
+    b_x,b_y = float(b_x),float(b_y)
+    c_x,c_y = float(c_x),float(c_y)    
+    
+    crossproduct = (c_y - a_y) * (b_x - a_x) - (c_x - a_x) * (b_y - a_y)
+    if abs(crossproduct) > 0.001 : return False   # (or != 0 if using integers)
+
+    dotproduct = (c_x - a_x) * (b_x - a_x) + (c_y - a_y)*(b_y - a_y)
+    if dotproduct < 0 : return False
+
+    squaredlengthba = (b_x - a_x)*(b_x - a_x) + (b_y - a_y)*(b_y - a_y)
+    if dotproduct > squaredlengthba: return False
+
+    return True
+
+def det(a, b):
+    return float(a[0]) * float(b[1]) - float(a[1]) * float(b[0])
+
+def line_intersection(line1, line2):
+    xdiff = (float(line1[0][0]) - float(line1[1][0]), float(line2[0][0]) - float(line2[1][0]))
+    ydiff = (float(line1[0][1]) - float(line1[1][1]), float(line2[0][1]) - float(line2[1][1])) #Typo was here
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+        return False
+       #raise Exception('lines do not intersect')
+
+    d = (det(*line1), det(*line2))
+    x = det(d, xdiff) / float(div)
+    y = det(d, ydiff) / float(div)
+    return x,y
         
     
         

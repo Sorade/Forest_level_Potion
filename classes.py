@@ -11,6 +11,11 @@ from pygame.locals import *
 import itertools
 import numpy as np
 from operator import attrgetter
+import collections
+import multiprocessing as mp
+from math import sqrt
+
+
 
 class spritesheet(object):
     def __init__(self, filename):
@@ -1230,10 +1235,192 @@ class Portal(Level_Change):
         self.image_list = var.portal_images
         self.image = self.image_list[0]
         super(Portal,self).__init__(self.name,self.image,x,y, self.image_list, pair)
-        
-    
-    
-    
 
+class Light_Source(object):
+    def __init__(self,x,y,range_, fixed):
+        self.range = range_
+        self.pos = (x,y)
+        self.fixed = fixed
+        
+class Ray(object):
+    def __init__(self, source, dest, offset):
+        X1,Y1 = source.pos
+        X2,Y2 = dest
+        '''working out line equations'''
+        if float(X1-X2) == 0:
+            A1 = 0
+        else:
+            A1 = (Y1-Y2)/float(X1-X2) # Pay attention to not dividing by zero
+        b1 = Y1-A1*X1
+        
+        self.m = A1+offset
+        self.p = b1
+        if X1 < X2:
+            self.far_pt = (X2*500,self.m*X2*500+self.p)
+        elif X1 == X2 and Y1 < Y2:
+            self.far_pt = (X1,1500)
+        elif X1 == X2 and Y1 > Y2:
+            self.far_pt = (X1,-1500)
+        else:
+            self.far_pt = (X2*-500,self.m*X2*-500+self.p)
+        
+class Segment(object):
+    def __init__(self,start,end):
+        self.start = start
+        self.end = end
     
-    
+    def check_col(self, ray, source):
+        ''' 
+        segment1 = (self.start,self.end)
+        segment2 = (source.pos,ray.far_pt)'''
+        X1,Y1 = self.start #start pt of segment 1
+        X2,Y2 = self.end #end pt of segment 1
+        X3,Y3 = source.pos #start pt of segment 2
+        X4,Y4 = ray.far_pt #end pt of segment 2
+        
+        '''checks if the two lines intersect'''
+        col_pt = fn.line_intersection(((X1,Y1),(X2,Y2)),((X3,Y3),(X4,Y4)))
+        
+        if col_pt != False:
+            col_x,col_y = col_pt
+            '''checks if col_pt is on both segments'''
+            if fn.isBetween(self.start, self.end, col_pt) and fn.isBetween(source.pos, ray.far_pt, col_pt):
+                dist = sqrt((X3-col_pt[0])**2+(Y3-col_pt[1])**2)
+                return True,col_pt,dist
+
+        return False,0
+
+class Night_Mask(object):
+    def __init__(self):
+        self.surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT)) #Screenwidth and height
+        self.light_sources = []
+        
+        '''setting initial alpha and colorkey'''
+        self.surf.set_colorkey((255,255,255))
+        self.surf.set_alpha(100)
+        
+        '''Day time timer'''
+        self.day_timer = pygame.time.Clock()
+        self.day_time = 0        
+        self.day_end = 4*60000#1440000
+        self.day_switch = self.day_end/2 #12 minutes
+        
+        '''Shadow timer'''
+        self.Shadow_timer = pygame.time.Clock()
+        self.Shadow_time = 0        
+        self.Shadow_end = 200
+        
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, alpha):
+        self.surf.set_alpha(int(alpha))
+        self._alpha = alpha
+        
+    def day_update(self,a_max):
+        alfa = float(a_max)
+        self.day_timer.tick()
+        self.day_time += self.day_timer.get_time()
+        if self.day_time <= self.day_switch: # checks if the time of day has been reached
+            self.alpha = (alfa/self.day_switch)*self.day_time
+        elif self.day_time >= self.day_end:
+            self.day_time = 0
+        else:
+            self.alpha = alfa+(alfa/self.day_switch)*(self.day_switch-self.day_time)
+        
+        
+    def apply_shadows(self, obstacles_list):
+        self.Shadow_timer.tick()
+        self.Shadow_time += self.Shadow_timer.get_time()    
+        if self.Shadow_time >= self.Shadow_end:# and  self.alpha > 60:
+            self.Shadow_time = 0
+            '''reset's mask to black'''
+            self.surf.fill(pygame.color.Color('black'))
+            for source in self.light_sources:
+                z_x = source.pos[0]-source.range
+                z_y = source.pos[1]-source.range
+                z_w = 2*source.range
+                z_h = 2*source.range
+                if source.pos[0]-source.range < 0:
+                    z_x = 0
+                    z_w = 2*source.range - abs(source.pos[0]-source.range)
+                if source.pos[1]-source.range < 0:
+                    z_y = 0
+                    z_h = 2*source.range - abs(source.pos[1]-source.range)
+
+                zone = pygame.Rect((z_x,z_y),(z_w,z_h))
+                obstacles = [x for x in obstacles_list if x.rect.colliderect(zone)]
+                corner_ls = [zone.topleft,zone.topright,zone.bottomright,zone.bottomleft]
+                rays = []
+                segments = fn.get_seg(zone,Segment)
+                poly_pts = {}
+                
+                for pt in corner_ls:
+                    rays.extend(fn.cast_multi(source,pt,Ray))
+                for obs in obstacles:
+                    for point in [obs.rect.topleft,obs.rect.topright,obs.rect.bottomleft,obs.rect.bottomright]:
+                        rays.extend(fn.cast_multi(source,point,Ray))
+                    segments.extend(fn.get_seg(obs.rect,Segment))
+                    
+                for ray in rays:
+                    collisions = {}
+                    for seg in segments:
+                        test = seg.check_col(ray,source)
+                        if test[0] == True:
+                            collisions[test[1]] = test[2]
+                    #adds the closest collision to the source
+                    if len(collisions) != 0:
+                        #print collisions
+                        pt = min(collisions, key=collisions.get)
+                        angle = fn.angle_clockwise(source.pos,(source.pos[0],source.pos[1]-50),pt)
+                        poly_pts[angle] = (int(round(pt[0],0)),int(round(pt[1],0)))
+                    else:
+                        print 'no_collisions'
+                
+                '''sorting collision points in clockwise order'''
+                final_pts = collections.OrderedDict(sorted(poly_pts.items()))
+                to_plot = list(final_pts.values())
+                
+                '''preparing surfaces to get light effects'''
+                shadow_surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
+                shadow_surf.set_colorkey((0,0,0))
+                if len(to_plot) > 2:
+                    pygame.draw.polygon(shadow_surf, (255,255,255), to_plot, 0)
+                    pygame.draw.polygon(shadow_surf, (255,255,255), to_plot, 10)
+                else:
+                    pygame.draw.polygon(shadow_surf, (255,255,255), corner_ls, 0)
+                    
+                
+                green_mask = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
+                green_mask.fill((0,255,0)) #GREEN
+                green_mask.set_colorkey((0,0,0))
+                pygame.draw.circle(green_mask, (0,0,0), source.pos, source.range, 0)
+                
+                final_surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
+                shadow_surf.blit(green_mask, (0,0))
+                final_surf.blit(shadow_surf, (0,0))
+                final_surf.set_colorkey((0,255,0))
+#                string_surf = pygame.image.tostring(final_surf, "RGBA", True)
+#                # create a PIL image and blur it
+#                pil_blured = PIL.Image.fromstring("RGBA", (var.screenWIDTH,var.screenHEIGHT), string_surf).filter(PIL.ImageFilter.GaussianBlur(radius=6))
+#                # convert it back to a pygame surface
+#                pyg_blured = pygame.image.fromstring(pil_blured.tostring("raw", "RGBA"), (var.screenWIDTH,var.screenHEIGHT), "RGBA")
+#                final_surf.set_colorkey((0,255,0))
+                self.surf.blit(final_surf, (0, 0))
+                
+#def get_point(poly_pts,segments,ray,source):
+#    collisions = {}
+#    for seg in segments:
+#        test = seg.check_col(ray,source)
+#        if test[0] == True:
+#            collisions[test[1]] = test[2]
+#    #adds the closest collision to the source
+#    if len(collisions) != 0:
+#        #print collisions
+#        pt = min(collisions, key=collisions.get)
+#        angle = fn.angle_clockwise(source.pos,(source.pos[0],source.pos[1]-50),pt)
+#        poly_pts[angle] = (int(round(pt[0],0)),int(round(pt[1],0)))
+#    else:
+#        print 'no_collisions'

@@ -62,6 +62,10 @@ class Level1(Level):
         self.add_ennemies(10,[ch.Skeleton])
         self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
+        '''Night Mask'''
+        self.ls = Light_Source(75,75,150,False)
+        self.night_m = Night_Mask()
+        self.night_m.light_sources.extend([self.ls])
         '''testing spritesheet'''
 #        ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
 #        # Sprite is 16x16 pixels at location 0,0 in the file...
@@ -148,7 +152,7 @@ class Level1(Level):
                 if Character.is_alive() == True:
                     Character.is_alive() 
             
-            #blitting        
+            '''blitting  '''      
             var.screen.blit(self.scroll_map.image, self.scroll_map.rect) # blits the grass map to new pos
             self.building_list.draw(var.screen) #blits the buildings to new pos
             self.projectile_list.draw(var.screen)
@@ -165,6 +169,12 @@ class Level1(Level):
             
             for e in self.ennemi_list:
                 e.image = e.strips[e.n].next()
+                
+            #night mask    
+            self.ls.pos = (var.screenWIDTH/2,var.screenHEIGHT/2)
+            #self.night_m.day_update(220)
+            self.night_m.apply_shadows(self.building_list)
+            var.screen.blit(self.night_m.surf, (0, 0))
             
             Lifebar(ins.hero)
             for msg in self.message_list:
@@ -180,15 +190,10 @@ class Level1(Level):
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
             
-            #self.go_to(2)
             for x in self.building_list:
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,2)
                     
-#            var.screen.blit(self.image, (0,0))       #spritesheet test
-#            #var.screen.blit(self.strips[self.n].images[2], (0,0))
-#            self.image = self.strips[self.n].next()
-            #self.n += 1
             
 class Level2(Level):
     def set_level(self, sprite_grp):
