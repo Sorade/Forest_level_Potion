@@ -172,7 +172,7 @@ class Level1(Level):
                 
             #night mask    
             self.ls.pos = (var.screenWIDTH/2,var.screenHEIGHT/2)
-            #self.night_m.day_update(220)
+            self.night_m.day_update(220)
             self.night_m.apply_shadows(self.building_list)
             var.screen.blit(self.night_m.surf, (0, 0))
             

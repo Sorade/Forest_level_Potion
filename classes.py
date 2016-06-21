@@ -1297,7 +1297,7 @@ class Night_Mask(object):
         
         '''setting initial alpha and colorkey'''
         self.surf.set_colorkey((255,255,255))
-        self.surf.set_alpha(100)
+        self.surf.set_alpha(0)
         
         '''Day time timer'''
         self.day_timer = pygame.time.Clock()
@@ -1334,7 +1334,7 @@ class Night_Mask(object):
     def apply_shadows(self, obstacles_list):
         self.Shadow_timer.tick()
         self.Shadow_time += self.Shadow_timer.get_time()    
-        if self.Shadow_time >= self.Shadow_end:# and  self.alpha > 60:
+        if self.Shadow_time >= self.Shadow_end and  self.alpha > 60:
             self.Shadow_time = 0
             '''reset's mask to black'''
             self.surf.fill(pygame.color.Color('black'))
