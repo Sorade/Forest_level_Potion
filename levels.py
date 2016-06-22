@@ -5,120 +5,344 @@ Created on Wed Jun 01 17:15:33 2016
 @author: Julien
 """
 import pygame, sys
-import variables as v
+import variables as var
 from pygame.locals import *
 from classes import *
 from functions import *
-from characters import *
-from items import *
-from instances import *
-
-class Level(object):
-    def __init__(self, lvl_num):
-        self.lvl_num = lvl_num
-        self.run = False
-        #create sprite groups
-        self.player_list = pygame.sprite.Group()
-        self.char_list = pygame.sprite.Group()
-        self.ennemi_list = pygame.sprite.Group()
-        self.item_list = pygame.sprite.Group()
-        self.building_list = pygame.sprite.Group()
-        self.projectile_list = pygame.sprite.Group()
-        self.all_sprites_list = pygame.sprite.Group()
-        self.deleted_list = pygame.sprite.Group()
-        self.dead_sprites_list = pygame.sprite.Group()
-        self.message_list = pygame.sprite.Group()
-        self.to_blit_list = pygame.sprite.Group()
-        
-        self.sprite_group_list = []
-        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
+import instances as ins
+import weapons as wp
+import characters as ch
+import armors as ar
+import items as it
+from pygame.locals import *
+from classes import *
 
 class Level1(Level):
-    def __init__(self, lvl_num):
+    def set_level(self, sprite_grp):
+        for sprite in sprite_grp:
+            sprite.level = self
+    
+    def __init__(self):
         super(Level1, self).__init__(1)
+        
+        #Level Edges
+        for x in range(0,26):
+            y = random.randint(1,2)
+            if y == 1:
+                image = var.tree_pack_ew
+            else:
+                image = pygame.transform.flip(var.tree_pack_ew, True, False)
+            if x < 13:
+                w = Building('top_edge',0,image,x*152,-5, 1000)
+            elif x < 50 :
+                w = Building('bot_edge',0,var.tree_pack_ew,(x-13)*152,1960, 1000)
+            self.building_list.add(w)
+            self.all_sprites_list.add(w)
+            
+        for x in range(0,56):
+            if x < 28:
+                w = Building('wall_left',0,var.pine_ns,-10,x*74, 1000)
+            else:
+                w = Building('wall_right',0,var.pine_ns,2018,(x-28)*74, 1000)        
+            self.building_list.add(w)
+            self.all_sprites_list.add(w)
+            
+           
+        #Objects
+        house = Building('House',10, var.house1_img, 350, 80, 80)
+        self.portal = Portal(1500,200,1)
+        self.portal2 = Portal(100,1720,1)
+        
+        self.scroll_map = Item('Map',0,var.background, 0, 0)
+        self.all_sprites_list.add(house,ins.hero,self.portal,self.portal2) 
+        self.player_list.add(ins.hero)
+        self.building_list.add(house,self.portal,self.portal2)
+        
+        self.add_obstacles(150,var.obs_list)
+        self.add_ennemies(10,[ch.Skeleton])
+        self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
+        
+        '''Night Mask'''
+        self.ls = Light_Source(75,75,150,False)
+        self.night_m = Night_Mask()
+        self.night_m.light_sources.extend([self.ls])
+        '''testing spritesheet'''
+#        ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
+#        # Sprite is 16x16 pixels at location 0,0 in the file...
+#        image = ss.image_at((0, 0, 50, 50))
+#        images = []
+#        # Load two images into an array, their transparent bit is (255, 255, 255)
+#        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
+#        print images
+        
+#        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6)]       
+#        self.n = 0
+#        self.strips[self.n].iter()
+#        self.image = self.strips[self.n].next()
+        
         
     def execute(self):
         if self.run == True:
+#            var.current_level = self
+#            [x for x in self.player_list][0].level = self
+            super(Level1, self).execute()
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
+                    print 'has quit'
                 if event.type == MOUSEBUTTONDOWN:
-                    hero.get_dest() # sets the player's destination
+                    ins.hero.get_dest() # sets the player's destination
                     
                     for o in self.ennemi_list:
-                        hero.attack(o)
+                        ins.hero.attack(o)
                     
                     for i in self.item_list:
-                        i.use(hero)
+                        i.use(ins.hero)
                         
                     for i in self.building_list:
-                        if isinstance(i,Chest):
-                            i.open_(hero)
-                                
+                        if isinstance(i,it.Chest):
+                            i.open_(ins.hero)
+                            
             for o in self.char_list: 
-                if isinstance(o, Ranger): #sets mobs dest characters
-                    o.behaviour(hero)
+                if isinstance(o, ch.Skeleton): #sets mobs dest characters
+                    o.behaviour(ins.hero)
         
             for o in self.char_list: 
-                if isinstance(o, Ranger): #moves characters
+                if isinstance(o, ch.Skeleton): #moves characters
                     o.move()
-                            
+            
             for p in self.projectile_list: #moves projectiles
                 p.move()
                 for o in self.ennemi_list:
                     p.hit_test(o)
+                    
+            for p in self.projectile_ennemy_list: 
+                p.move() #moves enemy projectiles
+                p.hit_test(ins.hero)
                             
-            hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
-            hero.group_collision_check(self.building_list) #edits the offest based on hero collision
-            hero.character_collisions()
+            ins.hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
+            ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision
+            ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                o.attack(hero)
+                #o.attack(ins.hero)
                 o.update_images()
                 o.anim_move()
                 
                    
             for d in self.dead_sprites_list:
-                d.loot(hero)
+                d.loot(ins.hero)
     
                     
             #animations
-            hero.update_images()
-            hero.anim_move() #animates hero sprite
+            ins.hero.update_images()
+            ins.hero.anim_move() #animates ins.hero sprite
             #offset checks
             group_offset(self.building_list) #new building position using offset
             group_offset(self.item_list)
-            scroll_map.offset() #offsets grass background map
+            self.scroll_map.offset() #offsets grass background map
             group_offset(self.ennemi_list)
             group_offset(self.dead_sprites_list)
             group_offset(self.projectile_list)
+            group_offset(self.projectile_ennemy_list)
             
             #check if characters are dead before blitting:
-            for Character in itertools.chain.from_iterable([variables.char_list,variables.player_list]):
+            for Character in itertools.chain.from_iterable([self.char_list,self.player_list]):
                 if Character.is_alive() == True:
                     Character.is_alive() 
             
-            #blitting        
-            v.screen.blit(scroll_map.image, scroll_map.rect) # blits the grass map to new pos
-            self.building_list.draw(v.screen) #blits the buildings to new pos
-            self.projectile_list.draw(v.screen)
+            '''blitting  '''      
+            var.screen.blit(self.scroll_map.image, self.scroll_map.rect) # blits the grass map to new pos
+            self.building_list.draw(var.screen) #blits the buildings to new pos
+            self.projectile_list.draw(var.screen)
+            self.projectile_ennemy_list.draw(var.screen)
                     
             if pygame.key.get_pressed()[pygame.K_e]: #blits highlight if e pressed
                 for x in self.item_list:
                     x.highlight()
             
-            self.dead_sprites_list.draw(v.screen) #blits corpses
-            self.item_list.draw(v.screen) #blitting items
-            self.ennemi_list.draw(v.screen) #blits ennemies
-            v.screen.blit(hero.image, hero.rect) #blits hero to screen center 
+            self.dead_sprites_list.draw(var.screen) #blits corpses
+            self.item_list.draw(var.screen) #blitting items
+            self.ennemi_list.draw(var.screen) #blits ennemies
+            var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
-            Lifebar(hero)
+            for e in self.ennemi_list:
+                e.image = e.strips[e.n].next()
+                
+            #night mask    
+            self.ls.pos = (var.screenWIDTH/2,var.screenHEIGHT/2)
+            self.night_m.day_update(220)
+            self.night_m.apply_shadows(self.building_list)
+            var.screen.blit(self.night_m.surf, (0, 0))
+            
+            Lifebar(ins.hero)
             for msg in self.message_list:
                 msg.show()
                 
             adjust_offset()
             
-            if pygame.key.get_pressed()[pygame.K_i]:
-                hero.inventory_opened = True
-                hero.open_inventory()
+            '''dirty loop to get the player's inv_delay timer values'''
+            for player in self.player_list:
+                player.inv_time.tick()
+                player.inv_time_left += player.inv_time.get_time()
+                if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
+                    ins.hero.inventory_opened = True
+                    ins.hero.open_inventory()
+            
+            for x in self.building_list:
+                if isinstance(x, Level_Change):
+                    x.activate(ins.hero,2)
+                    
+            
+class Level2(Level):
+    def set_level(self, sprite_grp):
+        for sprite in sprite_grp:
+            sprite.level = self
+    
+    def __init__(self):
+        super(Level2, self).__init__(1)
+        self.scroll_map = Item('Map',0,var.dirt_map, 0, 0)
+        
+        #Level Edges
+        for x in range(0,26):
+            y = random.randint(1,2)
+            if y == 1:
+                image = var.mound
+            else:
+                image = pygame.transform.flip(var.mound, True, False)
+            if x < 13:
+                w = Building('top_edge',0,image,x*153,-50, 1000)
+            elif x < 50 :
+                w = Building('bot_edge',0,image,(x-13)*153,1960, 1000)
+            self.building_list.add(w)
+            self.all_sprites_list.add(w)
+            
+        for x in range(0,56):
+            if x < 28:
+                w = Building('wall_left',0,var.rocks[5],-5,x*74, 1000)
+            else:
+                w = Building('wall_right',0,var.rocks[5],2000,(x-28)*74, 1000)        
+            self.building_list.add(w)
+            self.all_sprites_list.add(w)
+            
+           
+        #Objects
+        self.portal = Portal(50,1000,1)
+        self.portal2 = Portal(250,1800,1)
+        self.all_sprites_list.add(ins.hero, self.portal,self.portal2) 
+        self.player_list.add(ins.hero)
+        self.building_list.add(self.portal,self.portal2)
+        
+        self.add_obstacles(75,var.dirt_list)
+        self.add_ennemies(0,[ch.Skeleton])
+        self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
+        
+    def execute(self):
+        if self.run == True:
+            super(Level2, self).execute()
+            for event in pygame.event.get(): #setting up quit
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+                if event.type == MOUSEBUTTONDOWN:
+                    ins.hero.get_dest() # sets the player's destination
+                    
+                    for o in self.ennemi_list:
+                        ins.hero.attack(o)
+                    
+                    for i in self.item_list:
+                        i.use(ins.hero)
+                        
+                    for i in self.building_list:
+                        if isinstance(i,it.Chest):
+                            i.open_(ins.hero)
+                                
+            for o in self.char_list: 
+                if isinstance(o, ch.Skeleton): #sets mobs dest characters
+                    o.behaviour(ins.hero)
+        
+            for o in self.char_list: 
+                if isinstance(o, ch.Skeleton): #moves characters
+                    o.move()
+            
+            for p in self.projectile_list: #moves projectiles
+                p.move()
+                for o in self.ennemi_list:
+                    p.hit_test(o)
+                    
+            for p in self.projectile_ennemy_list: 
+                p.move() #moves enemy projectiles
+                p.hit_test(ins.hero)
+                            
+            ins.hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
+            ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision
+            ins.hero.character_collisions()
+    
+            for o in self.ennemi_list:
+                o.attack(ins.hero)
+                o.update_images()
+                o.anim_move()
+                
+                   
+            for d in self.dead_sprites_list:
+                d.loot(ins.hero)
+    
+                    
+            #animations
+            ins.hero.update_images()
+            ins.hero.anim_move() #animates ins.hero sprite
+            #offset checks
+            group_offset(self.building_list) #new building position using offset
+            group_offset(self.item_list)
+            self.scroll_map.offset() #offsets grass background map
+            group_offset(self.ennemi_list)
+            group_offset(self.dead_sprites_list)
+            group_offset(self.projectile_list)
+            group_offset(self.projectile_ennemy_list)
+            
+            #check if characters are dead before blitting:
+            for Character in itertools.chain.from_iterable([self.char_list,self.player_list]):
+                if Character.is_alive() == True:
+                    Character.is_alive() 
+            
+            #blitting        
+            var.screen.blit(self.scroll_map.image, self.scroll_map.rect) # blits the grass map to new pos
+            self.building_list.draw(var.screen) #blits the buildings to new pos
+            self.projectile_list.draw(var.screen)
+            self.projectile_ennemy_list.draw(var.screen)
+                    
+            if pygame.key.get_pressed()[pygame.K_e]: #blits highlight if e pressed
+                for x in self.item_list:
+                    x.highlight()
+            
+            self.dead_sprites_list.draw(var.screen) #blits corpses
+            self.item_list.draw(var.screen) #blitting items
+            self.ennemi_list.draw(var.screen) #blits ennemies
+            var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
+            
+            Lifebar(ins.hero)
+            for msg in self.message_list:
+                msg.show()
+                
+            adjust_offset()
+            
+            '''dirty loop to get the player's inv_delay timer values'''
+            for player in self.player_list:
+                player.inv_time.tick()
+                player.inv_time_left += player.inv_time.get_time()
+                if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
+                    ins.hero.inventory_opened = True
+                    ins.hero.open_inventory()
+                    
+            for x in self.building_list:
+                if isinstance(x, Level_Change):
+                    x.activate(ins.hero,1)
+        #self.go_to(1)
+#        if pygame.key.get_pressed()[pygame.K_v]:
+#            new_level = var.level_list[0]
+#            self.run = False
+#            [x for x in self.player_list][0].level = new_level
+#            new_level.run = True
+#            var.current_level = new_level

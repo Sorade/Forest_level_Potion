@@ -4,16 +4,224 @@ Created on Sat Apr 23 10:35:10 2016
 
 @author: Julien
 """
-import pygame, sys, variables, random
+import pygame, sys, random
+import functions as fn
+import variables as var
 from pygame.locals import *
 import itertools
 import numpy as np
+from operator import attrgetter
+import collections
+import multiprocessing as mp
+from math import sqrt
 
+
+
+class spritesheet(object):
+    def __init__(self, filename):
+        try:
+            self.sheet = pygame.image.load(filename).convert_alpha()
+        except pygame.error, message:
+            print 'Unable to load spritesheet image:', filename
+            raise SystemExit, message
+    # Load a specific image from a specific rectangle
+    def image_at(self, rectangle, colorkey = None):
+        "Loads image from x,y,x+offset,y+offset"
+        rect = pygame.Rect(rectangle)
+        image = pygame.Surface(rect.size).convert()
+        image.set_colorkey((0,0,0))
+        image.blit(self.sheet, (0, 0), rect)
+        #var.screen.blit(self.sheet, (0,0), rect)
+#        if colorkey is not None:
+#            if colorkey is -1:
+#                colorkey = image.get_at((0,0))
+#            image.set_colorkey(colorkey, pygame.RLEACCEL)
+        return image
+    # Load a whole bunch of images and return them as a list
+    def images_at(self, rects, colorkey = None):
+        "Loads multiple images, supply a list of coordinates" 
+        return [self.image_at(rect, colorkey) for rect in rects]
+    # Load a whole strip of images
+#    def load_strip(self, rect, image_count, colorkey = None):
+#        "Loads a strip of images and returns them as a list"
+#        tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
+#                for x in range(image_count)]
+#        return self.images_at(tups, colorkey)
+        
+    def load_strip(self,spacing, rect, image_count, colorkey = None):
+        "Loads a strip of images and returns them as a list"
+#        tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
+#                for x in range(image_count)]:
+        tups = []          
+        for x in range(image_count):
+            if x != 0:
+                tups += [(rect[0]+(rect[2]+spacing)*x, rect[1], rect[2], rect[3])]
+            else:
+                tups += [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])]
+        return self.images_at(tups, colorkey)  
+        
+class SpriteStripAnim(object):
+    """sprite strip animator
+    
+    This class provides an iterator (iter() and next() methods), and a
+    __add__() method for joining strips which comes in handy when a
+    strip wraps to the next row.
+    """
+    def __init__(self, filename, spacing, rect, count, colorkey=None, loop=False, frames=1):
+        """construct a SpriteStripAnim
+        
+        filename, rect, count, and colorkey are the same arguments used
+        by spritesheet.load_strip.
+        
+        loop is a boolean that, when True, causes the next() method to
+        loop. If False, the terminal case raises StopIteration.
+        
+        frames is the number of ticks to return the same image before
+        the iterator advances to the next image.
+        """
+        #self.filename = filename
+        #ss = spritesheet(filename)
+        ss = filename
+        self.images = ss.load_strip(spacing, rect, count, colorkey)
+        self.i = 0
+        self.loop = loop
+        self.frames = frames
+        self.f = frames
+    def iter(self):
+        self.i = 0
+        self.f = self.frames
+        return self
+    def next(self):
+        if self.i >= len(self.images):
+            if not self.loop:
+                raise StopIteration
+            else:
+                self.i = 0
+        image = self.images[self.i]
+        self.f -= 1
+        if self.f == 0:
+            self.i += 1
+            self.f = self.frames
+        return image
+    def __add__(self, ss):
+        self.images.extend(ss.images)
+        return self
+        
+class Level(object):
+    def __init__(self, lvl_num):
+        var.current_level = self
+        var.level_list.append(self)
+
+        self.lvl_num = lvl_num
+        self.run = False
+        #create sprite groups
+        self.player_list = pygame.sprite.Group()
+        self.char_list = pygame.sprite.Group()
+        self.ennemi_list = pygame.sprite.Group()
+        self.item_list = pygame.sprite.Group()
+        self.building_list = pygame.sprite.Group()
+        self.projectile_list = pygame.sprite.Group()
+        self.projectile_ennemy_list = pygame.sprite.Group()
+        self.all_sprites_list = pygame.sprite.Group()
+        self.deleted_list = pygame.sprite.Group()
+        self.dead_sprites_list = pygame.sprite.Group()
+        self.message_list = pygame.sprite.Group()
+        self.to_blit_list = pygame.sprite.Group()
+        
+        self.sprite_group_list = []
+        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
+
+    def go_to(self,new_lvl, pair):
+        '''change level'''
+        
+        new_level = var.level_list[new_lvl-1]
+        paired_portal_list = [y for y in [x for x in new_level.all_sprites_list if isinstance (x,Level_Change)] if y.pair == pair]
+        
+        if len(paired_portal_list) > 0:
+            player = [x for x in self.player_list][0]
+            self.run = False
+            player.level = new_level
+            new_level.run = True
+            var.current_level = new_level
+            
+            dest_port = random.choice(paired_portal_list) #select a random destination amongst the paired portals
+        
+            refx = dest_port.rect.bottomright[0]-var.screenWIDTH/2
+            refy = dest_port.rect.bottomright[1]+50-var.screenHEIGHT/2
+            for sprite in new_level.all_sprites_list:
+                sprite.rect = sprite.rect.move(-refx,-refy)
+                
+            new_level.scroll_map.rect =  new_level.scroll_map.rect.move(-refx,-refy) 
+            player.rect.center = (var.screenWIDTH/2,var.screenHEIGHT/2)
+            player.dest = player.rect.topleft
+            
+            
+    def execute(self):
+            var.current_level = self
+            [x for x in self.player_list][0].level = self
+            
+    #random obstacles
+    def add_obstacles(self,int,obs_list):
+        count = 0
+        while count < 75:
+            choice = random.choice(obs_list)
+            choice = choice if random.randint(0,1) == 1 else pygame.transform.flip(choice, True, False)
+            w = Building('obstacles',0,choice,random.randint(25,1800),random.randint(75,1800),1000)
+            old_rect = w.rect
+            w.rect = w.rect.inflate(150,150)
+            test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
+            if test is None:
+                w.rect = old_rect
+                self.building_list.add(w)
+                self.all_sprites_list.add(w)
+                count += 1
+                
+    #Random ennemies
+    def add_ennemies(self,int,list):
+        count = 0           
+        while count < 10: #number of wanted enemies
+            o = random.choice(list)(random.randint(450,1500),random.randint(450,1000))
+            if random.randint(0,1) == 1:
+                o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-3,5)))
+            test = pygame.sprite.spritecollideany(o, self.all_sprites_list, collided = None)
+            if test is None:      
+                count += 1
+                self.char_list.add(o)
+                self.ennemi_list.add(o)
+                self.all_sprites_list.add(o)
+                for item in o.equipement.contents: self.all_sprites_list.add(item)
+                for item in o.inventory.contents: self.all_sprites_list.add(item)
+                    
+    #random objects
+    def add_chests(self,int,chest,obj):
+        count = 0
+        while count < int:
+            #obj = [wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()]
+            collides = False
+            chest_contents = []
+            for n in range(0,random.randint(1,3)):
+                chest_contents.append(random.choice(obj))
+            pos = Rect(random.randint(50,var.background.get_rect()[2]),random.randint(80,var.background.get_rect()[3]),var.chest_img.get_rect().width,var.chest_img.get_rect().height)
+            w = chest(0,0, chest_contents)
+            w.rect = pos
+        
+            for c in self.all_sprites_list:
+                if isinstance(c,chest) and w.rect.colliderect((c.rect.inflate(750,750))) == True:
+                    collides = True
+                    break
+            test = pygame.sprite.spritecollideany(w, self.all_sprites_list, collided = None)
+            if test is None and collides == False:
+                self.building_list.add(w)
+                self.all_sprites_list.add(w)
+                for item in w.inventory.contents:
+                    self.all_sprites_list.add(item)
+                count +=1        
+        
 class Lifebar(object):
     def __init__(self,character):
         self.value = character.hp*10 if character.hp >= 0 else 0
-        self.rect = Rect(10,variables.screenHEIGHT-30,self.value,10)
-        pygame.draw.rect(variables.screen, (245,0,0) , self.rect)
+        self.rect = Rect(10,var.screenHEIGHT-30,self.value,10)
+        pygame.draw.rect(var.screen, (245,0,0) , self.rect)
     
 class MySprite(pygame.sprite.Sprite):
     def __init__(self,image,x,y):
@@ -29,14 +237,16 @@ class MySprite(pygame.sprite.Sprite):
         self.center = self.rect.center
         self.pos = self.rect.topleft
         self.blit_order = 1
+        self.level =  var.current_level #Level(1)#level to which sprite belongs
         
     def pop_around(self,item,xzone,yzone):
         collides = True
-        while collides == True: #number of wanted enemies
+        while collides == True:
             item.rect = Rect((random.randint(self.rect.x-xzone,self.rect.x+self.rect.width+xzone),random.randint(self.rect.y-yzone,self.rect.y+self.rect.height+yzone)),(item.rect.width,item.rect.height))
-            for c in variables.all_sprites_list:
+            for c in self.level.all_sprites_list:
                 if c.rect.inflate(-5,-5).collidepoint(item.rect.center) == False and self.rect.inflate(xzone,yzone).contains(item.rect) == True:
                     collides = False
+                    break
         return item.rect
     
         
@@ -45,16 +255,16 @@ class MySprite(pygame.sprite.Sprite):
 #        s.fill((0,0,0))
 ##        s = s.convert_alpha()
 ##        s.set_alpha(100)
-        pygame.draw.circle(variables.screen, (255,0,0,80), self.rect.center, 20, 0)
-        #variables.screen.blit(s, (self.rect[0]-self.rect[2]/2,self.rect[1]-self.rect[3]/2))
+        pygame.draw.circle(var.screen, (255,0,0,80), self.rect.center, 20, 0)
+        #var.screen.blit(s, (self.rect[0]-self.rect[2]/2,self.rect[1]-self.rect[3]/2))
         
     def delete(self):
-        for group in variables.sprite_group_list: #removes sprites from all groups
+        for group in self.level.sprite_group_list: #removes sprites from all groups
             if self in group:
                     group.remove(self)
                     print 'sprite deleted'
-                    print variables.item_list
-        variables.deleted_list.add(self) #adds the sprite to deleted list
+                    print self.level.item_list
+        self.level.deleted_list.add(self) #adds the sprite to deleted list
         
         
 class Character(MySprite):
@@ -63,7 +273,7 @@ class Character(MySprite):
         self.attack_images = attack_images
         self.image_list = self.attack_images[0]
         self.image = self.image_list[0]
-        self.dead_image = variables.dead_ennemi if random.randint(0,1) == 0 else pygame.transform.flip(variables.dead_ennemi, True, False)
+        self.dead_image = var.dead_ennemi if random.randint(0,1) == 0 else pygame.transform.flip(var.dead_ennemi, True, False)
         # Call the parent class (Sprite) constructor
         super(Character, self).__init__(self.image,x,y)
         self.speed = int(speed)
@@ -78,6 +288,7 @@ class Character(MySprite):
         self.attack_time = pygame.time.Clock()
         self.attack_time_left = 0        
         self.attack_speed = 750
+        self.flee_test = True
         self.E = 35
         self.F = 30
         '''anim timer'''
@@ -97,7 +308,9 @@ class Character(MySprite):
         '''Mvt timer'''
         self.mvt_time = pygame.time.Clock()
         self.mvt_time_left = 0        
-        self.mvt_speed = int(1000/(variables.FPS*0.7))
+        self.mvt_speed = int(1000/(var.FPS*0.7))
+        
+        self.is_moving = False
         
         '''inventory opening attributes'''
         self.do_once = True
@@ -109,6 +322,25 @@ class Character(MySprite):
         self.m_down = False
         self.m_up = True
         
+        self.inv_time = pygame.time.Clock()
+        self.inv_time_left = 0        
+        self.inv_delay = 400
+        
+    def merge_ammo(self):
+        self.inventory.combine_ammo() #merges all the ammo in the inventory only
+        '''merges the ammo from inv with equipped ammo'''
+        inv_projs = [x for x in self.inventory.contents if isinstance (x,Projectile)]
+        equiped = [y for y in self.equipement.contents if isinstance (y,Projectile)]
+        if len(equiped) > 0:
+            equiped = equiped[0]
+            for proj in inv_projs:
+                if type(equiped) == type(proj):
+                    equiped.ammo += proj.ammo
+                    self.inventory.contents.remove(proj)
+#                    equiped.name = '{} {}'.format(equiped.ammo,equiped.raw_name)
+                    
+                    
+                    
     def anim_move(self):
         #updates anim timer
         self.anim_time.tick()
@@ -119,25 +351,25 @@ class Character(MySprite):
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter]
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[0]
             elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image =self.image_list[self.anim_counter+4]  
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[4]
             elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+8]
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[8]
             elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
                 if self.anim_counter >= 4:
                     self.anim_counter = 0
                 self.image = self.image_list[self.anim_counter+12]
-                if self.pos == self.rect.topleft and self.has_attack == False:
+                if self.pos == self.rect.topleft:# and self.has_attack == False:
                     self.image = self.image_list[12]
             self.anim_time_left = 0
             self.anim_counter += 1
@@ -155,15 +387,15 @@ class Character(MySprite):
         xm = self.dest[0] 
         ym = self.dest[1]
         
-        variables.dx = xm-xp
-        variables.dy= ym-yp 
+        var.dx = xm-xp
+        var.dy= ym-yp 
         
         
     def get_offset(self):
         speed = self.speed #player's speed
         
-        xp = self.rect.x#(variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
-        yp = self.rect.y#(variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
+        xp = self.rect.x#(var.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
+        yp = self.rect.y#(var.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
         #print xp,yp
         xm = self.dest[0]
         ym = self.dest[1]
@@ -171,7 +403,7 @@ class Character(MySprite):
         dx = float(xm-xp)
         dy = float(ym-yp) 
         
-        #dist = (variables.dx**2+variables.dy**2)**0.5 #get lenght to travel
+        #dist = (var.dx**2+var.dy**2)**0.5 #get lenght to travel
         
         #calculates angle and sets quadrant
         if dx == 0 or dy == 0:
@@ -179,71 +411,75 @@ class Character(MySprite):
             if dx == 0 and ym > yp:
                 xoffset = 0
                 yoffset = -speed
-                variables.orientation = 180
+                self.orientation = 180
             elif dx == 0 and ym < yp:
                 xoffset = 0
                 yoffset = speed
-                variables.orientation = 0
+                self.orientation = 0
             elif dy == 0 and xm > xp:
                 xoffset = 0
                 yoffset = -speed
-                variables.orientation = 90
+                self.orientation = 90
             elif dy == 0 and xm < xp:
                 xoffset = 0
                 yoffset = speed
-                variables.orientation = 270
+                self.orientation = 270
             else:
                 xoffset, yoffset = 0,0
-                variables.orientation = 180
+                self.orientation = 180
         elif xm > xp and ym > yp:
             angle_rad = np.arctan((abs(dy)/abs(dx)))
             xoffset = -np.cos(angle_rad)*speed
             yoffset = -np.sin(angle_rad)*speed
-            variables.orientation = angle_rad*(180.0/np.pi)+90
+            self.orientation = angle_rad*(180.0/np.pi)+90
         elif xm < xp and ym > yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset =  np.sin(angle_rad)*speed
             yoffset = -np.cos(angle_rad)*speed
-            variables.orientation = angle_rad*(180.0/np.pi)+180
+            self.orientation = angle_rad*(180.0/np.pi)+180
         elif xm < xp and ym < yp:
             angle_rad = np.arctan((abs(dy)/abs(dx)))
             xoffset = np.cos(angle_rad)*speed
             yoffset = np.sin(angle_rad)*speed
-            variables.orientation = angle_rad*(180.0/np.pi)+270
+            self.orientation = angle_rad*(180.0/np.pi)+270
         else:# xm > xp and ym < yp:
             angle_rad = np.arctan((abs(dx)/abs(dy)))
             xoffset = -np.sin(angle_rad)*speed
             yoffset =  np.cos(angle_rad)*speed
-            variables.orientation = angle_rad*(180.0/np.pi)
+            self.orientation = angle_rad*(180.0/np.pi)
         
-        variables.xoffset = xoffset
-        variables.yoffset = yoffset
+        var.xoffset = int(xoffset)
+        var.yoffset = int(yoffset)
         
-        if variables.dx <= 3 and variables.dx >= -3:
-            variables.dx = 0
-            variables.xoffset = 0
-        if variables.dy <= 3 and variables.dy >= -3:
-            variables.dy = 0
-            variables.yoffset = 0
-        if variables.has_shot == True:
-            variables.dy, variables.dx = 0,0
-            variables.yoffset, variables.xoffset = 0,0
-            variables.has_shot = False
+        if var.dx <= 3 and var.dx >= -3:
+            var.dx = 0
+            var.xoffset = 0
+        if var.dy <= 3 and var.dy >= -3:
+            var.dy = 0
+            var.yoffset = 0
+        if var.has_shot == True:
+            var.dy, var.dx = 0,0
+            var.yoffset, var.xoffset = 0,0
+            var.has_shot = False
             self.anim_shot = True
                         
         
     def open_inventory(self):
         while self.inventory_opened == True:
-            variables.screen.blit(self.inventory.inv_bg, self.inventory.inv_bg.get_rect())
+            var.screen.blit(self.inventory.inv_bg, self.inventory.inv_bg.get_rect())
             if self.do_once == True:
+                self.merge_ammo()
                 self.inventory.create(self,10,10,0,50)
-                self.equipement.create(self,variables.screenWIDTH/2+50,10,0,50)
+                self.equipement.create(self,var.screenWIDTH/2+50,10,0,50)
                 self.dropbut = Button('discard', 50,450,50,20)            
                 self.do_once = False
-                print 'Creates Buttons'
+                self.inv_time.tick() #needs to tick it here to reset the tick value or it has kept adding up since last inventory 
+                self.inv_time_left = 0
             for b in self.buttons_list:
                 b.display()
             self.dropbut.display()
+            
+            
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
@@ -251,12 +487,12 @@ class Character(MySprite):
                 if event.type == MOUSEBUTTONDOWN:
                     self.m_down = True
                     self.m_up = False
-                    print 'mouse down'
+                    #print 'mouse down'
                     
                 if event.type == MOUSEBUTTONUP:
                     self.m_up = True
                     self.m_down = False
-                    print 'mouse up'
+                    #print 'mouse up'
             
             if self.selected == False and self.m_down == True:
                 for b in self.buttons_list:
@@ -273,32 +509,32 @@ class Character(MySprite):
     
             if self.m_up == True:
                 if self.selected == True:
-                    if self.start_pos[0]<variables.screenWIDTH/2:
+                    if self.start_pos[0]<var.screenWIDTH/2:
                         if isinstance(self.inventory.contents[self.selected_button], Potion):
                             self.inventory.contents[self.selected_button].drink(self)
                             print 'attempts potion drinking from inv'
-                    if self.buttons_list[self.selected_button].rect.colliderect(self.dropbut.rect) and self.start_pos[0]<variables.screenWIDTH/2: #removes item from inv
+                    if self.buttons_list[self.selected_button].rect.colliderect(self.dropbut.rect) and self.start_pos[0]<var.screenWIDTH/2: #removes item from inv
                         print 'removing inv item'
                         self.inventory.contents[self.selected_button].rect[0] = self.rect.move(random.randint(0,20)+5,0)[0]
                         self.inventory.contents[self.selected_button].rect[1] = self.rect.move(0,random.randint(0,20)+10)[1]
-                        variables.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
-                        variables.item_list.add(self.inventory.contents[self.selected_button]) #add's sprite back to item list for it to behave as item in game
+                        self.level.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
+                        self.level.item_list.add(self.inventory.contents[self.selected_button]) #add's sprite back to item list for it to behave as item in game
                         self.inventory.contents.pop(self.selected_button) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
                         self.buttons_list.pop(self.selected_button)
-                    elif self.buttons_list[self.selected_button].rect.colliderect(self.dropbut.rect) and self.start_pos[0]>variables.screenWIDTH/2:  #remove item from equipemnt
+                    elif self.buttons_list[self.selected_button].rect.colliderect(self.dropbut.rect) and self.start_pos[0]>var.screenWIDTH/2:  #remove item from equipemnt
                         print 'removing eq item'
-                        variables.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
-                        variables.item_list.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's sprite back to item list for it to behave as item in game
+                        self.level.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
+                        self.level.item_list.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's sprite back to item list for it to behave as item in game
                         self.equipement.contents[self.selected_button-len(self.buttons_list)].rect[0] = self.rect.move(random.randint(0,20)+5,0)[0]
                         self.equipement.contents[self.selected_button-len(self.buttons_list)].rect[1] = self.rect.move(0,random.randint(0,20)+10)[1]
                         self.equipement.contents.pop(self.selected_button-len(self.buttons_list)) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
                         self.buttons_list.pop(self.selected_button)
-                    elif  self.start_pos[0]>variables.screenWIDTH/2 and self.buttons_list[self.selected_button].rect[0]<variables.screenWIDTH/2 and len(self.inventory.contents) < 32: #moving item from equipement to inv
+                    elif  self.start_pos[0]>var.screenWIDTH/2 and self.buttons_list[self.selected_button].rect[0]<var.screenWIDTH/2 and len(self.inventory.contents) < 32: #moving item from equipement to inv
                         print 'moving from eq to inv'
                         self.inventory.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's item to inv
                         self.equipement.contents.pop(self.selected_button-len(self.buttons_list)) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
                         self.buttons_list.pop(self.selected_button) #remove's the item from it's button list position
-                    elif  self.start_pos[0]<variables.screenWIDTH/2 and self.buttons_list[self.selected_button].rect[0]>variables.screenWIDTH/2: #moving item from inv to eq
+                    elif  self.start_pos[0]<var.screenWIDTH/2 and self.buttons_list[self.selected_button].rect[0]>var.screenWIDTH/2: #moving item from inv to eq
                         print 'moving from inv to eq'                   
                         if isinstance(self.inventory.contents[self.selected_button],Armor): #checks if item is an armor
                             x = [item for item in self.equipement.contents if isinstance(item,Armor) == True] #creates a list of all armor items already in  the equipment
@@ -330,9 +566,23 @@ class Character(MySprite):
                                     print 'Can t have both a two and one handed weapon'
                             if len(x) != 2 and already_has == False:
                                 print 'weapon  added to eq'
-                                self.equipement.contents.append(self.inventory.contents[self.selected_button]) #add's item to inv
+                                self.equipement.contents.append(self.inventory.contents[self.selected_button]) #add's item to eq
                                 self.inventory.contents.pop(self.selected_button) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
                                 self.buttons_list.pop(self.selected_button) #remove's the item from it's button list position
+                            elif already_has == True:
+                                '''send item in eq to inv'''
+                                if self.inventory.contents[self.selected_button].wield == 'two_handed':
+                                    for item in x: #removes all weapons in eq
+                                        self.inventory.contents.append(item) #add's item to inv
+                                        self.equipement.contents.remove(item) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
+                                else: #i.e. one handed
+                                    self.inventory.contents.append(x[0]) #add's item to inv
+                                    self.equipement.contents.remove(x[0]) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
+                                '''adds item to eq'''
+                                self.equipement.contents.append(self.inventory.contents[self.selected_button]) #add's item to eq
+                                self.inventory.contents.pop(self.selected_button) #removes item in player's inv located at the index specified by the position of the button corresponding to this item in the button list
+                                self.buttons_list.pop(self.selected_button) #remove's the item from it's button list position
+                                
                         elif isinstance(self.inventory.contents[self.selected_button],Projectile): #checks if item is a projectile
                             x = [item for item in self.equipement.contents if isinstance(item,Projectile) == True] #creates a list of all projectile items already in  the equipment
                             if len(x) == 0:
@@ -343,37 +593,62 @@ class Character(MySprite):
                     
                     self.buttons_list = [] #clears buttonlist
                     self.inventory.create(self,10,10,0,50) #resets buttons and button list
-                    self.equipement.create(self,variables.screenWIDTH/2+50,10,0,50)
+                    self.equipement.create(self,var.screenWIDTH/2+50,10,0,50)
                     
                 self.selected = False
-            for msg in variables.message_list:
+            for msg in self.level.message_list:
                 msg.show()
             pygame.display.update()
                 
-            if pygame.key.get_pressed()[pygame.K_g]:
+                
+            #update inv shutdown delay:
+            self.inv_time.tick()
+            self.inv_time_left += self.inv_time.get_time()
+            if pygame.key.get_pressed()[pygame.K_i] and self.inv_time_left > self.inv_delay:
+                self.inv_time_left = 0
                 self.buttons_list = [] #clear's buttons list
                 self.do_once = True # to insure buttons are populated again at next inventory opening
                 self.inventory_opened = False
         
         
     def offset(self,):
-        if (variables.dx  == 0 and variables.dy == 0) == False:
-            self.rect = self.rect.move(variables.xoffset,variables.yoffset)
+        if (var.dx  == 0 and var.dy == 0) == False:
+            self.rect = self.rect.move(var.xoffset,var.yoffset)
 
     def is_alive(self):
         if self.hp > 0:
             return True
         else:
             self.kill()
-            variables.dead_sprites_list.add(self) #adds the character to the deleted sprite list
+            self.level.dead_sprites_list.add(self) #adds the character to the deleted sprite list
+            self.level.all_sprites_list.add(self)
             self.image = self.dead_image
             return False
+            
+    def weapon_xchange(self,type_a,type_b): #attempt_exchange(char,item_a,item_b,inv_a,inv_b):
+        #try:
+            inv_item = max([x for x in [y for y in self.inventory.contents if isinstance (y,Weapon)] if x.type == type_a], key=attrgetter('dmg'))
+            eq_item = max([p for p in [m for m in self.equipement.contents if isinstance (m,Weapon)] if p.type == type_b], key=attrgetter('dmg'))
+            if inv_item.wield == 'two_handed':
+                '''removes all weapons from eq to inv'''
+                [fn.move_item(self,j,self.equipement.contents,self.inventory.contents) for j in self.equipement.contents if isinstance (j,Weapon)]
+                fn.move_item(self,inv_item,self.inventory.contents,self.equipement.contents)
+                
+            else:
+                print 'before',eq_item,self.inventory.contents
+                fn.exchange_item(self,inv_item,eq_item,self.inventory.contents,self.equipement.contents)
+                print 'after',eq_item,self.inventory.contents
+       # except:
+        #    print 'no weapon type requiered to attack'
+            return False
     
-    def attack(self, Character):
+  
+    def attack(self, Character, cat):
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed: # needs to be added as a variable
-            if Character.is_alive() == True and self.is_alive() == True and Character.rect.inflate(5,5).colliderect(self.rect):
+            self.has_attack = False #to prevent endless animation
+            if cat == 'CC' and Character.is_alive() == True and self.is_alive() == True:
                 self.has_attack = True
                 test = random.randint(1,100) <= self.CC
                 if test == True:
@@ -385,39 +660,117 @@ class Character(MySprite):
                         dmg = (dmg+self.F/10)-(arm+Character.E/10)
                     Character.hp -=  dmg
                     print 'mob deals {} dmg'.format(dmg)
-                self.attack_time_left = 0
+                    self.attack_time_left = 0
+                    return True
+            elif cat == 'CT' and Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0:#checks clicks ennemi and has ammo 
+                    self.has_attack = True    
+                    '''creates an instance by getting the type of the proj in eq'''
+                    proj_used = type([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0][0])(0)
+                    for proj in [x for x in self.equipement.contents if isinstance (x,Projectile)]:
+                        if proj.ammo > 0:
+                            proj.ammo -= 1
+                            break
+                    wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
+                    proj_used.dmg += wep_used.dmg
+                    proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
+                    self.attack_time_left = 0
+                    return True
            
     def set_rand_dest(self):
-        self.dest_rect = self.rect.inflate(200,200)
-        self.dest = (random.randint(self.dest_rect[0],self.dest_rect[0]+self.dest_rect[2]),random.randint(self.dest_rect[1],self.dest_rect[1]+self.dest_rect[3]))
+        dest_rect = self.rect.inflate(200,200)
+        self.dest = (random.randint(dest_rect[0],dest_rect[0]+dest_rect[2]),random.randint(dest_rect[1],dest_rect[1]+dest_rect[3]))
         
     def set_charge_dest(self,charge_target):
         '''Charge destination randomly changed to allow the seek behaviour
         due to the move_collision function'''
         self.dest = charge_target.rect.x+random.randint(-10,10),charge_target.rect.y+random.randint(-10,10)
-        
+  
+    def set_flee_dest(self,attacker):
+        '''sends the char away from the attack at speed'''
+        flee_dist = 1000
+        if self.rect.inflate(400,400).colliderect(attacker.rect):
+            if self.rect.centerx > attacker.rect.centerx\
+            and self.rect.centery > attacker.rect.centery:
+                self.dest = (self.rect.x+flee_dist,self.rect.y+flee_dist)
+            if self.rect.centerx < attacker.rect.centerx\
+            and self.rect.centery > attacker.rect.centery:
+                self.dest = (self.rect.x-flee_dist,self.rect.y+flee_dist)            
+            if self.rect.centerx < attacker.rect.centerx\
+            and self.rect.centery < attacker.rect.centery:
+                self.dest = (self.rect.x-flee_dist,self.rect.y-flee_dist)     
+            if self.rect.centerx > attacker.rect.centerx\
+            and self.rect.centery < attacker.rect.centery:
+                self.dest = (self.rect.x+flee_dist,self.rect.y-flee_dist)
+            print 'has fled'
+            
     def behaviour(self,Character):
+        
+        '''Managing Attack AI'''
+        CT_eq = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']
+        CT_inv = [x for x in [y for y in self.inventory.contents if isinstance (y,Weapon)] if x.type == 'CT']
+        CT_list = CT_eq + CT_inv
+        
+        has_CT = False
+        if len(CT_list) > 0:
+            has_CT = True
+            range_CT = max(CT_list, key=attrgetter('dmg')).range
+
+        CC_eq = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CC']
+        CC_inv =[x for x in [y for y in self.inventory.contents if isinstance (y,Weapon)] if x.type == 'CC']
+        CC_list = CC_eq + CC_inv
+
+        has_CC = False
+        if len(CC_list) > 0:
+            has_CC = True
+            range_CC = max(CC_list, key=attrgetter('dmg')).range
+            
+        if has_CC and Character.rect.colliderect(self.rect.inflate(range_CC,range_CC)):
+            if len(CC_eq) == 0:
+                self.weapon_xchange('CC','CT')
+            self.attack(Character, 'CC')
+        
+        elif has_CT and self.rect.inflate(range_CT,range_CT).colliderect(Character.rect) \
+                and self.rect.inflate(275,275).colliderect(Character.rect) == False \
+                and fn.in_sight(self,Character, range_CT, self.level.building_list):
+                    if len(CT_eq) == 0:
+                        self.weapon_xchange('CT','CC')
+                    self.attack(Character, 'CT')
+                    
+        if self.has_attack == True:
+            self.dest = self.rect.topleft 
+                    
+        '''managing fleeing AI'''            
+        if self.hp <= 5:
+            if self.flee_test == True:
+                self.flee_test = False
+                if self.speed < 5:
+                    self.speed *= 5
+                self.set_flee_dest(Character)
+        elif self.hp > 5 and self.flee_test == False:
+            self.flee_test = True
+            
+        '''Managing movement AI'''
         self.dest_time.tick()
         self.dest_time_left += self.dest_time.get_time()
-        if self.dest_time_left >= self.dest_speed: # checks if time to set new dest
+        if self.dest_time_left >= self.dest_speed  and self.has_attack == False: # checks if time to set new dest
             self.dest_time_left = 0 #resets timer
-            if self.rect.inflate(250,250).colliderect(Character.rect) == True:
+            if has_CC and self.rect.inflate(250,250).colliderect(Character.rect) == True:
                 if self.speed < 2:
                     self.speed *= 2
                 self.set_charge_dest(Character)
             elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
-                if self.speed > int(48.0/(variables.FPS*0.7)):
-                    self.speed = int(48.0/(variables.FPS*0.7))
+                if self.speed > int(48.0/(var.FPS*0.7)):
+                    self.speed = int(48.0/(var.FPS*0.7))
                 my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
                 random.choice(my_list)
             else:
-                if self.speed > int(48.0/(variables.FPS*0.7)):
-                    self.speed = int(48.0/(variables.FPS*0.7))
+                if self.speed > int(48.0/(var.FPS*0.7)):
+                    self.speed = int(48.0/(var.FPS*0.7))
                 self.set_rand_dest()
-            
+           
     def move_collision(self,EW,SN):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
-        for obstacle in itertools.chain.from_iterable([variables.building_list,variables.player_list]):
+        for obstacle in itertools.chain.from_iterable([self.level.building_list,self.level.player_list]):
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/10,-obstacle.rect.height/10)) == True:#len([x for x in char_col_points if obstacle.rect.collidepoint(x)]) >= 1:
                 if EW == True:
                     if self.dest[1] > self.rect.y:
@@ -449,6 +802,7 @@ class Character(MySprite):
         self.mvt_time_left += self.mvt_time.get_time()
         if  self.mvt_time_left >= self.mvt_speed:# checks time to animate
             if self.pos != self.dest: # cheks pos  animate
+                self.is_moving = True
                 self.mvt_time_left = 0
                 if self.dest[0] > self.rect[0]: #move E
                     self.move_speed = self.speed
@@ -470,6 +824,8 @@ class Character(MySprite):
                     self.pos = self.rect.topleft
             else:
                 self.anim_time_left = 0
+                self.is_moving = False
+
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
@@ -479,27 +835,27 @@ class Character(MySprite):
                     has_looted = True
                     for item in inv:
                         self.pop_around(item, 50,50)
-                        variables.item_list.add(item) #add's sprite back to item list for it to behave as item in game
+                        self.level.item_list.add(item) #add's sprite back to item list for it to behave as item in game
                         inv.remove(item) #removes item from chest
             if has_looted == False:
                 w = 150
                 h = 30
                 msg = Message('Nothing to loot !!',500, 0,0,w,h)
                 msg.image = pygame.transform.scale(msg.image, (w, h))
-                msg.rect.center = (variables.screenWIDTH/2,25)
-                variables.message_list.add(msg)
+                msg.rect.center = (var.screenWIDTH/2,25)
+                self.level.message_list.add(msg)
 
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, text, x,y,w,h ):
         super(Button, self).__init__()
         self.text = text
-        self.image = variables.but_bg
+        self.image = var.but_bg
         self.text_pos = ((x+w/2),(y+h/2))
         self.rect2 = 0
         self.color = (0,200,0)
         
-        #self.surface = pygame.draw.rect(variables.screen, self.color , self.rect)
+        #self.surface = pygame.draw.rect(var.screen, self.color , self.rect)
         
         self.smallText = pygame.font.Font("freesansbold.ttf",12)
         self.textSurf = self.smallText.render(self.text, True, (0,0,0))
@@ -509,9 +865,9 @@ class Button(pygame.sprite.Sprite):
         self.rect = Rect(x,y,self.image.get_rect().width,self.image.get_rect().height)
 
     def display(self):
-        #self.surface = pygame.draw.rect(variables.screen, self.color , self.rect)
-        variables.screen.blit(self.image,self.rect)
-        variables.screen.blit(self.textSurf, Rect(self.rect[0]+(self.rect.centerx-self.rect[0])*0.4,self.rect[1]+self.rect[3]/4,self.rect[2],self.rect[3])) #Rect(self.rect[0]+self.rect[2]/8,self.rect[1]+20,self.rect[2],self.rect[3])
+        #self.surface = pygame.draw.rect(var.screen, self.color , self.rect)
+        var.screen.blit(self.image,self.rect)
+        var.screen.blit(self.textSurf, Rect(self.rect[0]+(self.rect.centerx-self.rect[0])*0.4,self.rect[1]+self.rect[3]/4,self.rect[2],self.rect[3])) #Rect(self.rect[0]+self.rect[2]/8,self.rect[1]+20,self.rect[2],self.rect[3])
         
 class Message(Button):
     def __init__(self, text, display_time, x,y,w,h ):
@@ -530,18 +886,34 @@ class Message(Button):
 class Inventory(object):
     def __init__(self):
         self.contents = []
-        self.inv_bg = variables.inv_bg
+        self.inv_bg = var.inv_bg
         
+    def combine_ammo(self):
+        all_projectiles = [x for x in self.contents if isinstance (x,Projectile)]
+        for item in all_projectiles:
+            temp_projectiles = all_projectiles
+            temp_projectiles.remove(item)
+            other_projectiles = temp_projectiles
+            print other_projectiles
+            for other in other_projectiles:
+                if type(item) == type(other):
+                    item.ammo += other.ammo
+                    self.contents.remove(other)
+#                    item.name = '{} {}'.format(item.ammo,item.raw_name)
+                   
     def add(self, item):
         if len(self.contents) < 32:
             self.contents.append(item)
             item.inv_pos = len(self.contents)
+            #self.combine_ammo()
     
     def rem(self, item):
         try:
             self.contents.remove(item)
         except:
             print 'item not in inventory'
+    
+
             
     def create(self,Character,x,y, dx, dy):
         xstart = x
@@ -561,28 +933,28 @@ class Inventory(object):
             y += dy
             Character.buttons_list.append(b)
             
-class Equipment(object): #not working yet
-    def __init__(self):
-        self.contents = {
-                'Head':0,'Neck':0, 'Torso':0, 'Right hand':0, 'Left hand':0, 'Ring':0
-        }   
-        
-    def add(self, item): #to check
-        self.contents.append(item)
-        item.inv_pos = len(self.contents)
-    
-    def rem(self, item): #to ckech
-        try:
-            self.contents.remove(item)
-        except:
-            print 'item not in inventory'
-            
-    def create(self,Character,x,y, dx, dy):
-        for i in self.contents:
-            b = Button(i.name,x,y,80,30)
-            x += dx
-            y += dy
-            Character.buttons_list.append(b)
+#class Equipment(object): #not working yet
+#    def __init__(self):
+#        self.contents = {
+#                'Head':0,'Neck':0, 'Torso':0, 'Right hand':0, 'Left hand':0, 'Ring':0
+#        }   
+#        
+#    def add(self, item): #to check
+#        self.contents.append(item)
+#        item.inv_pos = len(self.contents)
+#    
+#    def rem(self, item): #to ckech
+#        try:
+#            self.contents.remove(item)
+#        except:
+#            print 'item not in inventory'
+#            
+#    def create(self,Character,x,y, dx, dy):
+#        for i in self.contents:
+#            b = Button(i.name,x,y,80,30)
+#            x += dx
+#            y += dy
+#            Character.buttons_list.append(b)
 
             
 class Item(MySprite):
@@ -596,8 +968,8 @@ class Item(MySprite):
         self.inv_pos = -1
         
     def offset(self):
-            if (variables.dx  == 0 and variables.dy == 0) == False:
-                self.rect = self.rect.move(variables.xoffset,variables.yoffset)
+            if (var.dx  == 0 and var.dy == 0) == False:
+                self.rect = self.rect.move(var.xoffset,var.yoffset)
                 
     def use(self,player): #needs to be ckecked when E key is down AKA object mode
         if self.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) and player.rect.inflate(10,10).colliderect(self.rect) and pygame.key.get_pressed()[pygame.K_e]:
@@ -636,7 +1008,7 @@ class Helm(Armor):
         self.name = 'Helm'
         self.value = 10
         self.arm = 2
-        self.image = variables.helm_img
+        self.image = var.helm_img
         super(Helm, self).__init__(self.name, self.value, self.image, 200, 150, self.arm)
 
 class Torso_armor(Armor):
@@ -644,8 +1016,7 @@ class Torso_armor(Armor):
         self.name = name
         self.value = value
         self.arm = arm
-        self.image = variables.leather_armor_img
-        super(Torso_armor, self).__init__(self.name, self.value, self.image, 200, 150, self.arm)
+        super(Torso_armor, self).__init__(self.name, self.value, image, 200, 150, self.arm)
 
 class Potion(Item):
     def __init__(self, value, regen):
@@ -666,11 +1037,11 @@ class Potion(Item):
             self.name = 'Unknown potion'
             
         if 'Health' in self.name:
-            self.image = variables.health_potion_img
+            self.image = var.health_potion_img
         elif self.name == 'Poison':
-            self.image = variables.poison_potion_img
+            self.image = var.poison_potion_img
         else:
-            self.image = variables.unknown_potion_img
+            self.image = var.unknown_potion_img
         
         super(Potion, self).__init__(self.name, value, self.image, 150, 225)
         self.regen = regen
@@ -693,8 +1064,8 @@ class Potion(Item):
                 h = 30
                 msg = Message('Clic again to drink', 2000, 0,0,w,h)
                 msg.image = pygame.transform.scale(msg.image, (w, h))
-                msg.rect.center = (variables.screenWIDTH/2,25)
-                variables.message_list.add(msg)
+                msg.rect.center = (var.screenWIDTH/2,25)
+                self.level.message_list.add(msg)
                 self.confirm = True
                 self.timer_left = 0
                 
@@ -714,29 +1085,42 @@ class Building(Item):
         #self.rect = self.image.get_rect().move(x, y) #initial placement
         
 class Projectile(Item):
-    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif):
+    def __init__(self, name, value, image, x, y, speed, dmg, dmg_modif, ammo, range_):
         super(Projectile, self).__init__(name, value, image, x, y)
         self.dest = (self.rect[0],self.rect[1])
         self.speed = speed
         self.dmg_modif = dmg_modif
         self.dmg = dmg
         self.orientation = 0
+        self.range = range_
+        self.ammo = ammo
         
+    @property
+    def ammo(self):
+        return self._ammo
+
+    @ammo.setter
+    def ammo(self, ammo):
+        raw_name = ''.join([i for i in self.name if not i.isdigit()])
+        self.name = str(ammo) + raw_name
+        self._ammo = ammo
+
+            
     def random_dmg(self):
         attack_dmg = self.dmg+d10(self.dmg_modif)
         return attack_dmg
 
-    def fire(self,shooter):
+    def fire(self,shooter, target_pos, dest_list):
         self.rect.center = shooter.rect.center#place's the projectile at shooter's position
-        self.dest = pygame.mouse.get_pos() #set's destination, will need to be offset
+        self.dest = target_pos#pygame.mouse.get_pos() #set's destination, will need to be offset
         self.dmg = int(shooter.F/10.0)
-        self.image = variables.arrow_img
-        variables.projectile_list.add(self)
-        variables.has_shot = True
+        self.image = var.arrow_img
+        dest_list.add(self) #for player firing : self.level.projectile_list, for mobs self.level.projectile_ennemy_list
+        var.has_shot = True
         
     def hit_test(self,character):
-        test = pygame.sprite.spritecollideany(self, variables.building_list, collided = None)
-        if self.rect.colliderect(character.rect.inflate(-character.rect.width/5,-character.rect.height/5)) == True:
+        test = pygame.sprite.spritecollideany(self, self.level.building_list, collided = None)
+        if self.rect.colliderect(character.rect.inflate(-character.rect.width/4,-character.rect.height/4)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
             dmg = self.random_dmg() - (character.E/10+arm)
             if dmg < 0:
@@ -761,7 +1145,7 @@ class Projectile(Item):
         ym = m_pos[1]-self.rect[3]
         
         dx = xm-xp
-        dy= float(ym-yp) 
+        dy = ym-yp 
         #dist = (dx**2+dy**2)**0.5 #get lenght to travel
         
         #calculates angle and sets quadrant
@@ -807,11 +1191,236 @@ class Projectile(Item):
             yoffset =  np.cos(angle_rad)*speed
             self.orientation = angle_rad*(180.0/np.pi)
         
-        self.image = pygame.transform.rotate(variables.arrow_img, -self.orientation)
+        self.image = pygame.transform.rotate(var.arrow_img, -self.orientation)
         self.rect = self.rect.move(-xoffset,-yoffset)
-        self.dest = (self.dest[0]-xoffset+variables.xoffset,self.dest[1]-yoffset+variables.yoffset)
+        self.dest = (self.dest[0]-xoffset+var.xoffset,self.dest[1]-yoffset+var.yoffset)
         
 
+class Level_Change(Building):
+    def __init__(self, name, image, x, y, image_list, pair):
+        self.hp = 1000
+        self.value = 1000
+        self.image_list = image_list
+        self.pair = pair
+        super(Level_Change, self).__init__(name, self.value, image, x, y, self.hp)
+        
+        '''anim timer'''
+        self.anim_time = pygame.time.Clock()
+        self.anim_time_left = 0        
+        self.anim_speed = 1000/len(self.image_list)
+        self.anim_counter = 0
+        
+    def anim(self):
+        #updates anim timer
+        self.anim_time.tick()
+        self.anim_time_left += self.anim_time.get_time()
+        #checks which anim to display based on the direction and if sprite is moving and alive
+        if self.anim_time_left >= self.anim_speed: #checks time to animate
+                if self.anim_counter >= len(self.image_list):
+                    self.anim_counter = 0
+                self.image = self.image_list[self.anim_counter]
+                self.anim_time_left = 0
+                self.anim_counter += 1
+                
+        
+    def activate(self,char,new_level):
+        self.anim()
+        if char.rect.collidepoint(self.rect.midbottom):
+            self.level.go_to(new_level, self.pair)
 
+            
+class Portal(Level_Change):
+    def __init__(self, x, y, pair):
+        self.name = 'Portal'
+        self.image_list = var.portal_images
+        self.image = self.image_list[0]
+        super(Portal,self).__init__(self.name,self.image,x,y, self.image_list, pair)
+
+class Light_Source(object):
+    def __init__(self,x,y,range_, fixed):
+        self.range = range_
+        self.pos = (x,y)
+        self.fixed = fixed
+        
+class Ray(object):
+    def __init__(self, source, dest, offset):
+        X1,Y1 = source.pos
+        X2,Y2 = dest
+        '''working out line equations'''
+        if float(X1-X2) == 0:
+            A1 = 0
+        else:
+            A1 = (Y1-Y2)/float(X1-X2) # Pay attention to not dividing by zero
+        b1 = Y1-A1*X1
+        
+        self.m = A1+offset
+        self.p = b1
+        if X1 < X2:
+            self.far_pt = (X2*500,self.m*X2*500+self.p)
+        elif X1 == X2 and Y1 < Y2:
+            self.far_pt = (X1,1500)
+        elif X1 == X2 and Y1 > Y2:
+            self.far_pt = (X1,-1500)
+        else:
+            self.far_pt = (X2*-500,self.m*X2*-500+self.p)
+        
+class Segment(object):
+    def __init__(self,start,end):
+        self.start = start
+        self.end = end
     
-    
+    def check_col(self, ray, source):
+        ''' 
+        segment1 = (self.start,self.end)
+        segment2 = (source.pos,ray.far_pt)'''
+        X1,Y1 = self.start #start pt of segment 1
+        X2,Y2 = self.end #end pt of segment 1
+        X3,Y3 = source.pos #start pt of segment 2
+        X4,Y4 = ray.far_pt #end pt of segment 2
+        
+        '''checks if the two lines intersect'''
+        col_pt = fn.line_intersection(((X1,Y1),(X2,Y2)),((X3,Y3),(X4,Y4)))
+        
+        if col_pt != False:
+            col_x,col_y = col_pt
+            '''checks if col_pt is on both segments'''
+            if fn.isBetween(self.start, self.end, col_pt) and fn.isBetween(source.pos, ray.far_pt, col_pt):
+                dist = sqrt((X3-col_pt[0])**2+(Y3-col_pt[1])**2)
+                return True,col_pt,dist
+
+        return False,0
+
+class Night_Mask(object):
+    def __init__(self):
+        self.surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT)) #Screenwidth and height
+        self.light_sources = []
+        
+        '''setting initial alpha and colorkey'''
+        self.surf.set_colorkey((255,255,255))
+        self.surf.set_alpha(0)
+        
+        '''Day time timer'''
+        self.day_timer = pygame.time.Clock()
+        self.day_time = 0        
+        self.day_end = 4*60000#1440000
+        self.day_switch = self.day_end/2 #12 minutes
+        
+        '''Shadow timer'''
+        self.Shadow_timer = pygame.time.Clock()
+        self.Shadow_time = 0        
+        self.Shadow_end = 200
+        
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, alpha):
+        self.surf.set_alpha(int(alpha))
+        self._alpha = alpha
+        
+    def day_update(self,a_max):
+        alfa = float(a_max)
+        self.day_timer.tick()
+        self.day_time += self.day_timer.get_time()
+        if self.day_time <= self.day_switch: # checks if the time of day has been reached
+            self.alpha = (alfa/self.day_switch)*self.day_time
+        elif self.day_time >= self.day_end:
+            self.day_time = 0
+        else:
+            self.alpha = alfa+(alfa/self.day_switch)*(self.day_switch-self.day_time)
+        
+        
+    def apply_shadows(self, obstacles_list):
+        self.Shadow_timer.tick()
+        self.Shadow_time += self.Shadow_timer.get_time()    
+        if self.Shadow_time >= self.Shadow_end and  self.alpha > 60:
+            self.Shadow_time = 0
+            '''reset's mask to black'''
+            self.surf.fill(pygame.color.Color('black'))
+            for source in self.light_sources:
+                z_x = source.pos[0]-source.range
+                z_y = source.pos[1]-source.range
+                z_w = 2*source.range
+                z_h = 2*source.range
+                if source.pos[0]-source.range < 0:
+                    z_x = 0
+                    z_w = 2*source.range - abs(source.pos[0]-source.range)
+                if source.pos[1]-source.range < 0:
+                    z_y = 0
+                    z_h = 2*source.range - abs(source.pos[1]-source.range)
+
+                zone = pygame.Rect((z_x,z_y),(z_w,z_h))
+                obstacles = [x for x in obstacles_list if x.rect.colliderect(zone)]
+                corner_ls = [zone.topleft,zone.topright,zone.bottomright,zone.bottomleft]
+                rays = []
+                segments = fn.get_seg(zone,Segment)
+                poly_pts = {}
+                
+                for pt in corner_ls:
+                    rays.extend(fn.cast_multi(source,pt,Ray))
+                for obs in obstacles:
+                    for point in [obs.rect.topleft,obs.rect.topright,obs.rect.bottomleft,obs.rect.bottomright]:
+                        rays.extend(fn.cast_multi(source,point,Ray))
+                    segments.extend(fn.get_seg(obs.rect,Segment))
+                    
+                for ray in rays:
+                    collisions = {}
+                    for seg in segments:
+                        test = seg.check_col(ray,source)
+                        if test[0] == True:
+                            collisions[test[1]] = test[2]
+                    #adds the closest collision to the source
+                    if len(collisions) != 0:
+                        #print collisions
+                        pt = min(collisions, key=collisions.get)
+                        angle = fn.angle_clockwise(source.pos,(source.pos[0],source.pos[1]-50),pt)
+                        poly_pts[angle] = (int(round(pt[0],0)),int(round(pt[1],0)))
+                    else:
+                        print 'no_collisions'
+                
+                '''sorting collision points in clockwise order'''
+                final_pts = collections.OrderedDict(sorted(poly_pts.items()))
+                to_plot = list(final_pts.values())
+                
+                '''preparing surfaces to get light effects'''
+                shadow_surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
+                shadow_surf.set_colorkey((0,0,0))
+                if len(to_plot) > 2:
+                    pygame.draw.polygon(shadow_surf, (255,255,255), to_plot, 0)
+                    pygame.draw.polygon(shadow_surf, (255,255,255), to_plot, 10)
+                else:
+                    pygame.draw.polygon(shadow_surf, (255,255,255), corner_ls, 0)
+                    
+                
+                green_mask = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
+                green_mask.fill((0,255,0)) #GREEN
+                green_mask.set_colorkey((0,0,0))
+                pygame.draw.circle(green_mask, (0,0,0), source.pos, source.range, 0)
+                
+                final_surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
+                shadow_surf.blit(green_mask, (0,0))
+                final_surf.blit(shadow_surf, (0,0))
+                final_surf.set_colorkey((0,255,0))
+#                string_surf = pygame.image.tostring(final_surf, "RGBA", True)
+#                # create a PIL image and blur it
+#                pil_blured = PIL.Image.fromstring("RGBA", (var.screenWIDTH,var.screenHEIGHT), string_surf).filter(PIL.ImageFilter.GaussianBlur(radius=6))
+#                # convert it back to a pygame surface
+#                pyg_blured = pygame.image.fromstring(pil_blured.tostring("raw", "RGBA"), (var.screenWIDTH,var.screenHEIGHT), "RGBA")
+#                final_surf.set_colorkey((0,255,0))
+                self.surf.blit(final_surf, (0, 0))
+                
+#def get_point(poly_pts,segments,ray,source):
+#    collisions = {}
+#    for seg in segments:
+#        test = seg.check_col(ray,source)
+#        if test[0] == True:
+#            collisions[test[1]] = test[2]
+#    #adds the closest collision to the source
+#    if len(collisions) != 0:
+#        #print collisions
+#        pt = min(collisions, key=collisions.get)
+#        angle = fn.angle_clockwise(source.pos,(source.pos[0],source.pos[1]-50),pt)
+#        poly_pts[angle] = (int(round(pt[0],0)),int(round(pt[1],0)))
+#    else:
+#        print 'no_collisions'
