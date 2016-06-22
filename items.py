@@ -7,8 +7,15 @@ Created on Fri May 13 19:52:20 2016
 import pygame
 import variables
 import random
-from classes import Item, Inventory, Message, Potion
+from classes import Item, Inventory, Message, Potion, Illuminator
 import functions as fn
+
+class Torch(Illuminator):
+    def __init__(self, range_):
+        self.name = 'Torch'
+        self.value = 4.
+        self.image = variables.torch_img
+        super(Torch, self).__init__(self.name, self.value, self.image, range_)
 
 class Chest(Item):
     def __init__(self,x, y, contents_list):

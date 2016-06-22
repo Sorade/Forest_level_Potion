@@ -13,7 +13,10 @@ from math import acos
 from math import sqrt
 from math import pi
 
-
+#def for_group(group,*functions):
+#    for item in group:
+#        for function in functions:
+#            pass
 
 def move_item(char,item,inv_a,inv_b):
     '''moves an item from one Inventory to another,

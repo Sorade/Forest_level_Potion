@@ -191,6 +191,7 @@ portal_images = []
 for x in range(1,7):
     portal_images.append(pygame.image.load('Object_Sprites\\portal{}.png'.format(x)).convert_alpha())
 
+torch_img = pygame.image.load('Object_Sprites\\torch_lit.png').convert_alpha()
 chest_img = pygame.image.load('Object_Sprites\\chest.png').convert()
 sword_img = pygame.image.load('Object_Sprites\\sword_small.png').convert()
 sword_img.set_colorkey((0,0,0))
@@ -309,6 +310,9 @@ move_speed = 0
 #collision lists
 collide_building = []
 collide_chest = []
+
+'''importing lighting effect'''
+surf_falloff = pygame.image.load('sfx\\light_falloff100.png').convert()
 
 #timers and time info:
 FPS = 60

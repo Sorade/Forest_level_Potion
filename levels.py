@@ -16,6 +16,9 @@ import armors as ar
 import items as it
 from pygame.locals import *
 from classes import *
+'''shadow casting imports'''
+import PAdLib.shadow as shadow
+import PAdLib.occluder as occluder
 
 class Level1(Level):
     def set_level(self, sprite_grp):
@@ -63,22 +66,11 @@ class Level1(Level):
         self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
         '''Night Mask'''
-        self.ls = Light_Source(75,75,150,False)
+        self.ls = it.Torch(200)
+        self.item_list.add(self.ls)
         self.night_m = Night_Mask()
-        self.night_m.light_sources.extend([self.ls])
-        '''testing spritesheet'''
-#        ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
-#        # Sprite is 16x16 pixels at location 0,0 in the file...
-#        image = ss.image_at((0, 0, 50, 50))
-#        images = []
-#        # Load two images into an array, their transparent bit is (255, 255, 255)
-#        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
-#        print images
-        
-#        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6)]       
-#        self.n = 0
-#        self.strips[self.n].iter()
-#        self.image = self.strips[self.n].next()
+        self.assign_occluders()
+        self.assign_radius()
         
         
     def execute(self):
@@ -171,10 +163,11 @@ class Level1(Level):
                 e.image = e.strips[e.n].next()
                 
             #night mask    
-            self.ls.pos = (var.screenWIDTH/2,var.screenHEIGHT/2)
-            self.night_m.day_update(220)
-            self.night_m.apply_shadows(self.building_list)
-            var.screen.blit(self.night_m.surf, (0, 0))
+            self.ls.rect.center = (var.screenWIDTH/2,var.screenHEIGHT/2)
+            #self.night_m.day_update(220)
+            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list)
+            
+            var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
             
             Lifebar(ins.hero)
             for msg in self.message_list:
