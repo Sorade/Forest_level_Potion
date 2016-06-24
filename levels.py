@@ -16,9 +16,7 @@ import armors as ar
 import items as it
 from pygame.locals import *
 from classes import *
-'''shadow casting imports'''
-import PAdLib.shadow as shadow
-import PAdLib.occluder as occluder
+
 
 class Level1(Level):
     def set_level(self, sprite_grp):
@@ -63,11 +61,9 @@ class Level1(Level):
         
         self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Skeleton])
-        self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
+        self.add_chests(14,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
         '''Night Mask'''
-        self.ls = it.Torch(200)
-        self.item_list.add(self.ls)
         self.night_m = Night_Mask()
         self.assign_occluders()
         self.assign_radius()
@@ -153,9 +149,10 @@ class Level1(Level):
             if pygame.key.get_pressed()[pygame.K_e]: #blits highlight if e pressed
                 for x in self.item_list:
                     x.highlight()
+                    
             
             self.dead_sprites_list.draw(var.screen) #blits corpses
-            self.item_list.draw(var.screen) #blitting items
+            blit_visible(var.screen,self.item_list) #blitting items
             self.ennemi_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
@@ -163,9 +160,8 @@ class Level1(Level):
                 e.image = e.strips[e.n].next()
                 
             #night mask    
-            self.ls.rect.center = (var.screenWIDTH/2,var.screenHEIGHT/2)
-            #self.night_m.day_update(220)
-            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list)
+            self.night_m.day_update(220)
+            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list,ins.hero)
             
             var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
             
@@ -228,7 +224,7 @@ class Level2(Level):
         self.building_list.add(self.portal,self.portal2)
         
         self.add_obstacles(75,var.dirt_list)
-        self.add_ennemies(0,[ch.Skeleton])
+        self.add_ennemies(10,[ch.Skeleton])
         self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):

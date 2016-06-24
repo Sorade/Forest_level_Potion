@@ -13,11 +13,31 @@ from math import acos
 from math import sqrt
 from math import pi
 
-#def for_group(group,*functions):
-#    for item in group:
-#        for function in functions:
-#            pass
+def tulpe_scale(tulpe,(x,y)):
+    '''scales a 2 digit tulpe by the x and y value'''
+    a = tulpe[0]
+    b = tulpe[1]
+    return (a+x,b+y)
 
+def blurSurf(surface, amt):
+    """
+    Blur the given surface by the given 'amount'.  Only values 1 and greater
+    are valid.  Value 1 = no blur.
+    """
+    if amt < 1.0:
+        raise ValueError("Arg 'amt' must be greater than 1.0, passed in value is %s"%amt)
+    scale = 1.0/float(amt)
+    surf_size = surface.get_size()
+    scale_size = (int(surf_size[0]*scale), int(surf_size[1]*scale))
+    surf = pygame.transform.smoothscale(surface, scale_size)
+    surf = pygame.transform.smoothscale(surf, surf_size)
+    return surf
+
+def blit_visible(surface,group):
+    for obj in group:
+        if obj.blit_order >= 0:
+            surface.blit(obj.image, obj.rect)
+        
 def move_item(char,item,inv_a,inv_b):
     '''moves an item from one Inventory to another,
     the item HAS TO BE IN the inventory to start with'''

@@ -255,6 +255,7 @@ class MySprite(pygame.sprite.Sprite):
         self.pos = self.rect.topleft
         self.blit_order = 1
         self.level =  var.current_level #Level(1)#level to which sprite belongs
+        self.blit_order = 0
         
     def pop_around(self,item,xzone,yzone):
         collides = True
@@ -536,7 +537,7 @@ class Character(MySprite):
                         self.inventory.contents[self.selected_button].rect[1] = self.rect.move(0,random.randint(0,20)+10)[1]
                         self.level.deleted_list.remove(self.buttons_list[self.selected_button]) #put's sprite back in game
                         self.level.item_list.add(self.inventory.contents[self.selected_button]) #add's sprite back to item list for it to behave as item in game
-                        self.inventory.contents.pop(self.selected_button) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
+                        self.inventory.drop(self.inventory.contents[self.selected_button],self) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
                         self.buttons_list.pop(self.selected_button)
                     elif self.buttons_list[self.selected_button].rect.colliderect(self.dropbut.rect) and self.start_pos[0]>var.screenWIDTH/2:  #remove item from equipemnt
                         print 'removing eq item'
@@ -544,11 +545,11 @@ class Character(MySprite):
                         self.level.item_list.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's sprite back to item list for it to behave as item in game
                         self.equipement.contents[self.selected_button-len(self.buttons_list)].rect[0] = self.rect.move(random.randint(0,20)+5,0)[0]
                         self.equipement.contents[self.selected_button-len(self.buttons_list)].rect[1] = self.rect.move(0,random.randint(0,20)+10)[1]
-                        self.equipement.contents.pop(self.selected_button-len(self.buttons_list)) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
+                        self.equipement.drop(self.equipement.contents[self.selected_button-len(self.buttons_list)],self) #removes item in player's iventory located at the index specified by the position of the button corresponding to this item in the button list 
                         self.buttons_list.pop(self.selected_button)
                     elif  self.start_pos[0]>var.screenWIDTH/2 and self.buttons_list[self.selected_button].rect[0]<var.screenWIDTH/2 and len(self.inventory.contents) < 32: #moving item from equipement to inv
                         print 'moving from eq to inv'
-                        self.inventory.add(self.equipement.contents[self.selected_button-len(self.buttons_list)]) #add's item to inv
+                        self.inventory.add(self.equipement.contents[self.selected_button-len(self.buttons_list)],self) #add's item to inv
                         self.equipement.contents.pop(self.selected_button-len(self.buttons_list)) #removes item in player's equipment located at the index specified by the position of the button corresponding to this item in the button list
                         self.buttons_list.pop(self.selected_button) #remove's the item from it's button list position
                     elif  self.start_pos[0]<var.screenWIDTH/2 and self.buttons_list[self.selected_button].rect[0]>var.screenWIDTH/2: #moving item from inv to eq
@@ -918,15 +919,17 @@ class Inventory(object):
                     self.contents.remove(other)
 #                    item.name = '{} {}'.format(item.ammo,item.raw_name)
                    
-    def add(self, item):
+    def add(self, item, character):
         if len(self.contents) < 32:
             self.contents.append(item)
+            item.check_pickdrop(character)
             item.inv_pos = len(self.contents)
             #self.combine_ammo()
     
-    def rem(self, item):
+    def drop(self, item, character):
         try:
             self.contents.remove(item)
+            item.check_pickdrop(character)
         except:
             print 'item not in inventory'
     
@@ -988,11 +991,15 @@ class Item(MySprite):
             if (var.dx  == 0 and var.dy == 0) == False:
                 self.rect = self.rect.move(var.xoffset,var.yoffset)
                 
+    def check_pickdrop(self,character):
+        pass
+
+                
     def use(self,player): #needs to be ckecked when E key is down AKA object mode
         if self.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) and player.rect.inflate(10,10).colliderect(self.rect) and pygame.key.get_pressed()[pygame.K_e]:
-            player.inventory.add(self)
-            print 'item added'
+            player.inventory.add(self, player)
             self.delete() #sends to deleted_sprite_list
+            
             
 class No_item(object): #creates a blank item
     def __init__(self):
@@ -1040,9 +1047,30 @@ class Illuminator(Item):
         super(Illuminator, self).__init__(name, value, image, 150, 225)
         self.source = shadow.Shadow()
         self.range = range_
+        self.source.set_radius(self.range)
         self.falloff = var.surf_falloff
         self.mask = 0
         self.pos = 0
+        self.is_carried = False
+        self.is_lit = True
+        self.carrier = None
+        
+    def set_carrier(self,character):
+        if self.is_carried == False:
+            self.carrier = character
+            '''will only work for the player at the screen center'''
+            self.rect.center = character.rect.center
+            self.blit_order = -1
+            self.is_carried = True
+        else:
+            self.carrier = None
+            self.blit_order = 0
+            self.is_carried = False
+            
+    def check_pickdrop(self,character):
+        self.set_carrier(character)
+
+            
 
 
 class Potion(Item):
@@ -1098,7 +1126,7 @@ class Potion(Item):
                 
             elif self.confirm == True and self.timer_left > 100:
                 Character.hp = min([Character.hp + self.regen,Character.hp_max])
-                Character.inventory.contents.remove(self)
+                Character.inventory.drop(self)#contents.remove(self)
                 self.kill()
                 print 'potion restores hp to {}'.format(Character.hp)
             
@@ -1267,60 +1295,6 @@ class Portal(Level_Change):
         self.image = self.image_list[0]
         super(Portal,self).__init__(self.name,self.image,x,y, self.image_list, pair)
 
-#class Light_Source(object):
-#    def __init__(self,x,y,range_, fixed):
-#        self.range = range_
-#        self.pos = (x,y)
-#        self.fixed = fixed
-#        
-#class Ray(object):
-#    def __init__(self, source, dest, offset):
-#        X1,Y1 = source.pos
-#        X2,Y2 = dest
-#        '''working out line equations'''
-#        if float(X1-X2) == 0:
-#            A1 = 0
-#        else:
-#            A1 = (Y1-Y2)/float(X1-X2) # Pay attention to not dividing by zero
-#        b1 = Y1-A1*X1
-#        
-#        self.m = A1+offset
-#        self.p = b1
-#        if X1 < X2:
-#            self.far_pt = (X2*500,self.m*X2*500+self.p)
-#        elif X1 == X2 and Y1 < Y2:
-#            self.far_pt = (X1,1500)
-#        elif X1 == X2 and Y1 > Y2:
-#            self.far_pt = (X1,-1500)
-#        else:
-#            self.far_pt = (X2*-500,self.m*X2*-500+self.p)
-#        
-#class Segment(object):
-#    def __init__(self,start,end):
-#        self.start = start
-#        self.end = end
-#    
-#    def check_col(self, ray, source):
-#        ''' 
-#        segment1 = (self.start,self.end)
-#        segment2 = (source.pos,ray.far_pt)'''
-#        X1,Y1 = self.start #start pt of segment 1
-#        X2,Y2 = self.end #end pt of segment 1
-#        X3,Y3 = source.pos #start pt of segment 2
-#        X4,Y4 = ray.far_pt #end pt of segment 2
-#        
-#        '''checks if the two lines intersect'''
-#        col_pt = fn.line_intersection(((X1,Y1),(X2,Y2)),((X3,Y3),(X4,Y4)))
-#        
-#        if col_pt != False:
-#            col_x,col_y = col_pt
-#            '''checks if col_pt is on both segments'''
-#            if fn.isBetween(self.start, self.end, col_pt) and fn.isBetween(source.pos, ray.far_pt, col_pt):
-#                dist = sqrt((X3-col_pt[0])**2+(Y3-col_pt[1])**2)
-#                return True,col_pt,dist
-#
-#        return False,0
-
 class Night_Mask(object):
     def __init__(self):
         self.surf_lighting = pygame.Surface((var.screenWIDTH,var.screenHEIGHT)) #Screenwidth and height
@@ -1329,7 +1303,7 @@ class Night_Mask(object):
         '''setting initial alpha and colorkey'''
         #self.surf_lighting.set_colorkey((255,255,255))
         #self.surf_lighting.set_alpha(0)
-       #self.alpha = 50
+        self.alpha = 0
         
         '''Day time timer'''
         self.day_timer = pygame.time.Clock()
@@ -1342,184 +1316,66 @@ class Night_Mask(object):
         self.Shadow_time = 0        
         self.Shadow_end = 25
         
-#    @property
-#    def alpha(self):
-#        return self._alpha
-#
-#    @alpha.setter
-#    def alpha(self, alpha):
-#        self.surf_lighting.set_alpha(int(alpha))
-#        self._alpha = alpha
-#        
-#    def day_update(self,a_max):
-#        alfa = float(a_max)
-#        self.day_timer.tick()
-#        self.day_time += self.day_timer.get_time()
-#        if self.day_time <= self.day_switch: # checks if the time of day has been reached
-#            self.alpha = (alfa/self.day_switch)*self.day_time
-#        elif self.day_time >= self.day_end:
-#            self.day_time = 0
-#        else:
-#            self.alpha = alfa+(alfa/self.day_switch)*(self.day_switch-self.day_time)
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, alpha):
+        self.surf_lighting.set_alpha(int(alpha))
+        self._alpha = alpha
+        
+    def day_update(self,a_max):
+        alfa = float(a_max)
+        self.day_timer.tick()
+        self.day_time += self.day_timer.get_time()
+        if self.day_time <= self.day_switch: # checks if the time of day has been reached
+            self.alpha = (alfa/self.day_switch)*self.day_time
+        elif self.day_time >= self.day_end:
+            self.day_time = 0
+        else:
+            self.alpha = alfa+(alfa/self.day_switch)*(self.day_switch-self.day_time)
         
         
-    def apply_shadows(self, lights_ls, building_list):
+    def apply_shadows(self, lights_ls, building_list, character):
         self.Shadow_timer.tick()
         self.Shadow_time += self.Shadow_timer.get_time()
-        if self.Shadow_time >= self.Shadow_end:# and  self.alpha > 60:
+        if self.Shadow_time >= self.Shadow_end:
             self.Shadow_time = 0
-            visible_occluders = [x for x in building_list if var.screen.get_rect().colliderect(x.rect)]
-            for build in visible_occluders:
-                temp_rect = pygame.Rect(0,0,build.rect.width/2,build.rect.height/2)
-                temp_rect.center = build.rect.center
-                build.occlude = occluder.Occluder([temp_rect.topleft,
-                                      temp_rect.topright,
-                                      temp_rect.bottomright,
-                                      temp_rect.bottomleft])
-
-#            #   Ambient light
-            self.surf_lighting.fill((50,50,50))
+            #   Ambient light
+            self.surf_lighting.fill((self.alpha,self.alpha,self.alpha))
+            #import blursurf, and tulpescale locally for speed
+            blursurf = fn.blurSurf
+            ts = fn.tulpe_scale
             
-            for light in [x for x in lights_ls if var.screen.get_rect().collidepoint(x.rect.center)]:
-                light.source.set_occluders([x.occlude for x in visible_occluders])
-                #needed to set the light position from the game position to the
-                #library needs
-                light.source.set_light_position(light.rect.center)
-                light.mask, light.pos = light.source.get_mask_and_position(False)
-                # resizes the falloff to match the mask dimensions
-                light.falloff = pygame.transform.scale(var.surf_falloff, (light.mask.get_width(), light.mask.get_height()))
-                
-                light.mask.blit(light.falloff,(0,0),special_flags=BLEND_MULT)
-                
-                #Add the contribution from the shadowed light source
-                
-                
-                self.surf_lighting.blit(light.mask,light.pos,special_flags=BLEND_MAX) 
-                #blits light sources
-                #var.screen.blit(light.image,light.rect.topleft,special_flags=BLEND_MULT)
-            #======Now multiply the lighting information onto the scene======
-#            surface.blit(surf_lighting,(0,0),special_flags=BLEND_MULT)
-        
-            #======Post processing======
-        
-#            #   Hack to outline the occluders.  Don't use this yourself.
-#            lvl_occluders = [o.occlude for o in building_list if isinstance(o,Building)]
-#            for occ in lvl_occluders:
-#                pygame.draw.lines(var.screen,(255,255,255),True,occ.points)
-
-#'''old class'''  
-#class Night_Mask(object):
-#    def __init__(self):
-#        self.surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT)) #Screenwidth and height
-#        self.light_sources = []
-#        
-#        '''setting initial alpha and colorkey'''
-#        self.surf.set_colorkey((255,255,255))
-#        self.surf.set_alpha(0)
-#        
-#        '''Day time timer'''
-#        self.day_timer = pygame.time.Clock()
-#        self.day_time = 0        
-#        self.day_end = 4*60000#1440000
-#        self.day_switch = self.day_end/2 #12 minutes
-#        
-#        '''Shadow timer'''
-#        self.Shadow_timer = pygame.time.Clock()
-#        self.Shadow_time = 0        
-#        self.Shadow_end = 200
-#        
-#    @property
-#    def alpha(self):
-#        return self._alpha
-#
-#    @alpha.setter
-#    def alpha(self, alpha):
-#        self.surf.set_alpha(int(alpha))
-#        self._alpha = alpha
-#        
-#    def day_update(self,a_max):
-#        alfa = float(a_max)
-#        self.day_timer.tick()
-#        self.day_time += self.day_timer.get_time()
-#        if self.day_time <= self.day_switch: # checks if the time of day has been reached
-#            self.alpha = (alfa/self.day_switch)*self.day_time
-#        elif self.day_time >= self.day_end:
-#            self.day_time = 0
-#        else:
-#            self.alpha = alfa+(alfa/self.day_switch)*(self.day_switch-self.day_time)
-#        
-#        
-#    def apply_shadows(self, obstacles_list):
-#        self.Shadow_timer.tick()
-#        self.Shadow_time += self.Shadow_timer.get_time()    
-#        if self.Shadow_time >= self.Shadow_end and  self.alpha > 60:
-#            self.Shadow_time = 0
-#            '''reset's mask to black'''
-#            self.surf.fill(pygame.color.Color('black'))
-#            for source in self.light_sources:
-#                z_x = source.pos[0]-source.range
-#                z_y = source.pos[1]-source.range
-#                z_w = 2*source.range
-#                z_h = 2*source.range
-#                if source.pos[0]-source.range < 0:
-#                    z_x = 0
-#                    z_w = 2*source.range - abs(source.pos[0]-source.range)
-#                if source.pos[1]-source.range < 0:
-#                    z_y = 0
-#                    z_h = 2*source.range - abs(source.pos[1]-source.range)
-#
-#                zone = pygame.Rect((z_x,z_y),(z_w,z_h))
-#                obstacles = [x for x in obstacles_list if x.rect.colliderect(zone)]
-#                corner_ls = [zone.topleft,zone.topright,zone.bottomright,zone.bottomleft]
-#                rays = []
-#                segments = fn.get_seg(zone,Segment)
-#                poly_pts = {}
-#                
-#                for pt in corner_ls:
-#                    rays.extend(fn.cast_multi(source,pt,Ray))
-#                for obs in obstacles:
-#                    for point in [obs.rect.topleft,obs.rect.topright,obs.rect.bottomleft,obs.rect.bottomright]:
-#                        rays.extend(fn.cast_multi(source,point,Ray))
-#                    segments.extend(fn.get_seg(obs.rect,Segment))
-#                    
-#                for ray in rays:
-#                    collisions = {}
-#                    for seg in segments:
-#                        test = seg.check_col(ray,source)
-#                        if test[0] == True:
-#                            collisions[test[1]] = test[2]
-#                    #adds the closest collision to the source
-#                    if len(collisions) != 0:
-#                        #print collisions
-#                        pt = min(collisions, key=collisions.get)
-#                        angle = fn.angle_clockwise(source.pos,(source.pos[0],source.pos[1]-50),pt)
-#                        poly_pts[angle] = (int(round(pt[0],0)),int(round(pt[1],0)))
-#                    else:
-#                        print 'no_collisions'
-#                
-#                '''sorting collision points in clockwise order'''
-#                final_pts = collections.OrderedDict(sorted(poly_pts.items()))
-#                to_plot = list(final_pts.values())
-#                
-#                '''preparing surfaces to get light effects'''
-#                shadow_surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
-#                shadow_surf.set_colorkey((0,0,0))
-#                if len(to_plot) > 2:
-#                    pygame.draw.polygon(shadow_surf, (255,255,255), to_plot, 0)
-#                    pygame.draw.polygon(shadow_surf, (255,255,255), to_plot, 10)
-#                else:
-#                    pygame.draw.polygon(shadow_surf, (255,255,255), corner_ls, 0)
-#                    
-#                
-#                green_mask = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
-#                green_mask.fill((0,255,0)) #GREEN
-#                green_mask.set_colorkey((0,0,0))
-#                pygame.draw.circle(green_mask, (0,0,0), source.pos, source.range, 0)
-#                
-#                final_surf = pygame.Surface((var.screenWIDTH,var.screenHEIGHT))
-#                shadow_surf.blit(green_mask, (0,0))
-#                final_surf.blit(shadow_surf, (0,0))
-#                final_surf.set_colorkey((0,255,0))
-#                self.surf.blit(final_surf, (0, 0))
-#                
-#
+            if self.alpha <= 120:
+                #get occluders in view#
+                visible_occluders = [x for x in building_list if var.screen.get_rect().colliderect(x.rect)]
+                for build in visible_occluders:
+                    temp_rect = pygame.Rect(0,0,build.rect.width/2,build.rect.height/2)
+                    temp_rect.center = build.rect.center
+                    build.occlude = occluder.Occluder([temp_rect.topleft,
+                                          ts(temp_rect.midtop,(0,-5)),
+                                          temp_rect.topright,
+                                          ts(temp_rect.midright,(5,0)),
+                                          temp_rect.bottomright,
+                                          ts(temp_rect.midbottom,(0,-5)),
+                                          temp_rect.bottomleft,
+                                          ts(temp_rect.midleft,(-5,0))])
+    
+                for light in itertools.chain((x for x in lights_ls if var.screen.get_rect().collidepoint(x.rect.center) and x.is_lit == True)\
+                ,(y for y in character.inventory.contents if isinstance(y, Illuminator) and y.is_lit == True)):
+                    light.source.set_occluders((z.occlude for z in visible_occluders))
+                    #needed to set the light position from the game position to the
+                    #library needs
+                    if light.carrier != None:
+                        light.rect.center = light.carrier.rect.center
+                    light.source.set_light_position(light.rect.center)
+                    light.mask, light.pos = light.source.get_mask_and_position(False)
+                    # resizes the falloff to match the mask dimensions
+                    light.falloff = pygame.transform.scale(var.surf_falloff, (light.mask.get_width(), light.mask.get_height()))
+                    #blits falloff to mask
+                    light.mask.blit(light.falloff,(0,0),special_flags=BLEND_MULT)
+                    #Add the contribution from the shadowed light source
+                    self.surf_lighting.blit(light.mask,light.pos,special_flags=BLEND_MAX) 
+                    self.surf_lighting = blursurf(self.surf_lighting,4)
