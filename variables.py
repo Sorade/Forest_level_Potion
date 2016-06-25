@@ -8,6 +8,8 @@ Created on Sat Apr 23 19:06:37 2016
 
 import pygame, sys
 from pygame.locals import *
+
+pygame.mixer.init()
 #Variables
 screenWIDTH = 800#680
 screenHEIGHT = 600#480
@@ -83,29 +85,7 @@ current_level = Level(1)
 
 level_list = []
 #Importing Chars
-#walk
-#player_down_1 = pygame.image.load('Character_Sprites\\Down_1.png').convert()
-#player_down_2 = pygame.image.load('Character_Sprites\\Down_2.png').convert()
-#player_down_3 = player_down_1
-#player_down_4 = pygame.transform.flip(player_down_2, True, False)
-#
-#player_lat_1 = pygame.image.load('Character_Sprites\\Left_1.png').convert()
-#player_lat_2 = pygame.image.load('Character_Sprites\\Left_2.png').convert()
-#player_lat_3 = player_lat_1
-#player_lat_4 = pygame.image.load('Character_Sprites\\Left_3.png').convert()
-#
-#player_up_1 = pygame.image.load('Character_Sprites\\Up_1.png').convert()
-#player_up_2 = pygame.image.load('Character_Sprites\\Up_2.png').convert()
-#player_up_3 = player_up_1
-#player_up_4 = pygame.transform.flip(player_up_2, True, False)
-#
-#player_images = [
-#player_down_1,player_down_2,player_down_3,player_down_4,
-#player_lat_1,player_lat_2,player_lat_3,player_lat_4,
-#player_up_1,player_up_2,player_up_3,player_up_4]
-#
-#for im in player_images:
-#    im.set_colorkey((0,0,0)) #sets background colour to transparent
+
     
 #player attack
 p_a_sword_images = []
@@ -184,6 +164,17 @@ orc_bow_ss = spritesheet('Orc_Sprites\\Orc_Archer_Sheet.png')
 player_sword_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
 player_bow_ss =spritesheet('Character_Sprites\\Archer_sheet.png')
 player_mace_ss =spritesheet('Character_Sprites\\Mace_sheet.png')
+
+'''start menu imports'''
+start_bg = pygame.image.load('Object_Sprites\\startmenu_bg.png').convert_alpha()
+start_flash = pygame.image.load('Object_Sprites\\startmenu_flash.png').convert_alpha()
+start_rain = pygame.image.load('Object_Sprites\\startmenu_rain.png').convert_alpha()
+
+rain_sound = pygame.mixer.Sound("Sounds\\Rain.wav")
+thunder_sounds = []
+
+for x in range(1,4):
+    thunder_sounds.append(pygame.mixer.Sound("Sounds\\Thunder{}.wav".format(x)))
 
 '''object import'''
 

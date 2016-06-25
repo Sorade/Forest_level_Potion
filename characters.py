@@ -5,14 +5,15 @@ Created on Fri May 13 19:43:28 2016
 @author: Julien
 """
 import pygame
+from pygame.locals import *
 import variables
 import random
 from functions import d10
-from classes import Character,Projectile,Weapon,Armor,SpriteStripAnim
+from classes import Character,Projectile,Weapon,Armor,Illuminator,SpriteStripAnim
 import weapons as wp
 import items as it
 import armors as ar
-from pygame.locals import *
+
 
 class Skeleton(Character):# to change to Orc
     def __init__(self, x, y):
@@ -195,7 +196,7 @@ class Player(Character):
         '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
         self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Axe()])
-        #self.inventory.add(it.Torch(200),self)
+        self.inventory.add(it.Torch(200),self)
         
         self.attack_speed = 500
         self.F = 35

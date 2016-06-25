@@ -11,9 +11,6 @@ from pygame.locals import *
 import itertools
 import numpy as np
 from operator import attrgetter
-import collections
-import multiprocessing as mp
-from math import sqrt
 '''shadow casting imports'''
 import PAdLib.shadow as shadow
 import PAdLib.occluder as occluder
@@ -135,17 +132,17 @@ class Level(object):
         self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
 
-    def assign_occluders(self):
+    def assign_occluders(self,iterator):
         '''assigning occluders to shadow sources'''
         '''get's all the occluders in the level'''
         lvl_occluders = [o.occlude for o in self.building_list if isinstance(o,Building)]
         '''loops through all shadow object in the level and set the lvl_occluders to it'''
-        for light in [x for x in self.item_list if isinstance(x, Illuminator)]:
+        for light in [x for x in iterator if isinstance(x, Illuminator)]:
             light.source.set_occluders(lvl_occluders)
             
-    def assign_radius(self):
-        for light in [x for x in self.item_list if isinstance(x, Illuminator)]:
-            light.source.set_radius(float(light.range))
+    def assign_radius(self,iterator):
+        for light in [x for x in iterator if isinstance(x, Illuminator)]:
+            light.source.set_radius(float(light.radius))
 
 
     def go_to(self,new_lvl, pair):
@@ -528,6 +525,7 @@ class Character(MySprite):
             if self.m_up == True:
                 if self.selected == True:
                     if self.start_pos[0]<var.screenWIDTH/2:
+                        '''performing actions on inventory items'''
                         if isinstance(self.inventory.contents[self.selected_button], Potion):
                             self.inventory.contents[self.selected_button].drink(self)
                             print 'attempts potion drinking from inv'
@@ -871,17 +869,39 @@ class Button(pygame.sprite.Sprite):
         self.image = var.but_bg
         self.text_pos = ((x+w/2),(y+h/2))
         self.rect2 = 0
-        self.color = (0,200,0)
+        self.txt_color = (0,0,0)
         
         #self.surface = pygame.draw.rect(var.screen, self.color , self.rect)
         
         self.smallText = pygame.font.Font("freesansbold.ttf",12)
-        self.textSurf = self.smallText.render(self.text, True, (0,0,0))
+        self.textSurf = self.smallText.render(self.text, True, self.txt_color)
         self.rect2 = self.textSurf.get_rect()
         self.rect2.center = self.text_pos
         self.image = pygame.transform.scale(self.image, (int(self.rect2.width*1.5),int(self.rect2.height*3)))
         self.rect = Rect(x,y,self.image.get_rect().width,self.image.get_rect().height)
-
+        
+        self.selected = False
+        self.m_released = True
+        
+    def check_select(self):
+        m_pos = pygame.mouse.get_pos()
+        over_but = self.rect.collidepoint(m_pos) 
+        
+        if pygame.mouse.get_pressed()[0] ==1 and over_but == 1 and self.selected == False and self.m_released == True:
+            self.selected = True
+            self.txt_color = (0,200,0)
+            self.m_released = False
+            
+        elif pygame.mouse.get_pressed()[0] == 1 and over_but == 1 and self.selected == True and self.m_released == True:
+            self.selected = False
+            self.txt_color = (0,0,0)
+            self.m_released = False
+        
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.m_released = True
+            
+            
+            
     def display(self):
         #self.surface = pygame.draw.rect(var.screen, self.color , self.rect)
         var.screen.blit(self.image,self.rect)
@@ -1043,11 +1063,11 @@ class Torso_armor(Armor):
         super(Torso_armor, self).__init__(self.name, self.value, image, 200, 150, self.arm)
         
 class Illuminator(Item):
-    def __init__(self, name, value, image, range_):
+    def __init__(self, name, value, image, radius):
+        self.radius = radius
         super(Illuminator, self).__init__(name, value, image, 150, 225)
         self.source = shadow.Shadow()
-        self.range = range_
-        self.source.set_radius(self.range)
+        self.source.set_radius(self.radius)
         self.falloff = var.surf_falloff
         self.mask = 0
         self.pos = 0
@@ -1055,6 +1075,21 @@ class Illuminator(Item):
         self.is_lit = True
         self.carrier = None
         
+        self.m_released = False
+        
+    def onoff(self):
+        if pygame.key.get_pressed()[pygame.K_o] and self.is_lit == False and self.m_released:
+            self.is_lit = True
+            self.m_released = False
+            
+        if pygame.key.get_pressed()[pygame.K_o] and self.is_lit == True and self.m_released:
+            self.is_lit = False
+            self.m_released = False
+        
+        if pygame.key.get_pressed()[pygame.K_o] == False:
+            self.m_released = True
+   
+                
     def set_carrier(self,character):
         if self.is_carried == False:
             self.carrier = character
@@ -1308,7 +1343,7 @@ class Night_Mask(object):
         '''Day time timer'''
         self.day_timer = pygame.time.Clock()
         self.day_time = 0        
-        self.day_end = 4*60000#1440000
+        self.day_end = 2*60000#1440000
         self.day_switch = self.day_end/2 #12 minutes
         
         '''Shadow timer'''
@@ -1365,6 +1400,8 @@ class Night_Mask(object):
     
                 for light in itertools.chain((x for x in lights_ls if var.screen.get_rect().collidepoint(x.rect.center) and x.is_lit == True)\
                 ,(y for y in character.inventory.contents if isinstance(y, Illuminator) and y.is_lit == True)):
+                    #light.source = shadow.Shadow()
+                    #light.source.set_radius(light.radius)
                     light.source.set_occluders((z.occlude for z in visible_occluders))
                     #needed to set the light position from the game position to the
                     #library needs

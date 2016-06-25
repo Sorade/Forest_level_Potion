@@ -5,23 +5,69 @@ Created on Wed Jun 01 17:15:33 2016
 @author: Julien
 """
 import pygame, sys
+import itertools
+import random
 import variables as var
 from pygame.locals import *
-from classes import *
 from functions import *
-import instances as ins
+from classes import *
 import weapons as wp
-import characters as ch
 import armors as ar
 import items as it
-from pygame.locals import *
-from classes import *
+import characters as ch
+import instances as ins
+
+
+class StartMenu(Level):
+    def __init__(self):
+        self.run = True
+        self.rain_y = -600
+        self.do_once = True
+        self.start_but = Button('Play Game', 380,300,75,50)  
+    
+    def execute(self):
+        if self.run == True:
+            if self.do_once == True:
+                self.do_once = False
+                pygame.mixer.music.load("Sounds\\Rain.wav")
+                pygame.mixer.music.play(-1,0.0)
+                
+                
+            for event in pygame.event.get(): #setting up quit
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+            
+            '''Background of menu and sounds'''
+            #var.rain_sound.play()            
+            if random.randint(0,80) == 10:
+                var.screen.blit(var.start_flash,(0,0))
+                thunder = random.choice(var.thunder_sounds)
+                thunder.set_volume(random.random()+0.2)
+                thunder.play()
+                
+            var.screen.blit(var.start_bg,(0,0))
+            var.screen.blit(var.start_rain,(0,self.rain_y))
+            self.rain_y += 15
+            if self.rain_y >= 0:
+                self.rain_y = -200
+            
+            '''Menu buttons'''
+            self.start_but.check_select()
+            self.start_but.display()
+            
+            if self.start_but.selected == True:
+                print 'go game'
+        
+        
+        
 
 
 class Level1(Level):
-    def set_level(self, sprite_grp):
-        for sprite in sprite_grp:
-            sprite.level = self
+#    def set_level(self, sprite_grp):
+#        for sprite in sprite_grp:
+#            sprite.level = self
     
     def __init__(self):
         super(Level1, self).__init__(1)
@@ -61,12 +107,12 @@ class Level1(Level):
         
         self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Skeleton])
-        self.add_chests(14,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
+        self.add_chests(14,it.Chest,[it.Torch(200),wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
         '''Night Mask'''
         self.night_m = Night_Mask()
-        self.assign_occluders()
-        self.assign_radius()
+        self.assign_occluders(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents]))
+        self.assign_radius(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents]))
         
         
     def execute(self):
@@ -121,8 +167,11 @@ class Level1(Level):
                    
             for d in self.dead_sprites_list:
                 d.loot(ins.hero)
-    
-                    
+                
+            #check to turn lights on/off
+            for i in (x for x in ins.hero.inventory.contents if isinstance(x, Illuminator)):
+                i.onoff()
+                
             #animations
             ins.hero.update_images()
             ins.hero.anim_move() #animates ins.hero sprite
@@ -150,7 +199,6 @@ class Level1(Level):
                 for x in self.item_list:
                     x.highlight()
                     
-            
             self.dead_sprites_list.draw(var.screen) #blits corpses
             blit_visible(var.screen,self.item_list) #blitting items
             self.ennemi_list.draw(var.screen) #blits ennemies
