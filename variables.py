@@ -170,7 +170,8 @@ start_bg = pygame.image.load('Object_Sprites\\startmenu_bg.png').convert_alpha()
 start_flash = pygame.image.load('Object_Sprites\\startmenu_flash.png').convert_alpha()
 start_rain = pygame.image.load('Object_Sprites\\startmenu_rain.png').convert_alpha()
 
-rain_sound = pygame.mixer.Sound("Sounds\\Rain.wav")
+#start_music = pygame.mixer.music.load("Sounds\\start_music.ogg")
+rain_sound = pygame.mixer.Sound("Sounds\\Rain.ogg")
 thunder_sounds = []
 
 for x in range(1,4):

@@ -29,8 +29,9 @@ class StartMenu(Level):
         if self.run == True:
             if self.do_once == True:
                 self.do_once = False
-                pygame.mixer.music.load("Sounds\\Rain.wav")
-                pygame.mixer.music.play(-1,0.0)
+#                pygame.mixer.music.load("Sounds\\startmusic.ogg")
+#                pygame.mixer.music.play(-1,0.0)
+                pygame.mixer.find_channel().play(var.rain_sound,-1)  
                 
                 
             for event in pygame.event.get(): #setting up quit
@@ -40,15 +41,17 @@ class StartMenu(Level):
                     print 'has quit'
             
             '''Background of menu and sounds'''
-            #var.rain_sound.play()            
-            if random.randint(0,80) == 10:
+            var.screen.blit(var.start_bg,(0,0))
+            var.screen.blit(var.start_rain,(0,self.rain_y))    
+            
+            
+            if random.randint(0,100) == 10:
                 var.screen.blit(var.start_flash,(0,0))
                 thunder = random.choice(var.thunder_sounds)
                 thunder.set_volume(random.random()+0.2)
-                thunder.play()
+                pygame.mixer.find_channel().play(thunder)
                 
-            var.screen.blit(var.start_bg,(0,0))
-            var.screen.blit(var.start_rain,(0,self.rain_y))
+
             self.rain_y += 15
             if self.rain_y >= 0:
                 self.rain_y = -200

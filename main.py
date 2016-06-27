@@ -16,7 +16,7 @@ pygame.init()
 clock = pygame.time.Clock() #set timer which is used to slow game down
 
 '''Music Init'''
-#pygame.mixer.music.load('Theme3.ogg')
+pygame.mixer.music.load('Theme3.ogg')
 #pygame.mixer.music.play(-1)
 
 '''Levels Init'''
