@@ -25,12 +25,12 @@ class StartMenu(Level):
         self.do_once = True
         self.start_but = Button('Play Game', 380,300,75,50)  
     
-    def execute(self):
+    def execute(self,new_level):
         if self.run == True:
             if self.do_once == True:
                 self.do_once = False
-#                pygame.mixer.music.load("Sounds\\startmusic.ogg")
-#                pygame.mixer.music.play(-1,0.0)
+                pygame.mixer.music.load("Sounds\\startmusic.ogg")
+                pygame.mixer.music.play(-1,0.0)
                 pygame.mixer.find_channel().play(var.rain_sound,-1)  
                 
                 
@@ -62,9 +62,13 @@ class StartMenu(Level):
             
             if self.start_but.selected == True:
                 print 'go game'
+                self.run = False
+                new_level.run = True
+                pygame.mixer.stop()
+                pygame.mixer.music.load("Theme3.ogg")
+                pygame.mixer.music.play(-1,0.0)
         
-        
-        
+
 
 
 class Level1(Level):
@@ -110,12 +114,14 @@ class Level1(Level):
         
         self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Skeleton])
-        self.add_chests(14,it.Chest,[it.Torch(200),wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
+        self.add_chests(14,it.Chest,[it.Torch(200),wp.Arrow(random.randint(2,5)),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
-        '''Night Mask'''
-        self.night_m = Night_Mask()
-        self.assign_occluders(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents]))
-        self.assign_radius(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents]))
+        chest_items = itertools.chain.from_iterable([chest.inventory.contents for chest in self.building_list if isinstance(chest, it.Chest)])
+
+#        '''Night Mask'''
+#        self.night_m = Night_Mask()
+#        self.assign_occluders(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents,chest_items]))
+#        self.assign_radius(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents,chest_items]))
         
         
     def execute(self):
@@ -163,7 +169,6 @@ class Level1(Level):
             ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                #o.attack(ins.hero)
                 o.update_images()
                 o.anim_move()
                 
@@ -210,11 +215,10 @@ class Level1(Level):
             for e in self.ennemi_list:
                 e.image = e.strips[e.n].next()
                 
-            #night mask    
-            self.night_m.day_update(220)
-            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list,ins.hero)
-            
-            var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
+#            #night mask    
+#            self.night_m.day_update(220)
+#            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list,ins.hero)
+#            var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
             
             Lifebar(ins.hero)
             for msg in self.message_list:
@@ -224,16 +228,18 @@ class Level1(Level):
             
             '''dirty loop to get the player's inv_delay timer values'''
             for player in self.player_list:
+                if pygame.key.get_pressed()[pygame.K_s]:
+                    player.stats_menu.execute(player.level,player)
                 player.inv_time.tick()
                 player.inv_time_left += player.inv_time.get_time()
                 if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
-            
+                    
+            '''checking Portals'''
             for x in self.building_list:
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,2)
-                    
             
 class Level2(Level):
     def set_level(self, sprite_grp):
@@ -321,7 +327,6 @@ class Level2(Level):
             ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                o.attack(ins.hero)
                 o.update_images()
                 o.anim_move()
                 
@@ -379,10 +384,3 @@ class Level2(Level):
             for x in self.building_list:
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,1)
-        #self.go_to(1)
-#        if pygame.key.get_pressed()[pygame.K_v]:
-#            new_level = var.level_list[0]
-#            self.run = False
-#            [x for x in self.player_list][0].level = new_level
-#            new_level.run = True
-#            var.current_level = new_level

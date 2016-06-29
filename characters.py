@@ -28,6 +28,7 @@ class Skeleton(Character):# to change to Orc
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
+        self.xp_reward = 300
         
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Mace
@@ -184,7 +185,7 @@ class Orc(Character): #to change to Skeleton
             
 class Player(Character):
     def __init__(self):
-        self.hp = 250
+        self.hp = 50
         self.image = variables.walk_images[0][0]
         self.x = (variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         self.y = (variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
@@ -196,7 +197,9 @@ class Player(Character):
         '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
         self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Axe()])
-        self.inventory.add(it.Torch(200),self)
+        torch = it.Torch(200)
+        torch.is_lit = True
+        self.inventory.add(torch,self)
         
         self.attack_speed = 500
         self.F = 35
@@ -290,11 +293,17 @@ class Player(Character):
                     if test == True:
                         dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
+                        '''Skill bonuses'''
+                        if self.skills['Extra strength'][0] == True: dmg += 10
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
                         else:
                             dmg = (dmg+self.F/10)-(arm+Character.E/10)
                         Character.hp -=  dmg
+                        '''Add XP to Attacker'''
+                        if Character.hp <= 0:
+                            self.xp += Character.xp_reward
+                            print 'hero xp {}/{}'.format(self.xp,self.lvlup_threshold)
                         print 'player deals {} dmg'.format(dmg)
                     self.attack_time_left = 0
                     '''make sure if is correct rather than elif, might need a has_shot variable'''

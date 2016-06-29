@@ -173,6 +173,7 @@ class Level(object):
     def execute(self):
             var.current_level = self
             [x for x in self.player_list][0].level = self
+            [x for x in self.player_list][0].check_lvlup()
             
     #random obstacles
     def add_obstacles(self,int,obs_list):
@@ -229,7 +230,65 @@ class Level(object):
                 self.all_sprites_list.add(w)
                 for item in w.inventory.contents:
                     self.all_sprites_list.add(item)
-                count +=1        
+                count +=1      
+                
+class StatsMenu(Level):
+    def __init__(self):
+        self.run = False
+        self.rain_y = -600
+        self.do_once = True
+    
+    def execute(self,new_level,character):
+        if character.level.run == True:
+            character.level.run = False
+            self.run = True
+            
+        while self.run == True:
+            if self.do_once == True:
+                print 'do once'
+                self.do_once = False
+                close_but = Button('Close', 50,550,75,50) 
+                x, y = 50, 50
+                but_list = []
+                for key, value in character.skills.iteritems():
+                    if value[0] == True:
+                        b = Button(key, x,y,75,50)
+                        y += 80
+                        b.binded = key
+                        but_list.append(b)
+                
+            for event in pygame.event.get(): #setting up quit
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+            
+            '''Background of menu'''
+            var.screen.blit(var.inv_bg,(0,0))
+
+            
+            '''Menu buttons'''
+            for b in but_list:
+                if character.level_up_access == True:
+                    b.check_select()
+                    if b.selected == True:
+                        character.skills[b.binded][0] = True
+                    else:
+                        character.skills[b.binded][0] = False
+                b.display()
+                
+            close_but.check_select()
+            close_but.display()
+            
+            if close_but.selected == True:
+                self.run = False
+                self.do_once = True
+                character.level_up_access = False
+                new_level.run = True
+                print 'leave menu'
+                
+            pygame.display.update()    
+
         
 class Lifebar(object):
     def __init__(self,character):
@@ -282,6 +341,7 @@ class MySprite(pygame.sprite.Sprite):
         self.level.deleted_list.add(self) #adds the sprite to deleted list
         
         
+        
 class Character(MySprite):
     def __init__(self, hp, walk_images, attack_images, speed, x, y, CC, CT):
         self.walk_images = walk_images
@@ -298,6 +358,26 @@ class Character(MySprite):
         self.move_speed = self.speed
         self.inventory = Inventory()
         self.equipement = Inventory()
+        '''Experience'''
+        self.xp = 0
+        self.lvlup_threshold = 100
+        self.totalxp = 0
+        self.xp_reward = 100
+        self.skill_lvl = 1
+        self.level_up_access = False
+
+        '''stats'''
+        self.stats_menu = StatsMenu()
+        self.skills = {
+        'Extra strength': [True,None],
+        'Extra endurance': [False,None],
+        'Destruction magic': [False,None],
+        'Restoration magic': [False,None],
+        'Alchemy': [False,None],
+        'Sneak': [False,None],
+        'Archery': [True,None],
+        'Block': [False,None]}
+        
         self.CC = CC
         self.CT = CT
         self.attack_time = pygame.time.Clock()
@@ -340,6 +420,26 @@ class Character(MySprite):
         self.inv_time = pygame.time.Clock()
         self.inv_time_left = 0        
         self.inv_delay = 400
+        
+    @property
+    def skill_lvl(self):
+        return self._skill_lvl
+
+    @skill_lvl.setter
+    def skill_lvl(self, skill_lvl):
+        self.lvlup_threshold = (skill_lvl)*100+(skill_lvl)**3
+        self.totalxp += self.xp
+        self.xp = 0
+        self._skill_lvl = skill_lvl
+        
+    def check_lvlup(self):
+        dxp = self.xp - self.lvlup_threshold
+        if dxp >= 0:
+            self.skill_lvl += 1
+            self.xp = dxp #to transfer excess xp 
+            self.level_up_access = True
+            self.stats_menu.execute(self.level,self)
+            print 'Reached Level {}'.format(self.skill_lvl)
         
     def merge_ammo(self):
         self.inventory.combine_ammo() #merges all the ammo in the inventory only
@@ -882,6 +982,7 @@ class Button(pygame.sprite.Sprite):
         
         self.selected = False
         self.m_released = True
+        self.binded = None
         
     def check_select(self):
         m_pos = pygame.mouse.get_pos()
@@ -903,7 +1004,8 @@ class Button(pygame.sprite.Sprite):
             
             
     def display(self):
-        #self.surface = pygame.draw.rect(var.screen, self.color , self.rect)
+        '''needed to update color'''
+        self.textSurf = self.smallText.render(self.text, True, self.txt_color)
         var.screen.blit(self.image,self.rect)
         var.screen.blit(self.textSurf, Rect(self.rect[0]+(self.rect.centerx-self.rect[0])*0.4,self.rect[1]+self.rect[3]/4,self.rect[2],self.rect[3])) #Rect(self.rect[0]+self.rect[2]/8,self.rect[1]+20,self.rect[2],self.rect[3])
         
@@ -941,15 +1043,22 @@ class Inventory(object):
                    
     def add(self, item, character):
         if len(self.contents) < 32:
+            item.kill()#remove's item from all groups
+            character.level.all_sprites_list.add(item)
+            
             self.contents.append(item)
             item.check_pickdrop(character)
             item.inv_pos = len(self.contents)
-            #self.combine_ammo()
     
     def drop(self, item, character):
         try:
             self.contents.remove(item)
             item.check_pickdrop(character)
+            
+            item.kill()#remove's item from all groups
+            character.level.all_sprites_list.add(item)
+            character.level.item_list.add(item)
+            
         except:
             print 'item not in inventory'
     
@@ -973,29 +1082,6 @@ class Inventory(object):
             y += dy
             Character.buttons_list.append(b)
             
-#class Equipment(object): #not working yet
-#    def __init__(self):
-#        self.contents = {
-#                'Head':0,'Neck':0, 'Torso':0, 'Right hand':0, 'Left hand':0, 'Ring':0
-#        }   
-#        
-#    def add(self, item): #to check
-#        self.contents.append(item)
-#        item.inv_pos = len(self.contents)
-#    
-#    def rem(self, item): #to ckech
-#        try:
-#            self.contents.remove(item)
-#        except:
-#            print 'item not in inventory'
-#            
-#    def create(self,Character,x,y, dx, dy):
-#        for i in self.contents:
-#            b = Button(i.name,x,y,80,30)
-#            x += dx
-#            y += dy
-#            Character.buttons_list.append(b)
-
             
 class Item(MySprite):
  
@@ -1400,8 +1486,6 @@ class Night_Mask(object):
     
                 for light in itertools.chain((x for x in lights_ls if var.screen.get_rect().collidepoint(x.rect.center) and x.is_lit == True)\
                 ,(y for y in character.inventory.contents if isinstance(y, Illuminator) and y.is_lit == True)):
-                    #light.source = shadow.Shadow()
-                    #light.source.set_radius(light.radius)
                     light.source.set_occluders((z.occlude for z in visible_occluders))
                     #needed to set the light position from the game position to the
                     #library needs

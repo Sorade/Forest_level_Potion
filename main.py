@@ -22,7 +22,6 @@ pygame.mixer.music.load('Theme3.ogg')
 '''Levels Init'''
 mystartmenu = lvl.StartMenu()
 mylevel1 = lvl.Level1()
-#mylevel1.run = True
 mylevel2 = lvl.Level2()
 
 
@@ -32,10 +31,10 @@ while True:
     v.screen.fill((0,0,0)) #make background black for map edges
     
     '''Main Game Loop'''
-    mystartmenu.execute()
+    mystartmenu.execute(mylevel1)
     mylevel1.execute()
     mylevel2.execute()
-        
+    
     pygame.display.update()
     
 
