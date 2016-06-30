@@ -247,15 +247,34 @@ class StatsMenu(Level):
             if self.do_once == True:
                 print 'do once'
                 self.do_once = False
-                close_but = Button('Close', 50,550,75,50) 
+                close_but = Button('Validate', 50,550,75,50) 
                 x, y = 50, 50
                 but_list = []
+                ini_skill_num = 0
                 for key, value in character.skills.iteritems():
-                    if value[0] == True:
+                    if character.level_up_access == False:
+                        if value[0] == True:
+                            b = Button(key, x,y,75,50)
+                            y += 50
+                            if y >= 400:
+                                x+= 120
+                                y = 50
+                            b.binded = key
+                            but_list.append(b)
+                    else:
                         b = Button(key, x,y,75,50)
-                        y += 80
+                        '''if player has the skill select it'''
+                        if value[0] == True:
+                            b.txt_color = (0,200,0)
+                            b.selected = True
+                            ini_skill_num += 1
+                        y += 50
+                        if y >= 400:
+                            x+= 120
+                            y = 50
                         b.binded = key
                         but_list.append(b)
+
                 
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
@@ -265,12 +284,17 @@ class StatsMenu(Level):
             
             '''Background of menu'''
             var.screen.blit(var.inv_bg,(0,0))
-
+            
+            '''compute number of selected buttons'''
+            num_selected = len([skill for skill in character.skills.itervalues() if skill[0] == True])
             
             '''Menu buttons'''
             for b in but_list:
                 if character.level_up_access == True:
                     b.check_select()
+                    if num_selected-ini_skill_num >= 3:
+                        b.txt_color = (0,0,0)
+                        b.selected = False                        
                     if b.selected == True:
                         character.skills[b.binded][0] = True
                     else:
@@ -327,10 +351,11 @@ class MySprite(pygame.sprite.Sprite):
     def highlight(self):
 #        s = pygame.Surface((self.rect[2]*2,self.rect[3]*2))
 #        s.fill((0,0,0))
-##        s = s.convert_alpha()
-##        s.set_alpha(100)
         pygame.draw.circle(var.screen, (255,0,0,80), self.rect.center, 20, 0)
-        #var.screen.blit(s, (self.rect[0]-self.rect[2]/2,self.rect[1]-self.rect[3]/2))
+#        s = s.convert_alpha()
+#        s.set_alpha(100)
+#        s1 = pygame.Surface((self.rect[2]*2,self.rect[3]*2))
+#        s1.fill((0,0,0))
         
     def delete(self):
         for group in self.level.sprite_group_list: #removes sprites from all groups
