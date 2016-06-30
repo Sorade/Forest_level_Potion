@@ -249,31 +249,46 @@ class StatsMenu(Level):
                 self.do_once = False
                 close_but = Button('Validate', 50,550,75,50) 
                 x, y = 50, 50
-                but_list = []
+                accessible_list = []
+                unaccessible_list = []
                 ini_skill_num = 0
+                
                 for key, value in character.skills.iteritems():
-                    if character.level_up_access == False:
-                        if value[0] == True:
-                            b = Button(key, x,y,75,50)
-                            y += 50
-                            if y >= 400:
-                                x+= 120
-                                y = 50
-                            b.binded = key
-                            but_list.append(b)
-                    else:
-                        b = Button(key, x,y,75,50)
-                        '''if player has the skill select it'''
-                        if value[0] == True:
-                            b.txt_color = (0,200,0)
-                            b.selected = True
-                            ini_skill_num += 1
-                        y += 50
-                        if y >= 400:
-                            x+= 120
-                            y = 50
-                        b.binded = key
-                        but_list.append(b)
+                    '''makes the button and binds the skill to it'''        
+                    b = Button(key, x,y,75,50)
+                    y += 50
+                    if y >= 400:
+                        x+= 120
+                        y = 50
+                    b.binded = key                    
+                    
+                    is_accessible =  True
+                    '''check if skills requiers other skills
+                    if it does, checks if the player has the skills,
+                    if he does the skill remains accessible,
+                    otherwise it become unaccessible'''
+                    if value[0] == True:
+                        #player already has the skill and can't remove it
+                        is_accessible = False
+                        b.selected = True
+                        b.txt_color = (0,200,0)
+                        ini_skill_num += 1
+                            
+                    elif value[1] is not None:                        
+                        for v in value[1][1]:
+                            if character.skills[v][0] == False:#player doesn't posses the skill
+                                is_accessible = False
+                                break
+
+                    
+                    '''based on wether the skill is accessible or not
+                    assigns it to a list'''
+                    if is_accessible == True:
+                        accessible_list.append(b)
+                    else: #if unaccessible
+                        unaccessible_list.append(b)
+                        if value[0] == False:
+                            b.txt_color = (200,200,200)
 
                 
             for event in pygame.event.get(): #setting up quit
@@ -289,16 +304,21 @@ class StatsMenu(Level):
             num_selected = len([skill for skill in character.skills.itervalues() if skill[0] == True])
             
             '''Menu buttons'''
-            for b in but_list:
+            for b in accessible_list:
                 if character.level_up_access == True:
                     b.check_select()
-                    if num_selected-ini_skill_num >= 3:
+                    if num_selected-ini_skill_num > 1:
                         b.txt_color = (0,0,0)
-                        b.selected = False                        
+                        b.selected = False
+                        
                     if b.selected == True:
                         character.skills[b.binded][0] = True
                     else:
                         character.skills[b.binded][0] = False
+                        
+                b.display()
+                
+            for b in unaccessible_list:
                 b.display()
                 
             close_but.check_select()
