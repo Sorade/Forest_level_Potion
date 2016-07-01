@@ -275,7 +275,7 @@ class StatsMenu(Level):
                         ini_skill_num += 1
                             
                     elif value[1] is not None:                        
-                        for v in value[1][1]:
+                        for v in value[1]:
                             if character.skills[v][0] == False:#player doesn't posses the skill
                                 is_accessible = False
                                 break
@@ -288,7 +288,7 @@ class StatsMenu(Level):
                     else: #if unaccessible
                         unaccessible_list.append(b)
                         if value[0] == False:
-                            b.txt_color = (200,200,200)
+                            b.txt_color = (120,120,120)
 
                 
             for event in pygame.event.get(): #setting up quit
@@ -319,15 +319,42 @@ class StatsMenu(Level):
                 b.display()
                 
             for b in unaccessible_list:
-                b.display()
-                
+                b.display()              
+                                
             close_but.check_select()
             close_but.display()
+            
+            '''skill details'''
+            m_pos = pygame.mouse.get_pos()
+            r_click = pygame.mouse.get_pressed()[2]
+            for b in itertools.chain(accessible_list,unaccessible_list):
+                if b.rect.collidepoint(m_pos) and r_click == True:
+                    '''blits a semi-transparent overlay over the menu'''
+                    alpha_overlay = var.inv_bg
+                    alpha_overlay.set_alpha(200)
+                    var.screen.blit(alpha_overlay,(0,0))
+                    '''Gets the lists of aval and amont skills of the
+                    right clicked skill'''
+                    aval_ls = fn.get_skills_aval(character.skills,b)
+                    
+                    if character.skills[b.binded][1] is not None:
+                        amount_ls = character.skills[b.binded][1]
+                    else:
+                        amount_ls = []
+                    '''displays the skills amount aval'''
+                    fn.display_x(amount_ls, Button, 200)
+                    fn.display_x(aval_ls, Button, 400)
+                    
+                    main_but = Button(b.binded,var.screenWIDTH/2-b.rect.width/2,var.screenHEIGHT/2,0,0)
+                    main_but.display()
+                    
+                    break
             
             if close_but.selected == True:
                 self.run = False
                 self.do_once = True
-                character.level_up_access = False
+                if ini_skill_num < num_selected:
+                    character.level_up_access = False
                 new_level.run = True
                 print 'leave menu'
                 
@@ -416,9 +443,9 @@ class Character(MySprite):
         self.skills = {
         'Extra strength': [True,None],
         'Extra endurance': [False,None],
-        'Destruction magic': [False,None],
+        'Destruction magic': [False,['Alchemy']],
         'Restoration magic': [False,None],
-        'Alchemy': [False,None],
+        'Alchemy': [False,['Sneak','Archery']],
         'Sneak': [False,None],
         'Archery': [True,None],
         'Block': [False,None]}
@@ -483,7 +510,7 @@ class Character(MySprite):
             self.skill_lvl += 1
             self.xp = dxp #to transfer excess xp 
             self.level_up_access = True
-            self.stats_menu.execute(self.level,self)
+            #self.stats_menu.execute(self.level,self)
             print 'Reached Level {}'.format(self.skill_lvl)
         
     def merge_ammo(self):

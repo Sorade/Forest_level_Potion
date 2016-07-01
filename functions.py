@@ -13,6 +13,25 @@ from math import acos
 from math import sqrt
 from math import pi
 
+def display_x(list, B, y):
+    if len(list) > 0:
+        dx = variables.screenWIDTH/len(list)
+        x = dx/2
+        count = 0
+        for s in list:
+            b = B(s,x+dx*count-len(s)*5,y,0,0)
+            #b.rect.move(-50,0)#-b.rect.width/2
+            b.display()
+            count += 1
+            
+
+def get_skills_aval(skilldict,button):
+    aval_skills = []
+    for prev_s in skilldict.iterkeys():
+        if skilldict[prev_s][1] is not None and button.binded in skilldict[prev_s][1]:
+            aval_skills.append(prev_s)
+    return aval_skills
+
 def tulpe_scale(tulpe,(x,y)):
     '''scales a 2 digit tulpe by the x and y value'''
     a = tulpe[0]
