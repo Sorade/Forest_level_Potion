@@ -232,6 +232,7 @@ class Level(object):
                     self.all_sprites_list.add(item)
                 count +=1      
                 
+         
 class StatsMenu(Level):
     def __init__(self):
         self.run = False
@@ -245,7 +246,6 @@ class StatsMenu(Level):
             
         while self.run == True:
             if self.do_once == True:
-                print 'do once'
                 self.do_once = False
                 close_but = Button('Validate', 50,550,75,50) 
                 x, y = 50, 50
@@ -253,30 +253,32 @@ class StatsMenu(Level):
                 unaccessible_list = []
                 ini_skill_num = 0
                 
-                for key, value in character.skills.iteritems():
+                for skill in character.skills:
                     '''makes the button and binds the skill to it'''        
-                    b = Button(key, x,y,75,50)
+                    b = Button(skill.name, x,y,75,50)
                     y += 50
                     if y >= 400:
                         x+= 120
                         y = 50
-                    b.binded = key                    
+                    b.binded = skill                 
                     
                     is_accessible =  True
+                    
                     '''check if skills requiers other skills
                     if it does, checks if the player has the skills,
                     if he does the skill remains accessible,
                     otherwise it become unaccessible'''
-                    if value[0] == True:
+                    if skill.has == True:
                         #player already has the skill and can't remove it
                         is_accessible = False
                         b.selected = True
                         b.txt_color = (0,200,0)
                         ini_skill_num += 1
                             
-                    elif value[1] is not None:                        
-                        for v in value[1]:
-                            if character.skills[v][0] == False:#player doesn't posses the skill
+                    elif skill.pre_req is not None:
+                        for v in skill.pre_req:
+                            ls = [s for s in character.skills if isinstance(s,type(v))]
+                            if ls[0].has == False:#player doesn't possess the skill
                                 is_accessible = False
                                 break
 
@@ -287,10 +289,9 @@ class StatsMenu(Level):
                         accessible_list.append(b)
                     else: #if unaccessible
                         unaccessible_list.append(b)
-                        if value[0] == False:
+                        if skill.has == False:
                             b.txt_color = (120,120,120)
-
-                
+                            
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
@@ -301,7 +302,7 @@ class StatsMenu(Level):
             var.screen.blit(var.inv_bg,(0,0))
             
             '''compute number of selected buttons'''
-            num_selected = len([skill for skill in character.skills.itervalues() if skill[0] == True])
+            num_selected = len([skill for skill in character.skills if skill.has == True])
             
             '''Menu buttons'''
             for b in accessible_list:
@@ -310,11 +311,15 @@ class StatsMenu(Level):
                     if num_selected-ini_skill_num > 1:
                         b.txt_color = (0,0,0)
                         b.selected = False
-                        
+                    
+                    #extracts the skills from the Character wich match the binded item
+                    gen = (s for s in character.skills if isinstance(s,type(b.binded)))
                     if b.selected == True:
-                        character.skills[b.binded][0] = True
+                        for x in gen:
+                            x.has = True
                     else:
-                        character.skills[b.binded][0] = False
+                        for x in gen:
+                            x.has = False
                         
                 b.display()
                 
@@ -337,15 +342,15 @@ class StatsMenu(Level):
                     right clicked skill'''
                     aval_ls = fn.get_skills_aval(character.skills,b)
                     
-                    if character.skills[b.binded][1] is not None:
-                        amount_ls = character.skills[b.binded][1]
+                    if b.binded.pre_req is not None:
+                        amount_ls = b.binded.pre_req
                     else:
                         amount_ls = []
                     '''displays the skills amount aval'''
                     fn.display_x(amount_ls, Button, 200)
                     fn.display_x(aval_ls, Button, 400)
                     
-                    main_but = Button(b.binded,var.screenWIDTH/2-b.rect.width/2,var.screenHEIGHT/2,0,0)
+                    main_but = Button(b.binded.name,var.screenWIDTH/2-b.rect.width/2,var.screenHEIGHT/2,0,0)
                     main_but.display()
                     
                     break
@@ -363,10 +368,23 @@ class StatsMenu(Level):
         
 class Lifebar(object):
     def __init__(self,character):
-        self.value = character.hp*10 if character.hp >= 0 else 0
-        self.rect = Rect(10,var.screenHEIGHT-30,self.value,10)
-        pygame.draw.rect(var.screen, (245,0,0) , self.rect)
-    
+#        self.value = character.hp*10 if character.hp >= 0 else 0
+#        self.rect = Rect(10,var.screenHEIGHT-30,self.value,10)
+#        pygame.draw.rect(var.screen, (245,0,0) , self.rect)
+        '''make black circle mask'''
+        mask = pygame.Surface((156,165))
+        mask.fill((255,255,255))
+        #    circle(Surface, color, pos, radius, width=0)
+        pygame.draw.circle(mask, (0,0,0), mask.get_rect().center, 82,0)
+        mask.set_colorkey((255,255,255))
+        
+        mask_h = 165-int(character.hp*165.0/character.hp_max)
+        
+        '''get the hud'''
+        var.screen.blit(var.hp_hud,(0,var.screenHEIGHT-188)) #188 is the height of the hud image
+        var.screen.blit(mask,(0+112,var.screenHEIGHT-188+8),(0,0,mask.get_rect().width,mask_h))#144,2 are the x and y of the mask compared to the hud
+        var.screen.blit(var.hp_partial_hud,(0,var.screenHEIGHT-188)) #188 is the height of the hud image
+
 class MySprite(pygame.sprite.Sprite):
     def __init__(self,image,x,y):
  
@@ -396,13 +414,7 @@ class MySprite(pygame.sprite.Sprite):
     
         
     def highlight(self):
-#        s = pygame.Surface((self.rect[2]*2,self.rect[3]*2))
-#        s.fill((0,0,0))
         pygame.draw.circle(var.screen, (255,0,0,80), self.rect.center, 20, 0)
-#        s = s.convert_alpha()
-#        s.set_alpha(100)
-#        s1 = pygame.Surface((self.rect[2]*2,self.rect[3]*2))
-#        s1.fill((0,0,0))
         
     def delete(self):
         for group in self.level.sprite_group_list: #removes sprites from all groups
@@ -440,15 +452,23 @@ class Character(MySprite):
 
         '''stats'''
         self.stats_menu = StatsMenu()
-        self.skills = {
-        'Extra strength': [True,None],
-        'Extra endurance': [False,None],
-        'Destruction magic': [False,['Alchemy']],
-        'Restoration magic': [False,None],
-        'Alchemy': [False,['Sneak','Archery']],
-        'Sneak': [False,None],
-        'Archery': [True,None],
-        'Block': [False,None]}
+#        self.skills = {
+#        'Extra strength': [True,None],
+#        'Extra endurance': [False,None],
+#        'Destruction magic': [False,['Alchemy']],
+#        'Restoration magic': [False,None],
+#        'Alchemy': [False,['Sneak','Archery']],
+#        'Sneak': [False,None],
+#        'Archery': [True,None],
+#        'Block': [False,None]}
+        
+        self.skills = [Sniper(),
+                       Fast_shooter(),
+                       Power_shot(),
+                       Power_blow(),
+                       Ambidextrous(),
+                       Duelist(),
+                       Chain_attack()]
         
         self.CC = CC
         self.CT = CT
@@ -1032,8 +1052,7 @@ class Character(MySprite):
                 msg.image = pygame.transform.scale(msg.image, (w, h))
                 msg.rect.center = (var.screenWIDTH/2,25)
                 self.level.message_list.add(msg)
-
-
+                
 class Button(pygame.sprite.Sprite):
     def __init__(self, text, x,y,w,h ):
         super(Button, self).__init__()
@@ -1319,7 +1338,7 @@ class Potion(Item):
                 
             elif self.confirm == True and self.timer_left > 100:
                 Character.hp = min([Character.hp + self.regen,Character.hp_max])
-                Character.inventory.drop(self)#contents.remove(self)
+                Character.inventory.drop(self,Character)#contents.remove(self)
                 self.kill()
                 print 'potion restores hp to {}'.format(Character.hp)
             
@@ -1572,3 +1591,46 @@ class Night_Mask(object):
                     #Add the contribution from the shadowed light source
                     self.surf_lighting.blit(light.mask,light.pos,special_flags=BLEND_MAX) 
                     self.surf_lighting = blursurf(self.surf_lighting,4)
+
+class Skill(object):
+    def __init__(self,name,has,pre_req,icon):
+        self.name = name
+        self.has = has
+        self.pre_req = pre_req
+        self.icon = icon
+        
+class Sniper(Skill):
+    def __init__(self):
+        super(Sniper, self).__init__('Sniper',False,None,var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)
+        
+class Fast_shooter(Skill):
+    def __init__(self):
+        super(Fast_shooter, self).__init__('Fast Shooter',False,[Sniper()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)
+        
+class Power_shot(Skill):
+    def __init__(self):
+        super(Power_shot, self).__init__('Power Shot',False,[Sniper(),Fast_shooter()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)
+        
+class Power_blow(Skill):
+    def __init__(self):
+        super(Power_blow, self).__init__('Power Blow',False,None,var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)
+        
+class Ambidextrous(Skill):
+    def __init__(self):
+        super(Ambidextrous, self).__init__('Ambidextrous',False,None,var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)
+        
+class Duelist(Skill):
+    def __init__(self):
+        super(Duelist, self).__init__('Duelist',False,[Ambidextrous()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)
+
+class Chain_attack(Skill):
+    def __init__(self):
+        super(Chain_attack, self).__init__('Chain attack',False,[Ambidextrous(), Duelist()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.icon.set_colorkey(None)        
+        

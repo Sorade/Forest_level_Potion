@@ -270,9 +270,16 @@ bone2 = pygame.image.load('Object_Sprites\\dirt\\bone2.png').convert_alpha()
 
 dirt_list = rocks+[mound]*10+[bone1,bone2]+crystals
 
+'''impoting HUD'''
+hp_hud = pygame.image.load('HUD\\hp_hud.png').convert_alpha()
+hp_partial_hud = pygame.image.load('HUD\\hp_partial_hud.png').convert_alpha()
+
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png
 house1_img.set_colorkey((0,0,0))
+
+'''importing icons'''
+skill_icons = spritesheet('Icons\\weapon_icons.png')
 
 #create sprite groups
 player_list = pygame.sprite.Group()

@@ -19,17 +19,18 @@ def display_x(list, B, y):
         x = dx/2
         count = 0
         for s in list:
-            b = B(s,x+dx*count-len(s)*5,y,0,0)
+            b = B(s.name,x+dx*count-len(s.name)*5,y,0,0)
             #b.rect.move(-50,0)#-b.rect.width/2
             b.display()
             count += 1
-            
-
-def get_skills_aval(skilldict,button):
+    
+def get_skills_aval(skills,button):
     aval_skills = []
-    for prev_s in skilldict.iterkeys():
-        if skilldict[prev_s][1] is not None and button.binded in skilldict[prev_s][1]:
-            aval_skills.append(prev_s)
+    for prev_s in skills:
+        if prev_s.pre_req is not None:
+            skill_names = (n.name for n in prev_s.pre_req)
+            if button.binded.name in skill_names:
+                aval_skills.append(prev_s)
     return aval_skills
 
 def tulpe_scale(tulpe,(x,y)):

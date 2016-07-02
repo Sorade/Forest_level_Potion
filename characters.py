@@ -294,7 +294,7 @@ class Player(Character):
                         dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                         '''Skill bonuses'''
-                        if self.skills['Extra strength'][0] == True: dmg += 10
+                        if self.skills[3].has == True: dmg += 10
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
                         else:
