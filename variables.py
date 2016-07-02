@@ -10,9 +10,11 @@ import pygame, sys
 from pygame.locals import *
 
 pygame.mixer.init()
+pygame.init()
 #Variables
-screenWIDTH = 800#680
-screenHEIGHT = 600#480
+screenRES = pygame.display.Info()
+screenWIDTH = screenRES.current_w-10#800#680
+screenHEIGHT = screenRES.current_h-50#600#480
 screen = pygame.display.set_mode((screenWIDTH, screenHEIGHT), pygame.SRCALPHA, 32)
 '''getting screen corners and segments'''
 rct = screen.get_rect()
@@ -167,7 +169,9 @@ player_mace_ss =spritesheet('Character_Sprites\\Mace_sheet.png')
 
 '''start menu imports'''
 start_bg = pygame.image.load('Object_Sprites\\startmenu_bg.png').convert_alpha()
+start_bg = pygame.transform.smoothscale(start_bg, (screenWIDTH, screenHEIGHT))
 start_flash = pygame.image.load('Object_Sprites\\startmenu_flash.png').convert_alpha()
+start_flash = pygame.transform.smoothscale(start_flash, (screenWIDTH, screenHEIGHT))
 start_rain = pygame.image.load('Object_Sprites\\startmenu_rain.png').convert_alpha()
 
 #start_music = pygame.mixer.music.load("Sounds\\start_music.ogg")
@@ -210,8 +214,8 @@ arrow_img = pygame.image.load('Object_Sprites\\crap_arrow.png').convert()
 arrow_img = pygame.transform.rotate(arrow_img, 180.0)
 arrow_img.set_colorkey((0,0,0))
 
-inv_bg = pygame.image.load('Object_Sprites\\Inv_bg.png').convert()
-inv_bg.set_colorkey((0,0,0))
+inv_bg = pygame.image.load('Object_Sprites\\bg_parchment.png').convert()
+inv_bg = pygame.transform.smoothscale(inv_bg, (screenWIDTH, screenHEIGHT))
 
 but_bg = pygame.image.load('Object_Sprites\\Button_bg2.png').convert()
 but_bg.set_colorkey((0,0,0))

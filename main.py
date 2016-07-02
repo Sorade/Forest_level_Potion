@@ -12,7 +12,7 @@ import variables as v
 import levels as lvl
 
 '''Game Init'''
-pygame.init()
+#pygame.init()
 clock = pygame.time.Clock() #set timer which is used to slow game down
 
 '''Music Init'''

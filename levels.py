@@ -23,7 +23,7 @@ class StartMenu(Level):
         self.run = True
         self.rain_y = -600
         self.do_once = True
-        self.start_but = Button('Play Game', 380,300,75,50)  
+        self.start_but = Button('Play Game', var.screenWIDTH/2-len('play '),var.screenHEIGHT/2,75,50)  
     
     def execute(self,new_level):
         if self.run == True:
