@@ -39,6 +39,10 @@ class StartMenu(Level):
                     pygame.quit()
                     sys.exit()
                     print 'has quit'
+                elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
             
             '''Background of menu and sounds'''
             var.screen.blit(var.start_bg,(0,0))
@@ -134,6 +138,11 @@ class Level1(Level):
                     pygame.quit()
                     sys.exit()
                     print 'has quit'
+                elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'                  
+                    
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination
                     
@@ -292,6 +301,11 @@ class Level2(Level):
                     pygame.quit()
                     sys.exit()
                     print 'has quit'
+                elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+                    
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination
                     

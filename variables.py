@@ -13,9 +13,11 @@ pygame.mixer.init()
 pygame.init()
 #Variables
 screenRES = pygame.display.Info()
-screenWIDTH = screenRES.current_w-10#800#680
-screenHEIGHT = screenRES.current_h-50#600#480
-screen = pygame.display.set_mode((screenWIDTH, screenHEIGHT), pygame.SRCALPHA, 32)
+screenWIDTH = screenRES.current_w#800#680
+screenHEIGHT = screenRES.current_h#600#480
+#screen = pygame.display.set_mode((screenWIDTH, screenHEIGHT), pygame.SRCALPHA, 32)
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
 '''getting screen corners and segments'''
 rct = screen.get_rect()
 screen_corners = [rct.topleft,rct.topright,rct.bottomright,rct.bottomleft]
