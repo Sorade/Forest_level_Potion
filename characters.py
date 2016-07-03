@@ -197,9 +197,9 @@ class Player(Character):
         '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
         self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Axe()])
-        torch = it.Torch(200)
-        torch.is_lit = True
-        self.inventory.add(torch,self)
+#        torch = it.Torch(200)
+#        torch.is_lit = True
+#        self.inventory.add(torch,self)
         
         self.attack_speed = 500
         self.F = 35

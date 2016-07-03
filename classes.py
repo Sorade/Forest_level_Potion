@@ -212,7 +212,6 @@ class Level(object):
     def add_chests(self,int,chest,obj):
         count = 0
         while count < int:
-            #obj = [wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()]
             collides = False
             chest_contents = []
             for n in range(0,random.randint(1,3)):
@@ -712,13 +711,12 @@ class Character(MySprite):
                 if event.type == MOUSEBUTTONDOWN:
                     self.m_down = True
                     self.m_up = False
-                    #print 'mouse down'
                     
                 if event.type == MOUSEBUTTONUP:
                     self.m_up = True
                     self.m_down = False
                     #print 'mouse up'
-            
+                    
             if self.selected == False and self.m_down == True:
                 for b in self.buttons_list:
                     if b.rect.collidepoint(pygame.mouse.get_pos()):
@@ -822,10 +820,17 @@ class Character(MySprite):
                     self.equipement.create(self,var.screenWIDTH/2+50,10,0,50)
                     
                 self.selected = False
+            
+            '''displaying tooltips'''
+            if pygame.mouse.get_pressed()[2] == True:
+                for b in self.buttons_list:
+                    if b.rect.collidepoint(pygame.mouse.get_pos()):
+                        b.binded.tooltip(b.rect.topright)
+                        
             for msg in self.level.message_list:
                 msg.show()
             pygame.display.update()
-                
+               
                 
             if pygame.key.get_pressed()[pygame.K_i] == False:
                 exitenable = True
@@ -1178,6 +1183,7 @@ class Inventory(object):
         ystart = y
         for i in range(0,len(self.contents)):
             b = Button(self.contents[i].name,x,y,100,50)
+            b.binded = self.contents[i]
             if i == 7:
                 x = xstart+110
                 y = ystart-50
@@ -1214,6 +1220,26 @@ class Item(MySprite):
         if self.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) and player.rect.inflate(10,10).colliderect(self.rect) and pygame.key.get_pressed()[pygame.K_e]:
             player.inventory.add(self, player)
             self.delete() #sends to deleted_sprite_list
+    
+    #needs a description attr    and icon attr     
+    def tooltip(self,pos):
+        if pos[1] > var.screenHEIGHT-var.screenHEIGHT/3:
+            pos =  fn.tulpe_scale(pos,(10,-var.screenHEIGHT/3+5))
+        else:
+            pos = fn.tulpe_scale(pos,(10,5))
+            
+        txtrect = pygame.Rect(pos, (35*6,int(len(self.description)/35.0*20))) #35  is number of character per line and 10 estimated char height and 5 estimated char width
+        
+        '''drawing bg'''
+        bg = pygame.transform.smoothscale(var.but_bg, (txtrect.width+5, txtrect.height+self.icon.get_rect().height+15))
+        var.screen.blit(bg, fn.tulpe_scale((txtrect.left, txtrect.top),(-5,-5)))
+        
+        '''drawing icon'''
+        var.screen.blit(self.icon, fn.tulpe_scale(txtrect.topleft,(0,txtrect.height+5)))
+        
+        '''drawing text'''
+        fontobject = pygame.font.SysFont('initial', 15, bold=True, italic=False)
+        fn.drawText(var.screen, self.description, (50,40,10), txtrect, fontobject, aa=False, bkg=None)
             
             
 class No_item(object): #creates a blank item
@@ -1233,15 +1259,18 @@ class Weapon(Item):
         self.dmg_modif = dmg_modif
         self.dmg = dmg
         self.icon = icon
+        self.icon.set_colorkey(None)
         
     def random_dmg(self):
         attack_dmg = self.dmg+d10(self.dmg_modif)
         return attack_dmg
         
 class Armor(Item):
-    def __init__(self, name, value, image, x, y, arm):
+    def __init__(self, name, value, image, icon, x, y, arm):
         super(Armor, self).__init__(name, value, image, x, y)
         self.arm = arm
+        self.icon = icon
+        self.icon.set_colorkey(None)
 
 class Helm(Armor):
     def __init__(self): #name, value, image, x, y, dmg
@@ -1249,14 +1278,17 @@ class Helm(Armor):
         self.value = 10
         self.arm = 2
         self.image = var.helm_img
-        super(Helm, self).__init__(self.name, self.value, self.image, 200, 150, self.arm)
+        self.icon = var.weapon_icons.image_at(pygame.Rect(2,600,56,56))
+        self.description = 'A helmet offering protection of 2.'
+        super(Helm, self).__init__(self.name, self.value, self.image, self.icon, 200, 150, self.arm)
 
 class Torso_armor(Armor):
-    def __init__(self,name,value,image,arm): #name, value, image, x, y, dmg
+    def __init__(self,name,value,image,icon,arm): #name, value, image, x, y, dmg
         self.name = name
         self.value = value
         self.arm = arm
-        super(Torso_armor, self).__init__(self.name, self.value, image, 200, 150, self.arm)
+        self.description = 'A chest armor offering protection of {}.'.format(arm)
+        super(Torso_armor, self).__init__(self.name, self.value, image,icon, 200, 150, self.arm)
         
 class Illuminator(Item):
     def __init__(self, name, value, image, radius):
@@ -1324,17 +1356,23 @@ class Potion(Item):
             
         if 'Health' in self.name:
             self.image = var.health_potion_img
+            self.icon = var.weapon_icons.image_at(pygame.Rect(182,600,56,56))
+            self.description = 'An revigorating potion.'
         elif self.name == 'Poison':
             self.image = var.poison_potion_img
+            self.icon = var.weapon_icons.image_at(pygame.Rect(242,600,56,56))
+            self.description = 'A maleficiant poison.'
         else:
             self.image = var.unknown_potion_img
-        
+            self.icon = var.weapon_icons.image_at(pygame.Rect(302,600,56,56))
+            self.description = 'A potion with unknown effect to you.'
         super(Potion, self).__init__(self.name, value, self.image, 150, 225)
         self.regen = regen
         self.confirm = False
         self.timer = pygame.time.Clock()
         self.timer_left = 0        
         self.reset_time = 10000 #10 seconds
+        self.icon.set_colorkey(None)
         
     def drink(self,Character):
         if Character.hp < Character.hp_max:
@@ -1384,7 +1422,10 @@ class Projectile(Item):
         self.orientation = 0
         self.range = range_
         self.ammo = ammo
-        
+        self.icon = var.weapon_icons.image_at(pygame.Rect(362,600,56,56))
+        self.icon.set_colorkey(None)
+        self.description = 'A set of {}. Damage of {}d10+{}.'.format(self.name,self.dmg_modif,self.dmg)
+
     @property
     def ammo(self):
         return self._ammo
@@ -1393,6 +1434,7 @@ class Projectile(Item):
     def ammo(self, ammo):
         raw_name = ''.join([i for i in self.name if not i.isdigit()])
         self.name = str(ammo) + raw_name
+        self.description = 'A set of {}. Damage of 1d10+1. Range of 400+2d10'.format(self.name)
         self._ammo = ammo
 
             
