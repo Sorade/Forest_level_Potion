@@ -118,9 +118,9 @@ class Level1(Level):
         
         self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Skeleton])
-        self.add_chests(14,it.Chest,[it.Torch(200),wp.Arrow(random.randint(2,5)),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
+        self.add_chests(14,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
-        chest_items = itertools.chain.from_iterable([chest.inventory.contents for chest in self.building_list if isinstance(chest, it.Chest)])
+#        chest_items = itertools.chain.from_iterable([chest.inventory.contents for chest in self.building_list if isinstance(chest, it.Chest)])
 
 #        '''Night Mask'''
 #        self.night_m = Night_Mask()
@@ -130,9 +130,18 @@ class Level1(Level):
         
     def execute(self):
         if self.run == True:
-#            var.current_level = self
-#            [x for x in self.player_list][0].level = self
             super(Level1, self).execute()
+            
+            if self.do_once == True:
+                statsmenu_access = False
+                invmenu_access = False
+                
+            '''check if access to menus are allowed'''
+            if pygame.key.get_pressed()[pygame.K_s] == False:
+                statsmenu_access = True
+            if pygame.key.get_pressed()[pygame.K_i] == False:
+                invmenu_access = True
+                
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
@@ -229,19 +238,20 @@ class Level1(Level):
 #            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list,ins.hero)
 #            var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
             
+            '''HUD DISPLAY'''
             Lifebar(ins.hero)
+            HUDbar(ins.hero)
+           
             for msg in self.message_list:
                 msg.show()
                 
             adjust_offset()
             
-            '''dirty loop to get the player's inv_delay timer values'''
+            '''checking access to menus'''
             for player in self.player_list:
-                if pygame.key.get_pressed()[pygame.K_s]:
+                if statsmenu_access == True and pygame.key.get_pressed()[pygame.K_s]:
                     player.stats_menu.execute(player.level,player)
-                player.inv_time.tick()
-                player.inv_time_left += player.inv_time.get_time()
-                if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
+                if invmenu_access == True and pygame.key.get_pressed()[pygame.K_i]:
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
                     
@@ -381,9 +391,13 @@ class Level2(Level):
             self.ennemi_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
+            '''HUD DISPLAY'''
             Lifebar(ins.hero)
+            HUDbar(ins.hero)
             for msg in self.message_list:
                 msg.show()
+                
+
                 
             adjust_offset()
             

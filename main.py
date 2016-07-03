@@ -10,6 +10,8 @@ from pygame.locals import *
 from functions import *
 import variables as v
 import levels as lvl
+import classes as cls
+import instances as ins
 
 '''Game Init'''
 #pygame.init()
@@ -23,7 +25,6 @@ pygame.mixer.music.load('Theme3.ogg')
 mystartmenu = lvl.StartMenu()
 mylevel1 = lvl.Level1()
 mylevel2 = lvl.Level2()
-
 
 '''Pygame Game Loop'''   
 while True:

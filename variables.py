@@ -219,8 +219,8 @@ arrow_img.set_colorkey((0,0,0))
 inv_bg = pygame.image.load('Object_Sprites\\bg_parchment.png').convert()
 inv_bg = pygame.transform.smoothscale(inv_bg, (screenWIDTH, screenHEIGHT))
 
-but_bg = pygame.image.load('Object_Sprites\\Button_bg2.png').convert()
-but_bg.set_colorkey((0,0,0))
+but_bg = pygame.image.load('Object_Sprites\\But_bg.png').convert_alpha()
+
 #importing background
 dirt_map = pygame.image.load('Object_Sprites\\dirt_map.png').convert()
 dirt_map.set_colorkey((255,255,255))
@@ -279,13 +279,16 @@ dirt_list = rocks+[mound]*10+[bone1,bone2]+crystals
 '''impoting HUD'''
 hp_hud = pygame.image.load('HUD\\hp_hud.png').convert_alpha()
 hp_partial_hud = pygame.image.load('HUD\\hp_partial_hud.png').convert_alpha()
+bar_hud = pygame.image.load('HUD\\bar_hud.png').convert_alpha()
+
 
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png
 house1_img.set_colorkey((0,0,0))
 
 '''importing icons'''
-skill_icons = spritesheet('Icons\\weapon_icons.png')
+skill_icons = spritesheet('Icons\\skills_icons.png')
+weapon_icons = spritesheet('Icons\\weapon_icons.png')
 
 #create sprite groups
 player_list = pygame.sprite.Group()

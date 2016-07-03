@@ -111,7 +111,8 @@ class Level(object):
     def __init__(self, lvl_num):
         var.current_level = self
         var.level_list.append(self)
-
+        
+        self.do_once = True
         self.lvl_num = lvl_num
         self.run = False
         #create sprite groups
@@ -197,7 +198,7 @@ class Level(object):
         while count < 10: #number of wanted enemies
             o = random.choice(list)(random.randint(450,1500),random.randint(450,1000))
             if random.randint(0,1) == 1:
-                o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-3,5)))
+                o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-10,20)))
             test = pygame.sprite.spritecollideany(o, self.all_sprites_list, collided = None)
             if test is None:      
                 count += 1
@@ -247,7 +248,8 @@ class StatsMenu(Level):
         while self.run == True:
             if self.do_once == True:
                 self.do_once = False
-                close_but = Button('Validate', 50,550,75,50) 
+                exit_reset = False
+                validate_but = Button('Validate', 50,550,75,50) 
                 x, y = 50, 50
                 accessible_list = []
                 unaccessible_list = []
@@ -305,10 +307,10 @@ class StatsMenu(Level):
             num_selected = len([skill for skill in character.skills if skill.has == True])
             
             '''Menu buttons'''
-            for b in accessible_list:
-                if character.level_up_access == True:
+            for b in itertools.chain(accessible_list,unaccessible_list):
+                if character.level_up_pts > 0 and (b in accessible_list) == True:
                     b.check_select()
-                    if num_selected-ini_skill_num > 1:
+                    if num_selected-ini_skill_num >= character.level_up_pts:
                         b.txt_color = (0,0,0)
                         b.selected = False
                     
@@ -320,14 +322,17 @@ class StatsMenu(Level):
                     else:
                         for x in gen:
                             x.has = False
-                        
+                            
                 b.display()
                 
-            for b in unaccessible_list:
-                b.display()              
-                                
-            close_but.check_select()
-            close_but.display()
+            #new for loop needed to blit over labels
+            for b in itertools.chain(accessible_list,unaccessible_list):
+                if pygame.mouse.get_pressed()[2] == False and b.rect.collidepoint(pygame.mouse.get_pos()):
+                    b.binded.tooltip(b.rect.topright)
+                    
+                    
+            validate_but.check_select()
+            validate_but.display()
             
             '''skill details'''
             m_pos = pygame.mouse.get_pos()
@@ -347,20 +352,29 @@ class StatsMenu(Level):
                     else:
                         amount_ls = []
                     '''displays the skills amount aval'''
-                    fn.display_x(amount_ls, Button, 200)
-                    fn.display_x(aval_ls, Button, 400)
+                    fn.display_x(amount_ls, Button, var.screenHEIGHT/3)
+                    fn.display_x(aval_ls, Button, var.screenHEIGHT/3*2)
                     
                     main_but = Button(b.binded.name,var.screenWIDTH/2-b.rect.width/2,var.screenHEIGHT/2,0,0)
                     main_but.display()
                     
                     break
             
-            if close_but.selected == True:
+            if validate_but.selected == True:
+                self.do_once = True
+                if ini_skill_num < num_selected:
+                    character.level_up_pts -= (num_selected-ini_skill_num)
+                
+            if pygame.key.get_pressed()[pygame.K_s] == False:
+                exit_reset = True
+                
+            if exit_reset == True and pygame.key.get_pressed()[pygame.K_s] == True:
                 self.run = False
                 self.do_once = True
                 if ini_skill_num < num_selected:
-                    character.level_up_access = False
+                    character.level_up_pts -= (num_selected-ini_skill_num)
                 new_level.run = True
+                new_level.do_once = True
                 print 'leave menu'
                 
             pygame.display.update()    
@@ -368,9 +382,6 @@ class StatsMenu(Level):
         
 class Lifebar(object):
     def __init__(self,character):
-#        self.value = character.hp*10 if character.hp >= 0 else 0
-#        self.rect = Rect(10,var.screenHEIGHT-30,self.value,10)
-#        pygame.draw.rect(var.screen, (245,0,0) , self.rect)
         '''make black circle mask'''
         mask = pygame.Surface((156,165))
         mask.fill((255,255,255))
@@ -384,6 +395,25 @@ class Lifebar(object):
         var.screen.blit(var.hp_hud,(0,var.screenHEIGHT-188)) #188 is the height of the hud image
         var.screen.blit(mask,(0+112,var.screenHEIGHT-188+8),(0,0,mask.get_rect().width,mask_h))#144,2 are the x and y of the mask compared to the hud
         var.screen.blit(var.hp_partial_hud,(0,var.screenHEIGHT-188)) #188 is the height of the hud image
+        
+class HUDbar(object):
+    def __init__(self,character):
+        '''get the hud'''
+        image = var.bar_hud
+        rect = image.get_rect()
+        rect.midbottom = (var.screenWIDTH/2,var.screenHEIGHT)
+        image = image
+        rect = rect
+        
+        '''checks for weapons to display'''
+        weapon = max([y for y in character.equipement.contents if isinstance (y,Weapon)], key=attrgetter('dmg'))
+        
+        '''blits bar'''
+        var.screen.blit(image,rect.topleft)
+        '''blits weapon onto bar'''
+        icon_slot_center = (306+31,6+30)
+        icon_slot_blit_pos = fn.tulpe_scale(icon_slot_center,(-weapon.icon.get_rect().height/2,-weapon.icon.get_rect().width/2))
+        var.screen.blit(weapon.icon,fn.tulpe_scale(rect.topleft,icon_slot_blit_pos))
 
 class MySprite(pygame.sprite.Sprite):
     def __init__(self,image,x,y):
@@ -448,20 +478,10 @@ class Character(MySprite):
         self.totalxp = 0
         self.xp_reward = 100
         self.skill_lvl = 1
-        self.level_up_access = False
+        self.level_up_pts = 0
 
         '''stats'''
-        self.stats_menu = StatsMenu()
-#        self.skills = {
-#        'Extra strength': [True,None],
-#        'Extra endurance': [False,None],
-#        'Destruction magic': [False,['Alchemy']],
-#        'Restoration magic': [False,None],
-#        'Alchemy': [False,['Sneak','Archery']],
-#        'Sneak': [False,None],
-#        'Archery': [True,None],
-#        'Block': [False,None]}
-        
+        self.stats_menu = StatsMenu()       
         self.skills = [Sniper(),
                        Fast_shooter(),
                        Power_shot(),
@@ -529,8 +549,7 @@ class Character(MySprite):
         if dxp >= 0:
             self.skill_lvl += 1
             self.xp = dxp #to transfer excess xp 
-            self.level_up_access = True
-            #self.stats_menu.execute(self.level,self)
+            self.level_up_pts += 1
             print 'Reached Level {}'.format(self.skill_lvl)
         
     def merge_ammo(self):
@@ -675,13 +694,12 @@ class Character(MySprite):
         while self.inventory_opened == True:
             var.screen.blit(self.inventory.inv_bg, self.inventory.inv_bg.get_rect())
             if self.do_once == True:
+                exitenable = False
                 self.merge_ammo()
                 self.inventory.create(self,10,10,0,50)
                 self.equipement.create(self,var.screenWIDTH/2+50,10,0,50)
                 self.dropbut = Button('discard', 50,450,50,20)            
                 self.do_once = False
-                self.inv_time.tick() #needs to tick it here to reset the tick value or it has kept adding up since last inventory 
-                self.inv_time_left = 0
             for b in self.buttons_list:
                 b.display()
             self.dropbut.display()
@@ -809,14 +827,13 @@ class Character(MySprite):
             pygame.display.update()
                 
                 
-            #update inv shutdown delay:
-            self.inv_time.tick()
-            self.inv_time_left += self.inv_time.get_time()
-            if pygame.key.get_pressed()[pygame.K_i] and self.inv_time_left > self.inv_delay:
-                self.inv_time_left = 0
+            if pygame.key.get_pressed()[pygame.K_i] == False:
+                exitenable = True
+            if exitenable == True  and pygame.key.get_pressed()[pygame.K_i]:
                 self.buttons_list = [] #clear's buttons list
                 self.do_once = True # to insure buttons are populated again at next inventory opening
                 self.inventory_opened = False
+                self.level.do_once =  True
         
         
     def offset(self,):
@@ -834,7 +851,10 @@ class Character(MySprite):
             return False
             
     def weapon_xchange(self,type_a,type_b): #attempt_exchange(char,item_a,item_b,inv_a,inv_b):
-        #try:
+        inv_ls = [x for x in [y for y in self.inventory.contents if isinstance (y,Weapon)] if x.type == type_a]
+        eq_ls = [p for p in [m for m in self.equipement.contents if isinstance (m,Weapon)] if p.type == type_b]
+        
+        if len(inv_ls) > 0 and len(eq_ls) > 0:
             inv_item = max([x for x in [y for y in self.inventory.contents if isinstance (y,Weapon)] if x.type == type_a], key=attrgetter('dmg'))
             eq_item = max([p for p in [m for m in self.equipement.contents if isinstance (m,Weapon)] if p.type == type_b], key=attrgetter('dmg'))
             if inv_item.wield == 'two_handed':
@@ -846,9 +866,7 @@ class Character(MySprite):
                 print 'before',eq_item,self.inventory.contents
                 fn.exchange_item(self,inv_item,eq_item,self.inventory.contents,self.equipement.contents)
                 print 'after',eq_item,self.inventory.contents
-       # except:
-        #    print 'no weapon type requiered to attack'
-            return False
+        #return False
     
   
     def attack(self, Character, cat):
@@ -1060,11 +1078,11 @@ class Button(pygame.sprite.Sprite):
         self.image = var.but_bg
         self.text_pos = ((x+w/2),(y+h/2))
         self.rect2 = 0
-        self.txt_color = (0,0,0)
+        self.txt_color = (50,40,10)
         
         #self.surface = pygame.draw.rect(var.screen, self.color , self.rect)
         
-        self.smallText = pygame.font.Font("freesansbold.ttf",12)
+        self.smallText = pygame.font.SysFont('initial', 18, bold=True, italic=False)
         self.textSurf = self.smallText.render(self.text, True, self.txt_color)
         self.rect2 = self.textSurf.get_rect()
         self.rect2.center = self.text_pos
@@ -1210,10 +1228,11 @@ def d10(int):
     return total
   
 class Weapon(Item):
-    def __init__(self, name, value, image, x, y, dmg, dmg_modif):
+    def __init__(self, name, value, image, icon, x, y, dmg, dmg_modif):
         super(Weapon, self).__init__(name, value, image, x, y)
         self.dmg_modif = dmg_modif
         self.dmg = dmg
+        self.icon = icon
         
     def random_dmg(self):
         attack_dmg = self.dmg+d10(self.dmg_modif)
@@ -1290,11 +1309,11 @@ class Potion(Item):
         if regen == 0:
             regen = 1
         if random.randint(0,4) != 0:
-            if 0 < regen <= 3:
+            if 0 < regen <= 4:
                 self.name = 'Weak Health Potion'
-            elif 3 < regen <= 6:
+            elif 4 < regen <= 7:
                 self.name = 'Health Potion'
-            elif 6 < regen <= 10:
+            elif 7 < regen <= 10:
                 self.name = 'Strong Health Potion'
             elif 10 < regen:
                 self.name = 'Health Elixir'
@@ -1593,44 +1612,73 @@ class Night_Mask(object):
                     self.surf_lighting = blursurf(self.surf_lighting,4)
 
 class Skill(object):
-    def __init__(self,name,has,pre_req,icon):
+    def __init__(self,name,has,pre_req,icon,description):
         self.name = name
         self.has = has
         self.pre_req = pre_req
         self.icon = icon
+        self.description = description
+        
+    def tooltip(self,pos):
+        if pos[1] > var.screenHEIGHT-var.screenHEIGHT/3:
+            pos =  fn.tulpe_scale(pos,(10,-var.screenHEIGHT/3+5))
+        else:
+            pos = fn.tulpe_scale(pos,(10,5))
+            
+        txtrect = pygame.Rect(pos, (35*6,int(len(self.description)/35.0*20))) #35  is number of character per line and 10 estimated char height and 5 estimated char width
+        
+        '''drawing bg'''
+        bg = pygame.transform.smoothscale(var.but_bg, (txtrect.width+5, txtrect.height+self.icon.get_rect().height+15))
+        var.screen.blit(bg, fn.tulpe_scale((txtrect.left, txtrect.top),(-5,-5)))
+        
+        '''drawing icon'''
+        var.screen.blit(self.icon, fn.tulpe_scale(txtrect.topleft,(0,txtrect.height+5)))
+        
+        '''drawing text'''
+        fontobject = pygame.font.SysFont('initial', 15, bold=True, italic=False)
+        fn.drawText(var.screen, self.description, (50,40,10), txtrect, fontobject, aa=False, bkg=None)
+        
+        
         
 class Sniper(Skill):
     def __init__(self):
-        super(Sniper, self).__init__('Sniper',False,None,var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = '-1 to target armor when shooting'
+        super(Sniper, self).__init__('Sniper',False,None,var.skill_icons.image_at(pygame.Rect(57,485,56,56)),self.description)
         self.icon.set_colorkey(None)
         
 class Fast_shooter(Skill):
     def __init__(self):
-        super(Fast_shooter, self).__init__('Fast Shooter',False,[Sniper()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = 'Shooting frequency +1/3'
+        super(Fast_shooter, self).__init__('Fast Shooter',False,[Sniper()],var.skill_icons.image_at(pygame.Rect(340,542,56,56)),self.description)
         self.icon.set_colorkey(None)
         
 class Power_shot(Skill):
     def __init__(self):
-        super(Power_shot, self).__init__('Power Shot',False,[Sniper(),Fast_shooter()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = '+1 to damage when shooting'
+        super(Power_shot, self).__init__('Power Shot',False,[Sniper(),Fast_shooter()],var.skill_icons.image_at(pygame.Rect(57,541,56,56)),self.description)
         self.icon.set_colorkey(None)
         
 class Power_blow(Skill):
     def __init__(self):
-        super(Power_blow, self).__init__('Power Blow',False,None,var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = '+1 to damage in close quarter combat'
+        super(Power_blow, self).__init__('Power Blow',False,None,var.skill_icons.image_at(pygame.Rect(114,706,56,56)),self.description)
         self.icon.set_colorkey(None)
         
 class Ambidextrous(Skill):
     def __init__(self):
-        super(Ambidextrous, self).__init__('Ambidextrous',False,None,var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = 'Adds the damage of two single hand weapons'
+        super(Ambidextrous, self).__init__('Ambidextrous',False,None,var.skill_icons.image_at(pygame.Rect(340,705,56,56)),self.description)
         self.icon.set_colorkey(None)
         
 class Duelist(Skill):
     def __init__(self):
-        super(Duelist, self).__init__('Duelist',False,[Ambidextrous()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = 'Damage x2 when attacking a single ennemy in close combat'
+        super(Duelist, self).__init__('Duelist',False,[Ambidextrous()],var.skill_icons.image_at(pygame.Rect(340,649,56,56)),self.description)
         self.icon.set_colorkey(None)
 
 class Chain_attack(Skill):
     def __init__(self):
-        super(Chain_attack, self).__init__('Chain attack',False,[Ambidextrous(), Duelist()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)))
+        self.description = 'Close combat attack frequency +1/3'
+        super(Chain_attack, self).__init__('Chain attack',False,[Ambidextrous(), Duelist()],var.skill_icons.image_at(pygame.Rect(542,2,56,56)),self.description)
         self.icon.set_colorkey(None)        
         
