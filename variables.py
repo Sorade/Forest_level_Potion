@@ -8,10 +8,16 @@ Created on Sat Apr 23 19:06:37 2016
 
 import pygame, sys
 from pygame.locals import *
+
+pygame.mixer.init()
+pygame.init()
 #Variables
-screenWIDTH = 800#680
-screenHEIGHT = 600#480
-screen = pygame.display.set_mode((screenWIDTH, screenHEIGHT), pygame.SRCALPHA, 32)
+screenRES = pygame.display.Info()
+screenWIDTH = screenRES.current_w#800#680
+screenHEIGHT = screenRES.current_h#600#480
+#screen = pygame.display.set_mode((screenWIDTH, screenHEIGHT), pygame.SRCALPHA, 32)
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
 '''getting screen corners and segments'''
 rct = screen.get_rect()
 screen_corners = [rct.topleft,rct.topright,rct.bottomright,rct.bottomleft]
@@ -83,29 +89,7 @@ current_level = Level(1)
 
 level_list = []
 #Importing Chars
-#walk
-#player_down_1 = pygame.image.load('Character_Sprites\\Down_1.png').convert()
-#player_down_2 = pygame.image.load('Character_Sprites\\Down_2.png').convert()
-#player_down_3 = player_down_1
-#player_down_4 = pygame.transform.flip(player_down_2, True, False)
-#
-#player_lat_1 = pygame.image.load('Character_Sprites\\Left_1.png').convert()
-#player_lat_2 = pygame.image.load('Character_Sprites\\Left_2.png').convert()
-#player_lat_3 = player_lat_1
-#player_lat_4 = pygame.image.load('Character_Sprites\\Left_3.png').convert()
-#
-#player_up_1 = pygame.image.load('Character_Sprites\\Up_1.png').convert()
-#player_up_2 = pygame.image.load('Character_Sprites\\Up_2.png').convert()
-#player_up_3 = player_up_1
-#player_up_4 = pygame.transform.flip(player_up_2, True, False)
-#
-#player_images = [
-#player_down_1,player_down_2,player_down_3,player_down_4,
-#player_lat_1,player_lat_2,player_lat_3,player_lat_4,
-#player_up_1,player_up_2,player_up_3,player_up_4]
-#
-#for im in player_images:
-#    im.set_colorkey((0,0,0)) #sets background colour to transparent
+
     
 #player attack
 p_a_sword_images = []
@@ -185,12 +169,27 @@ player_sword_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
 player_bow_ss =spritesheet('Character_Sprites\\Archer_sheet.png')
 player_mace_ss =spritesheet('Character_Sprites\\Mace_sheet.png')
 
+'''start menu imports'''
+start_bg = pygame.image.load('Object_Sprites\\startmenu_bg.png').convert_alpha()
+start_bg = pygame.transform.smoothscale(start_bg, (screenWIDTH, screenHEIGHT))
+start_flash = pygame.image.load('Object_Sprites\\startmenu_flash.png').convert_alpha()
+start_flash = pygame.transform.smoothscale(start_flash, (screenWIDTH, screenHEIGHT))
+start_rain = pygame.image.load('Object_Sprites\\startmenu_rain.png').convert_alpha()
+
+#start_music = pygame.mixer.music.load("Sounds\\start_music.ogg")
+rain_sound = pygame.mixer.Sound("Sounds\\Rain.ogg")
+thunder_sounds = []
+
+for x in range(1,4):
+    thunder_sounds.append(pygame.mixer.Sound("Sounds\\Thunder{}.wav".format(x)))
+
 '''object import'''
 
 portal_images = []
 for x in range(1,7):
     portal_images.append(pygame.image.load('Object_Sprites\\portal{}.png'.format(x)).convert_alpha())
 
+torch_img = pygame.image.load('Object_Sprites\\torch_lit.png').convert_alpha()
 chest_img = pygame.image.load('Object_Sprites\\chest.png').convert()
 sword_img = pygame.image.load('Object_Sprites\\sword_small.png').convert()
 sword_img.set_colorkey((0,0,0))
@@ -217,11 +216,11 @@ arrow_img = pygame.image.load('Object_Sprites\\crap_arrow.png').convert()
 arrow_img = pygame.transform.rotate(arrow_img, 180.0)
 arrow_img.set_colorkey((0,0,0))
 
-inv_bg = pygame.image.load('Object_Sprites\\Inv_bg.png').convert()
-inv_bg.set_colorkey((0,0,0))
+inv_bg = pygame.image.load('Object_Sprites\\bg_parchment.png').convert()
+inv_bg = pygame.transform.smoothscale(inv_bg, (screenWIDTH, screenHEIGHT))
 
-but_bg = pygame.image.load('Object_Sprites\\Button_bg2.png').convert()
-but_bg.set_colorkey((0,0,0))
+but_bg = pygame.image.load('Object_Sprites\\But_bg.png').convert_alpha()
+
 #importing background
 dirt_map = pygame.image.load('Object_Sprites\\dirt_map.png').convert()
 dirt_map.set_colorkey((255,255,255))
@@ -277,9 +276,19 @@ bone2 = pygame.image.load('Object_Sprites\\dirt\\bone2.png').convert_alpha()
 
 dirt_list = rocks+[mound]*10+[bone1,bone2]+crystals
 
+'''impoting HUD'''
+hp_hud = pygame.image.load('HUD\\hp_hud.png').convert_alpha()
+hp_partial_hud = pygame.image.load('HUD\\hp_partial_hud.png').convert_alpha()
+bar_hud = pygame.image.load('HUD\\bar_hud.png').convert_alpha()
+
+
 #importing building
 house1_img =  pygame.image.load('Object_Sprites\\House1.png').convert()#Object_Sprites\\House1.png
 house1_img.set_colorkey((0,0,0))
+
+'''importing icons'''
+skill_icons = spritesheet('Icons\\skills_icons.png')
+weapon_icons = spritesheet('Icons\\weapon_icons.png')
 
 #create sprite groups
 player_list = pygame.sprite.Group()
@@ -309,6 +318,9 @@ move_speed = 0
 #collision lists
 collide_building = []
 collide_chest = []
+
+'''importing lighting effect'''
+surf_falloff = pygame.image.load('sfx\\light_falloff100.png').convert()
 
 #timers and time info:
 FPS = 60

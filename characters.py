@@ -5,13 +5,15 @@ Created on Fri May 13 19:43:28 2016
 @author: Julien
 """
 import pygame
+from pygame.locals import *
 import variables
 import random
 from functions import d10
-from classes import Character,Projectile,Weapon,Armor,SpriteStripAnim
+from classes import Character,Projectile,Weapon,Armor,Illuminator,SpriteStripAnim
 import weapons as wp
+import items as it
 import armors as ar
-from pygame.locals import *
+
 
 class Skeleton(Character):# to change to Orc
     def __init__(self, x, y):
@@ -21,11 +23,12 @@ class Skeleton(Character):# to change to Orc
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Skeleton, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[wp.Sword(), ar.Leather_armor()]]))
-        self.inventory.contents.extend([ar.Leather_armor()])
+        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
+        self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
+        self.xp_reward = 300
         
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Mace
@@ -182,7 +185,7 @@ class Orc(Character): #to change to Skeleton
             
 class Player(Character):
     def __init__(self):
-        self.hp = 250
+        self.hp = 1000
         self.image = variables.walk_images[0][0]
         self.x = (variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         self.y = (variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
@@ -191,8 +194,13 @@ class Player(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
+        '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
         self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Axe()])
+#        torch = it.Torch(200)
+#        torch.is_lit = True
+#        self.inventory.add(torch,self)
+        
         self.attack_speed = 500
         self.F = 35
         self.E = 35
@@ -225,10 +233,10 @@ class Player(Character):
                        SpriteStripAnim(variables.player_mace_ss, 32, (16,650,32,55), 9, None, True, variables.FPS/8),#South
                        SpriteStripAnim(variables.player_mace_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/8),#East
                        #Attacking Mace
-                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/6),#North
-                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1607,71,60), 6, None, True, variables.FPS/6),#West
-                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/6),#South
-                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1993,71,60), 6, None, True, variables.FPS/6)]#East
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1607,71,60), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.player_mace_ss, 120, (56,1993,71,60), 6, None, True, variables.FPS/8)]#East
         self.n = 0
         self.strips[self.n].iter()
         self.image = self.strips[self.n].next()
@@ -276,20 +284,26 @@ class Player(Character):
         self.attack_time_left += self.attack_time.get_time()
         if self.attack_time_left >= self.attack_speed:
             #self.has_attack = False
-            if Character.is_alive() == True and Character.rect.inflate(15,15).collidepoint(pygame.mouse.get_pos()):
+            if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) and Character.is_alive() == True:
                 self.merge_ammo()
                 self.has_attack = True
-                if Character.rect.inflate(Character.rect.width,Character.rect.height).colliderect(self.rect.inflate(self.rect.width,self.rect.height)) == True:
+                if Character.rect.inflate(20,20).colliderect(self.rect.inflate(20,20)) == True: #Character.rect.inflate(Character.rect.width,Character.rect.height).colliderect(self.rect.inflate(self.rect.width,self.rect.height)) == True
                     #self.has_attack = True
                     test = random.randint(1,100) <= self.CC
                     if test == True:
                         dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
+                        '''Skill bonuses'''
+                        if self.skills[3].has == True: dmg += 10
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
                         else:
                             dmg = (dmg+self.F/10)-(arm+Character.E/10)
                         Character.hp -=  dmg
+                        '''Add XP to Attacker'''
+                        if Character.hp <= 0:
+                            self.xp += Character.xp_reward
+                            print 'hero xp {}/{}'.format(self.xp,self.lvlup_threshold)
                         print 'player deals {} dmg'.format(dmg)
                     self.attack_time_left = 0
                     '''make sure if is correct rather than elif, might need a has_shot variable'''

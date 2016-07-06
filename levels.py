@@ -5,22 +5,80 @@ Created on Wed Jun 01 17:15:33 2016
 @author: Julien
 """
 import pygame, sys
+import itertools
+import random
 import variables as var
 from pygame.locals import *
-from classes import *
 from functions import *
-import instances as ins
+from classes import *
 import weapons as wp
-import characters as ch
 import armors as ar
 import items as it
-from pygame.locals import *
-from classes import *
+import characters as ch
+import instances as ins
+
+
+class StartMenu(Level):
+    def __init__(self):
+        self.run = True
+        self.rain_y = -600
+        self.do_once = True
+        self.start_but = Button('Play Game', var.screenWIDTH/2-len('play '),var.screenHEIGHT/2,75,50)  
+    
+    def execute(self,new_level):
+        if self.run == True:
+            if self.do_once == True:
+                self.do_once = False
+                pygame.mixer.music.load("Sounds\\startmusic.ogg")
+                pygame.mixer.music.play(-1,0.0)
+                pygame.mixer.find_channel().play(var.rain_sound,-1)  
+                
+                
+            for event in pygame.event.get(): #setting up quit
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+                elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+            
+            '''Background of menu and sounds'''
+            var.screen.blit(var.start_bg,(0,0))
+            var.screen.blit(var.start_rain,(0,self.rain_y))    
+            
+            
+            if random.randint(0,100) == 10:
+                var.screen.blit(var.start_flash,(0,0))
+                thunder = random.choice(var.thunder_sounds)
+                thunder.set_volume(random.random()+0.2)
+                pygame.mixer.find_channel().play(thunder)
+                
+
+            self.rain_y += 15
+            if self.rain_y >= 0:
+                self.rain_y = -200
+            
+            '''Menu buttons'''
+            self.start_but.check_select()
+            self.start_but.display()
+            
+            if self.start_but.selected == True:
+                print 'go game'
+                self.run = False
+                new_level.run = True
+                pygame.mixer.stop()
+                pygame.mixer.music.load("Theme3.ogg")
+                pygame.mixer.music.play(-1,0.0)
+        
+
+
 
 class Level1(Level):
-    def set_level(self, sprite_grp):
-        for sprite in sprite_grp:
-            sprite.level = self
+#    def set_level(self, sprite_grp):
+#        for sprite in sprite_grp:
+#            sprite.level = self
     
     def __init__(self):
         super(Level1, self).__init__(1)
@@ -60,37 +118,40 @@ class Level1(Level):
         
         self.add_obstacles(150,var.obs_list)
         self.add_ennemies(10,[ch.Skeleton])
-        self.add_chests(4,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Sword(),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
+        self.add_chests(14,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
-        '''Night Mask'''
-        self.ls = Light_Source(75,75,150,False)
-        self.night_m = Night_Mask()
-        self.night_m.light_sources.extend([self.ls])
-        '''testing spritesheet'''
-#        ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
-#        # Sprite is 16x16 pixels at location 0,0 in the file...
-#        image = ss.image_at((0, 0, 50, 50))
-#        images = []
-#        # Load two images into an array, their transparent bit is (255, 255, 255)
-#        images = ss.images_at([(0, 0, 50, 50),(17, 0, 50,50)])
-#        print images
-        
-#        self.strips = [SpriteStripAnim('Orc_Sprites\\Orc_Sprite_Sheet.png', 120, (56,1608,71,60), 6, None, True, variables.FPS/6)]       
-#        self.n = 0
-#        self.strips[self.n].iter()
-#        self.image = self.strips[self.n].next()
+#        chest_items = itertools.chain.from_iterable([chest.inventory.contents for chest in self.building_list if isinstance(chest, it.Chest)])
+
+#        '''Night Mask'''
+#        self.night_m = Night_Mask()
+#        self.assign_occluders(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents,chest_items]))
+#        self.assign_radius(itertools.chain.from_iterable([self.item_list,ins.hero.inventory.contents,chest_items]))
         
         
     def execute(self):
         if self.run == True:
-#            var.current_level = self
-#            [x for x in self.player_list][0].level = self
             super(Level1, self).execute()
+            
+            if self.do_once == True:
+                statsmenu_access = False
+                invmenu_access = False
+                
+            '''check if access to menus are allowed'''
+            if pygame.key.get_pressed()[pygame.K_s] == False:
+                statsmenu_access = True
+            if pygame.key.get_pressed()[pygame.K_i] == False:
+                invmenu_access = True
+                
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
                     print 'has quit'
+                elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'                  
+                    
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination
                     
@@ -126,15 +187,17 @@ class Level1(Level):
             ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                #o.attack(ins.hero)
                 o.update_images()
                 o.anim_move()
                 
                    
             for d in self.dead_sprites_list:
                 d.loot(ins.hero)
-    
-                    
+                
+            #check to turn lights on/off
+            for i in (x for x in ins.hero.inventory.contents if isinstance(x, Illuminator)):
+                i.onoff()
+                
             #animations
             ins.hero.update_images()
             ins.hero.anim_move() #animates ins.hero sprite
@@ -161,39 +224,41 @@ class Level1(Level):
             if pygame.key.get_pressed()[pygame.K_e]: #blits highlight if e pressed
                 for x in self.item_list:
                     x.highlight()
-            
+                    
             self.dead_sprites_list.draw(var.screen) #blits corpses
-            self.item_list.draw(var.screen) #blitting items
+            blit_visible(var.screen,self.item_list) #blitting items
             self.ennemi_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
             for e in self.ennemi_list:
                 e.image = e.strips[e.n].next()
                 
-            #night mask    
-            self.ls.pos = (var.screenWIDTH/2,var.screenHEIGHT/2)
-            self.night_m.day_update(220)
-            self.night_m.apply_shadows(self.building_list)
-            var.screen.blit(self.night_m.surf, (0, 0))
+#            #night mask    
+#            self.night_m.day_update(220)
+#            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list,ins.hero)
+#            var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
             
+            '''HUD DISPLAY'''
             Lifebar(ins.hero)
+            HUDbar(ins.hero)
+           
             for msg in self.message_list:
                 msg.show()
                 
             adjust_offset()
             
-            '''dirty loop to get the player's inv_delay timer values'''
+            '''checking access to menus'''
             for player in self.player_list:
-                player.inv_time.tick()
-                player.inv_time_left += player.inv_time.get_time()
-                if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
+                if statsmenu_access == True and pygame.key.get_pressed()[pygame.K_s]:
+                    player.stats_menu.execute(player.level,player)
+                if invmenu_access == True and pygame.key.get_pressed()[pygame.K_i]:
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
-            
+                    
+            '''checking Portals'''
             for x in self.building_list:
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,2)
-                    
             
 class Level2(Level):
     def set_level(self, sprite_grp):
@@ -235,7 +300,7 @@ class Level2(Level):
         self.building_list.add(self.portal,self.portal2)
         
         self.add_obstacles(75,var.dirt_list)
-        self.add_ennemies(0,[ch.Skeleton])
+        self.add_ennemies(10,[ch.Skeleton])
         self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):
@@ -246,6 +311,11 @@ class Level2(Level):
                     pygame.quit()
                     sys.exit()
                     print 'has quit'
+                elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    print 'has quit'
+                    
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination
                     
@@ -281,7 +351,6 @@ class Level2(Level):
             ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                o.attack(ins.hero)
                 o.update_images()
                 o.anim_move()
                 
@@ -322,9 +391,13 @@ class Level2(Level):
             self.ennemi_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
+            '''HUD DISPLAY'''
             Lifebar(ins.hero)
+            HUDbar(ins.hero)
             for msg in self.message_list:
                 msg.show()
+                
+
                 
             adjust_offset()
             
@@ -339,10 +412,3 @@ class Level2(Level):
             for x in self.building_list:
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,1)
-        #self.go_to(1)
-#        if pygame.key.get_pressed()[pygame.K_v]:
-#            new_level = var.level_list[0]
-#            self.run = False
-#            [x for x in self.player_list][0].level = new_level
-#            new_level.run = True
-#            var.current_level = new_level

@@ -6,9 +6,8 @@ Created on Fri May 13 19:52:20 2016
 """
 import pygame
 import variables
-import random
-from classes import Item, Inventory, Message, Potion
-import functions as fn
+from classes import Item, Inventory, Message, Illuminator
+
 
 class Chest(Item):
     def __init__(self,x, y, contents_list):
@@ -39,6 +38,13 @@ class Chest(Item):
                 #msg.image = pygame.transform.scale(msg.image, (w, h))
                 msg.rect.center = (variables.screenWIDTH/2,25)
                 self.level.message_list.add(msg)
+                
+class Torch(Illuminator):
+    def __init__(self, radius):
+        self.name = 'Torch'
+        self.value = 4.
+        self.image = variables.torch_img
+        super(Torch, self).__init__(self.name, self.value, self.image, radius)
                 
                 
                 

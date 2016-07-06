@@ -13,8 +13,93 @@ from math import acos
 from math import sqrt
 from math import pi
 
+# draw some text into an area of a surface
+# automatically wraps words
+# returns any text that didn't get blitted
+def drawText(surface, text, color, rect, font, aa=False, bkg=None):
+    #rect = Rect(rect)
+    y = rect.top
+    x = rect.height
+    lineSpacing = -2
+ 
+    # get the height of the font
+    fontHeight = font.size("Tg")[1]
+    
+    #blit button bg
+    if bkg:
+        bg = pygame.transform.smoothscale(bkg, (rect.width+5, rect.height+15))
+        surface.blit(bg, tulpe_scale((rect.left, y),(-5,-5)))
+        
+    while text:
+        i = 1
+ 
+        # determine if the row of text will be outside our area
+        if y + fontHeight > rect.bottom:
+            break
+ 
+        # determine maximum width of line
+        while font.size(text[:i])[0] < rect.width and i < len(text):
+            i += 1
+ 
+        # if we've wrapped the text, then adjust the wrap to the last word      
+        if i < len(text): 
+            i = text.rfind(" ", 0, i) + 1
+        
+        # render the line and blit it to the surface
+        image = font.render(text[:i], aa, color)
+        surface.blit(image, (rect.left, y))
+        y += fontHeight + lineSpacing
+ 
+        # remove the text we just blitted
+        text = text[i:]
+ 
+    return text
 
+def display_x(list, B, y):
+    if len(list) > 0:
+        dx = variables.screenWIDTH/len(list)
+        x = dx/2
+        count = 0
+        for s in list:
+            b = B(s.name,x+dx*count-len(s.name)*5,y,0,0)
+            #b.rect.move(-50,0)#-b.rect.width/2
+            b.display()
+            count += 1
+    
+def get_skills_aval(skills,button):
+    aval_skills = []
+    for prev_s in skills:
+        if prev_s.pre_req is not None:
+            skill_names = (n.name for n in prev_s.pre_req)
+            if button.binded.name in skill_names:
+                aval_skills.append(prev_s)
+    return aval_skills
 
+def tulpe_scale(tulpe,(x,y)):
+    '''scales a 2 digit tulpe by the x and y value'''
+    a = tulpe[0]
+    b = tulpe[1]
+    return (a+x,b+y)
+
+def blurSurf(surface, amt):
+    """
+    Blur the given surface by the given 'amount'.  Only values 1 and greater
+    are valid.  Value 1 = no blur.
+    """
+    if amt < 1.0:
+        raise ValueError("Arg 'amt' must be greater than 1.0, passed in value is %s"%amt)
+    scale = 1.0/float(amt)
+    surf_size = surface.get_size()
+    scale_size = (int(surf_size[0]*scale), int(surf_size[1]*scale))
+    surf = pygame.transform.smoothscale(surface, scale_size)
+    surf = pygame.transform.smoothscale(surf, surf_size)
+    return surf
+
+def blit_visible(surface,group):
+    for obj in group:
+        if obj.blit_order >= 0:
+            surface.blit(obj.image, obj.rect)
+        
 def move_item(char,item,inv_a,inv_b):
     '''moves an item from one Inventory to another,
     the item HAS TO BE IN the inventory to start with'''
