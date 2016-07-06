@@ -81,6 +81,7 @@ class StartMenu(Level):
                 #creates new game levels which are automatically added to the game's level list
                 mylevel1 = Level1()
                 mylevel2 = Level2()
+                
                 '''launches it'''
                 self.run = False
                 mylevel1.run = True
@@ -348,9 +349,10 @@ class Level2(Level):
                     sys.exit()
                     print 'has quit'
                 elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                    print 'has quit'
+                    #get's the startmenu() from level list
+                    var.level_list[0].run = True
+                    self.run = False
+                    print 'to start menu'                  
                     
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination

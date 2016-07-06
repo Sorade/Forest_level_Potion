@@ -149,7 +149,7 @@ class Level(object):
     def go_to(self,new_lvl, pair):
         '''change level'''
         
-        new_level = var.level_list[new_lvl-1]
+        new_level = var.level_list[new_lvl] #since level 0 is the start menu
         paired_portal_list = [y for y in [x for x in new_level.all_sprites_list if isinstance (x,Level_Change)] if y.pair == pair]
         
         if len(paired_portal_list) > 0:
