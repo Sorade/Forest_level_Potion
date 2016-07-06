@@ -20,11 +20,16 @@ import instances as ins
 
 class StartMenu(Level):
     def __init__(self):
+        var.level_list.append(self)
         self.run = True
         self.rain_y = -600
         self.do_once = True
-        self.start_but = Button('Play Game', var.screenWIDTH/2-len('play '),var.screenHEIGHT/2,75,50)  
-    
+        self.start_but = Button('New Game', var.screenWIDTH/2-len('New '),var.screenHEIGHT/2,75,50)  
+        self.resume_but = Button('Resume Game', var.screenWIDTH/2-len('Resum'),var.screenHEIGHT/2+80,75,50)  
+        self.quit_but = Button('Quit to Desktop', var.screenWIDTH/2-len('Quit to'),var.screenHEIGHT/2+160,75,50)  
+        self.but_list = []
+        self.but_list.extend([self.start_but,self.resume_but,self.quit_but])
+
     def execute(self,new_level):
         if self.run == True:
             if self.do_once == True:
@@ -61,19 +66,49 @@ class StartMenu(Level):
                 self.rain_y = -200
             
             '''Menu buttons'''
-            self.start_but.check_select()
-            self.start_but.display()
+            for b in self.but_list:
+                b.check_select()
+                b.display()
             
+            '''managing button selection'''
             if self.start_but.selected == True:
-                print 'go game'
+                print 'new game'
+                '''resets the game'''
+                #creates new hero
+                ins.hero = ch.Player()
+                #clear's current list of levels
+                var.level_list = [self]
+                #creates new game levels which are automatically added to the game's level list
+                mylevel1 = Level1()
+                mylevel2 = Level2()
+                '''launches it'''
+                self.run = False
+                mylevel1.run = True
+                pygame.mixer.stop()
+                pygame.mixer.music.load("Theme3.ogg")
+                pygame.mixer.music.play(-1,0.0)
+                
+            elif self.resume_but.selected == True:
+                print 'resume game'
                 self.run = False
                 new_level.run = True
                 pygame.mixer.stop()
                 pygame.mixer.music.load("Theme3.ogg")
-                pygame.mixer.music.play(-1,0.0)
-        
-
-
+                pygame.mixer.music.play(-1,0.0)  
+                
+            elif self.quit_but.selected == True:
+                pygame.quit()
+                sys.exit()
+                print 'has quit' 
+                
+            if self.run == False:
+                #reset the do_once so music will reload
+                self.do_once = True
+                for b in self.but_list:
+                    #deselects all button's before leaving the start menu
+                    b.txt_color = (0,0,0)
+                    b.selected = False
+                
 
 class Level1(Level):
 #    def set_level(self, sprite_grp):
@@ -148,9 +183,10 @@ class Level1(Level):
                     sys.exit()
                     print 'has quit'
                 elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                    print 'has quit'                  
+                    #get's the startmenu() from level list
+                    var.level_list[0].run = True
+                    self.run = False
+                    print 'to start menu'                  
                     
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination

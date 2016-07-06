@@ -310,6 +310,7 @@ class StatsMenu(Level):
                 if character.level_up_pts > 0 and (b in accessible_list) == True:
                     b.check_select()
                     if num_selected-ini_skill_num >= character.level_up_pts:
+                        #deselect's button
                         b.txt_color = (0,0,0)
                         b.selected = False
                     

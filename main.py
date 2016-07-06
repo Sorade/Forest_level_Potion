@@ -26,15 +26,19 @@ mystartmenu = lvl.StartMenu()
 mylevel1 = lvl.Level1()
 mylevel2 = lvl.Level2()
 
+'''setting starting level by binding it to hero'''
+ins.hero.level = mylevel1
+
 '''Pygame Game Loop'''   
 while True:
     clock.tick(v.FPS) #needed to slow game down
     v.screen.fill((0,0,0)) #make background black for map edges
     
     '''Main Game Loop'''
-    mystartmenu.execute(mylevel1)
-    mylevel1.execute()
-    mylevel2.execute()
+    mystartmenu.execute(ins.hero.level)
+    #getting level list is needed for game reset purposes
+    v.level_list[1].execute()
+    v.level_list[2].execute()
     
     pygame.display.update()
     
