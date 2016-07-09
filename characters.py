@@ -28,7 +28,7 @@ class Skeleton(Character):# to change to Orc
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
-        self.xp_reward = 50
+        self.xp_reward = 500
         
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Mace
@@ -127,25 +127,6 @@ class Skeleton(Character):# to change to Orc
                 
     def update_images(self):
         pass
-#        #updates attack timer
-#        self.attack_time.tick()
-#        self.attack_time_left += self.attack_time.get_time()
-#        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-#        if  self.attack_time_left <= self.attack_speed and self.has_attack == True:
-#            images = self.attack_images
-#            
-#        else:
-#            self.has_attack = False
-#            images = self.walk_images
-#            
-#        for item in self.equipement.contents:
-#            if isinstance(item,wp.Bow):
-#                self.image_list = images[0]#should be 1
-#                break
-#            if isinstance(item,wp.Sword):
-#                self.image_list = images[0]
-##                if isinstance(item,Shied()):
-##                    self.image_list = variables.pshield_images
 
 class Orc(Character): #to change to Skeleton
     def __init__(self, x, y):
@@ -197,7 +178,7 @@ class Player(Character):
         super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
         '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
-        self.inventory.contents.extend([wp.Bow(),wp.Arrow(10),wp.Axe()])
+        self.inventory.contents.extend([wp.Bow(),wp.Arrow(70),wp.Axe()])
 #        torch = it.Torch(200)
 #        torch.is_lit = True
 #        self.inventory.add(torch,self)
@@ -296,10 +277,18 @@ class Player(Character):
                     #self.has_attack = True
                     test = random.randint(1,100) <= self.CC
                     if test == True:
-                        dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                        try: #needed so when no weapons are equiped the sum() and max() don't fail
+                            if self.skills['Ambidextrous'].has == True:
+                                dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
+                            elif self.skills['Duelist'].has == True and len(pygame.sprite.spritecollide(self,self.level.ennemi_list)) == 1:
+                                dmg = 2*max([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True])
+                            else:
+                                dmg = max([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True])
+                        except:
+                            dmg = 0
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                         '''Skill bonuses'''
-                        if self.skills['Power_blow'].has == True: dmg += 10
+                        if self.skills['Power_blow'].has == True: dmg += 1
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
                         else:
@@ -319,6 +308,7 @@ class Player(Character):
                             proj.ammo -= 1
                             break
                     projectile = wp.Arrow(0)
+                    projectile.shooter = self
                     projectile.fire(self,pygame.mouse.get_pos(),self.level.projectile_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
         

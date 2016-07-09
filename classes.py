@@ -1166,10 +1166,12 @@ class Inventory(object):
             other_projectiles = temp_projectiles
             print other_projectiles
             for other in other_projectiles:
-                if type(item) == type(other):
-                    item.ammo += other.ammo
-                    self.contents.remove(other)
-#                    item.name = '{} {}'.format(item.ammo,item.raw_name)
+                try:
+                    if type(item) == type(other):
+                        item.ammo += other.ammo
+                        self.contents.remove(other)
+                except:
+                    print 'merging error'
                    
     def add(self, item, character):
         if len(self.contents) < 32:
@@ -1461,7 +1463,7 @@ class Projectile(Item):
     def fire(self,shooter, target_pos, dest_list):
         self.rect.center = shooter.rect.center#place's the projectile at shooter's position
         self.dest = target_pos#pygame.mouse.get_pos() #set's destination, will need to be offset
-        self.dmg = int(shooter.F/10.0)
+        self.dmg += int(shooter.F/10.0)
         self.image = var.arrow_img
         dest_list.add(self) #for player firing : self.level.projectile_list, for mobs self.level.projectile_ennemy_list
         var.has_shot = True
@@ -1470,10 +1472,14 @@ class Projectile(Item):
         test = pygame.sprite.spritecollideany(self, self.level.building_list, collided = None)
         if self.rect.colliderect(character.rect.inflate(-character.rect.width/4,-character.rect.height/4)) == True:
             arm = sum([x.arm for x in character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
+            if self.shooter.skills['Sniper'].has == True and arm - 1 >= 0: arm -= 1
             dmg = self.random_dmg() - (character.E/10+arm)
+            if self.shooter.skills['Power_shot'].has == True: dmg += 1
             if dmg < 0:
                 dmg = 0
             character.hp -= dmg
+            if character.hp <= 0:
+                self.shooter.xp += character.xp_reward
             self.kill()
             print 'has hit ! and dealt = {}'.format(dmg)
         elif test is not None:
