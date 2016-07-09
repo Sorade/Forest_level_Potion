@@ -431,6 +431,21 @@ class MySprite(pygame.sprite.Sprite):
         self.level =  var.current_level #Level(1)#level to which sprite belongs
         self.blit_order = 0
         
+#    @property
+#    def rect(self):
+#        print self._rect
+#        return self._rect
+#
+#    @rect.setter
+#    def rect(self, rect):
+#        temp = self.image.get_rect()
+#        if rect.w != temp.w:
+#            rect.w = temp.w
+#        if rect.h != temp.h:
+#            rect.h = temp.h
+#        print rect
+#        self._rect = rect        
+        
     def pop_around(self,item,xzone,yzone):
         collides = True
         while collides == True:

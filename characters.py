@@ -120,7 +120,8 @@ class Skeleton(Character):# to change to Orc
                     self.n = 3+x
                     self.image = self.strips[self.n].images[0]
              
-            
+        img = self.image.get_rect()            
+        self.rect.w,self.rect.h = img.w,img.h
                 
                 
                 
@@ -208,15 +209,15 @@ class Player(Character):
 
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Sword
-                       SpriteStripAnim(variables.player_sword_ss, 32, (16,520,32,55), 9, None, True, variables.FPS/8),#North
-                       SpriteStripAnim(variables.player_sword_ss, 32, (16,580,32,60), 9, None, True, variables.FPS/8),#West
-                       SpriteStripAnim(variables.player_sword_ss, 32, (16,650,32,55), 9, None, True, variables.FPS/8),#South
-                       SpriteStripAnim(variables.player_sword_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/8),#East
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,520,32,55), 9, None, True, variables.FPS/9),#North
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,580,32,60), 9, None, True, variables.FPS/9),#West
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,650,32,55), 9, None, True, variables.FPS/9),#South
+                       SpriteStripAnim(variables.player_sword_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/9),#East
                        #Attacking Sword
-                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
-                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1607,71,60), 6, None, True, variables.FPS/8),#West
-                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
-                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1993,71,60), 6, None, True, variables.FPS/8),#East
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/9),#North
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1607,71,60), 6, None, True, variables.FPS/9),#West
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/9),#South
+                       SpriteStripAnim(variables.player_sword_ss, 120, (56,1993,71,60), 6, None, True, variables.FPS/9),#East
                        #Walking Bow
                        SpriteStripAnim(variables.player_bow_ss, 32, (16,520,32,55), 9, None, True, variables.FPS/8),#North
                        SpriteStripAnim(variables.player_bow_ss, 32, (16,580,32,60), 9, None, True, variables.FPS/8),#West
@@ -447,3 +448,6 @@ class Player(Character):
                 elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
                     self.n = 3+x
                     self.image = self.strips[self.n].images[0]
+        
+        img = self.image.get_rect()            
+        self.rect.w,self.rect.h = img.w,img.h
