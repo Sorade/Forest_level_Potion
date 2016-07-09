@@ -245,6 +245,7 @@ class StatsMenu(Level):
             self.run = True
             
         while self.run == True:
+            skill_list = character.skills.values()
             if self.do_once == True:
                 self.do_once = False
                 exit_reset = False
@@ -254,7 +255,7 @@ class StatsMenu(Level):
                 unaccessible_list = []
                 ini_skill_num = 0
                 
-                for skill in character.skills:
+                for skill in skill_list:
                     '''makes the button and binds the skill to it'''        
                     b = Button(skill.name, x,y,75,50)
                     y += 50
@@ -278,7 +279,7 @@ class StatsMenu(Level):
                             
                     elif skill.pre_req is not None:
                         for v in skill.pre_req:
-                            ls = [s for s in character.skills if isinstance(s,type(v))]
+                            ls = [s for s in skill_list if isinstance(s,type(v))]
                             if ls[0].has == False:#player doesn't possess the skill
                                 is_accessible = False
                                 break
@@ -303,7 +304,7 @@ class StatsMenu(Level):
             var.screen.blit(var.inv_bg,(0,0))
             
             '''compute number of selected buttons'''
-            num_selected = len([skill for skill in character.skills if skill.has == True])
+            num_selected = len([skill for skill in skill_list if skill.has == True])
             
             '''Menu buttons'''
             for b in itertools.chain(accessible_list,unaccessible_list):
@@ -314,7 +315,7 @@ class StatsMenu(Level):
                         b.selected = False
                     
                     #extracts the skills from the Character wich match the binded item
-                    gen = (s for s in character.skills if isinstance(s,type(b.binded)))
+                    gen = (s for s in skill_list if isinstance(s,type(b.binded)))
                     if b.selected == True:
                         for x in gen:
                             x.has = True
@@ -344,7 +345,7 @@ class StatsMenu(Level):
                     var.screen.blit(alpha_overlay,(0,0))
                     '''Gets the lists of aval and amont skills of the
                     right clicked skill'''
-                    aval_ls = fn.get_skills_aval(character.skills,b)
+                    aval_ls = fn.get_skills_aval(skill_list,b)
                     
                     if b.binded.pre_req is not None:
                         amount_ls = b.binded.pre_req
@@ -496,13 +497,13 @@ class Character(MySprite):
 
         '''stats'''
         self.stats_menu = StatsMenu()       
-        self.skills = [Sniper(),
-                       Fast_shooter(),
-                       Power_shot(),
-                       Power_blow(),
-                       Ambidextrous(),
-                       Duelist(),
-                       Chain_attack()]
+        self.skills = {'Sniper' : Sniper(),
+                       'Fast_shooter' : Fast_shooter(),
+                       'Power_shot' : Power_shot(),
+                       'Power_blow' : Power_blow(),
+                       'Ambidextrous' : Ambidextrous(),
+                       'Duelist' : Duelist(),
+                       'Chain_attack' : Chain_attack()}
         
         self.CC = CC
         self.CT = CT

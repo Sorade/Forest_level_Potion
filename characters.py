@@ -28,7 +28,7 @@ class Skeleton(Character):# to change to Orc
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
-        self.xp_reward = 300
+        self.xp_reward = 50
         
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Mace
@@ -283,7 +283,11 @@ class Player(Character):
         '''attack timer update is done in the anim method'''
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
-        if self.attack_time_left >= self.attack_speed:
+        if self.skills['Fast_shooter'].has == True and variables.has_shot == True:
+            speed = self.attack_speed*0.66
+        else:
+            speed = self.attack_speed
+        if self.attack_time_left >= speed:
             #self.has_attack = False
             if Character.rect.inflate(10,10).collidepoint(pygame.mouse.get_pos()) and Character.is_alive() == True:
                 self.merge_ammo()
@@ -295,7 +299,7 @@ class Player(Character):
                         dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
                         '''Skill bonuses'''
-                        if self.skills[3].has == True: dmg += 10
+                        if self.skills['Power_blow'].has == True: dmg += 10
                         if (dmg+self.F/10)-(arm+Character.E/10) < 0:
                             dmg = 0
                         else:
