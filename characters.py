@@ -65,7 +65,7 @@ class Orc(Character):# to change to Orc
                 x = 1*8
                 break
             if isinstance(item,wp.Mace):
-                x = 2*8
+                x = 0*8
                 break
             if isinstance(item,wp.Sword):
                 x = 0*8
