@@ -54,10 +54,7 @@ class spritesheet(object):
 #                for x in range(image_count)]:
         tups = []          
         for x in range(image_count):
-            if x != 0:
                 tups += [(rect[0]+(rect[2]+spacing)*x, rect[1], rect[2], rect[3])]
-            else:
-                tups += [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])]
         return self.images_at(tups, colorkey)  
         
 class SpriteStripAnim(object):
@@ -180,9 +177,14 @@ class Level(object):
             
     def execute(self):
             var.current_level = self
-            [x for x in self.player_list][0].level = self
-            [x for x in self.player_list][0].check_lvlup()
-            
+            try:
+                [x for x in self.player_list][0].level = self
+                [x for x in self.player_list][0].check_lvlup()
+            except:
+                pygame.quit()
+                sys.exit()
+                print 'game over'
+                
     #random obstacles
     def add_obstacles(self,int,obs_list):
         count = 0
@@ -939,7 +941,7 @@ class Character(MySprite):
                     else:
                         dmg = (dmg+self.F/10)-(arm+Character.E/10)
                     Character.hp -=  dmg
-                    print 'mob deals {} dmg'.format(dmg)
+                    print '{} deals {} dmg'.format(type(self),dmg)
                     self.attack_time_left = 0
                     return True
             elif cat == 'CT' and Character.is_alive() == True and self.is_alive() == True and len([y for y in [x for x in self.equipement.contents if isinstance (x,Projectile)] if y.ammo > 0]) > 0:#checks clicks ennemi and has ammo 

@@ -45,6 +45,20 @@ class Torch(Illuminator):
         self.value = 4.
         self.image = variables.torch_img
         super(Torch, self).__init__(self.name, self.value, self.image, radius)
+        
+class Gemstone(Item):
+    def __init__(self, name, color):
+        fullname = 'Lorestone of {}'.format(name)
+        self.value = 200
+        if color == 'green':
+            image = variables.items_ss.image_at(pygame.Rect(327,198,24,24))
+        elif color == 'red':
+            image = variables.items_ss.image_at(pygame.Rect(294,133,24,24))
+        elif color == 'blue':
+            image = variables.items_ss.image_at(pygame.Rect(327,198,24,24))
+        elif color == 'brown':
+            image = variables.items_ss.image_at(pygame.Rect(294,197,24,24))
+        super(type(self), self).__init__(fullname, self.value, image, 0, 0)
                 
                 
                 

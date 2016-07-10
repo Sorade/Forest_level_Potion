@@ -23,12 +23,12 @@ class Orc(Character):# to change to Orc
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Orc, self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
-        self.inventory.contents.extend([wp.Sword()])
+        self.equipement.contents.extend([wp.Mace(), ar.Leather_armor()])
+#        self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
-        self.F = 20
-        self.E = 20
-        self.xp_reward = 500
+        self.F = 30
+        self.E = 30
+        self.xp_reward = 50
         self.dead_image = variables.orc_ss.image_at(pygame.Rect(338,1308,34,35))
         
         '''Sprite Sheet Variables'''
@@ -64,7 +64,7 @@ class Orc(Character):# to change to Orc
             if isinstance(item,wp.Bow):
                 x = 1*8
                 break
-            if isinstance(item,wp.Axe):
+            if isinstance(item,wp.Mace):
                 x = 2*8
                 break
             if isinstance(item,wp.Sword):
@@ -75,9 +75,9 @@ class Orc(Character):# to change to Orc
 
 class Skeleton(Character): 
     def __init__(self, x, y):
-        self.hp = 16
+        self.hp = 15
         self.speed = int(48.0/(variables.FPS*0.7))
-        self.CC = 30.0
+        self.CC = 50.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
@@ -86,7 +86,7 @@ class Skeleton(Character):
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
-        self.xp_reward = 500
+        self.xp_reward = 50
         self.dead_image = variables.skeleton_ss.image_at(pygame.Rect(338,1308,34,35))
         
         '''Sprite Sheet Variables'''
@@ -122,7 +122,7 @@ class Skeleton(Character):
             if isinstance(item,wp.Bow):
                 x = 1*8
                 break
-            if isinstance(item,wp.Axe):
+            if isinstance(item,wp.Mace):
                 x = 2*8
                 break
             if isinstance(item,wp.Sword):
@@ -138,25 +138,25 @@ class Guard(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(10)), ar.Leather_armor()],[ar.Leather_armor()]]))
+        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
         self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
-        self.xp_reward = 500
+        self.xp_reward = 50
         self.dead_image = variables.guard_ss.image_at(pygame.Rect(338,1308,34,35))
         
         '''Sprite Sheet Variables'''
-        self.strips = [#Walking Mace
+        self.strips = [#Walking Spear
                        SpriteStripAnim(variables.guard_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
                        SpriteStripAnim(variables.guard_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
-                       SpriteStripAnim(variables.guard_ss, 32, (16,654,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.guard_ss, 32, (16,651,32,60), 9, None, True, variables.FPS/6),#South
                        SpriteStripAnim(variables.guard_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
-                       #Attacking Mace
-                       SpriteStripAnim(variables.guard_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
-                       SpriteStripAnim(variables.guard_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/8),#West
-                       SpriteStripAnim(variables.guard_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
-                       SpriteStripAnim(variables.guard_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/8),
+                       #Attacking Spear
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1416,71,65), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1608,71,65), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1800,71,65), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1996,71,65), 6, None, True, variables.FPS/8),
                        #Walking Bow
                        SpriteStripAnim(variables.guard_bow_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
                        SpriteStripAnim(variables.guard_bow_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
@@ -179,28 +179,123 @@ class Guard(Character):
             if isinstance(item,wp.Bow):
                 x = 1*8
                 break
-            if isinstance(item,wp.Axe):
+            if isinstance(item,wp.Mace):
                 x = 2*8
                 break
             if isinstance(item,wp.Sword):
                 x = 0*8
                 
-        super(type(self), self).anim_move(x)           
+        super(type(self), self).anim_move(x)   
+        
+class Ranger(Character): 
+    def __init__(self, x, y):
+        self.hp = 16
+        self.speed = int(48.0/(variables.FPS*0.7))
+        self.CC = 35.0
+        self.CT = 50.0
+        # Call the parent class (Sprite) constructor
+        super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
+        self.equipement.contents.extend([wp.Longbow(), wp.Arrow(d10(2)), ar.Leather_armor()])
+        self.inventory.contents.extend([wp.Sword()])
+        self.attack_speed = 667
+        self.F = 20
+        self.E = 25
+        self.xp_reward = 50
+        self.dead_image = variables.ranger_ss.image_at(pygame.Rect(338,1308,34,35))
+        
+        '''Sprite Sheet Variables'''
+        self.strips = [#Walking Spear
+                       SpriteStripAnim(variables.ranger_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.ranger_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.ranger_ss, 32, (16,651,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.ranger_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Spear
+                       SpriteStripAnim(variables.ranger_ss, 120, (56,1416,71,65), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.ranger_ss, 120, (56,1608,71,65), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.ranger_ss, 120, (56,1800,71,65), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.ranger_ss, 120, (56,1996,71,65), 6, None, True, variables.FPS/8),
+                       #Walking Bow
+                       SpriteStripAnim(variables.ranger_bow_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.ranger_bow_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.ranger_bow_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.ranger_bow_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Bow
+                       SpriteStripAnim(variables.ranger_bow_ss, 4, (0,1031,60,60), 13, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.ranger_bow_ss, 4, (0,1096,60,60), 13, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.ranger_bow_ss, 4, (0,1157,60,60), 13, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.ranger_bow_ss, 4, (0,1224,60,60), 13, None, True, variables.FPS/8)]#East
+        self.n = 0
+        self.strips[self.n].iter()
+        self.image = self.strips[self.n].next()
+
+        
+    def anim_move(self):
+        '''checks equipement to display'''
+        x = 0*8 #default value if no item is equiped
+        for item in self.equipement.contents:
+            if isinstance(item,wp.Bow):
+                x = 1*8
+                break
+            if isinstance(item,wp.Mace):
+                x = 2*8
+                break
+            if isinstance(item,wp.Sword):
+                x = 0*8
+                
+        super(type(self), self).anim_move(x)          
+        
+class Ent(Character): 
+    def __init__(self, x, y):
+        self.hp = 50
+        self.speed = int(48.0/(variables.FPS*0.7))
+        self.CC = 60.0
+        self.CT = 00.0
+        # Call the parent class (Sprite) constructor
+        super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
+        self.equipement.contents.extend([wp.Sword(),ar.Leather_armor()])
+        self.inventory.contents.extend([it.Gemstone('earth','green')])
+        self.attack_speed = 2000
+        self.F = 40
+        self.E = 40
+        self.xp_reward = 500
+        self.dead_image = variables.ent_ss.image_at(pygame.Rect(0,1836,140,82))
+        
+        '''Sprite Sheet Variables'''
+        self.strips = [#Walking normal
+                       SpriteStripAnim(variables.ent_ss, 54, (47,1480,92,104), 8, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.ent_ss, 54, (47,1480,92,104), 8, None, True, variables.FPS/8),
+                       SpriteStripAnim(variables.ent_ss, 52, (29,152,94,104), 8, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.ent_ss, 52, (29,152,94,104), 8, None, True, variables.FPS/8),#East
+                       #Attacking CaC
+                       SpriteStripAnim(variables.ent_ss, 32, (39,1661,109,126), 6, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.ent_ss, 32, (39,1661,109,126), 6, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.ent_ss, 64, (1,725,109,126), 6, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.ent_ss, 64, (1,725,109,126), 6, None, True, variables.FPS/6)]#East
+        self.n = 0
+        self.strips[self.n].iter()
+        self.image = self.strips[self.n].next()
+
+        
+    def anim_move(self):
+        '''checks equipement to display'''
+        x = 0*8 #default value if no item is equiped
+                
+        super(type(self), self).anim_move(x)            
             
 class Player(Character):
     def __init__(self):
-        self.hp = 1000
+        self.hp = 20
         self.image = variables.dead_player
         self.x = (variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         self.y = (variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
         self.speed = 3
-        self.CC = 100.0
+        self.CC = 50.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(Player, self).__init__(self.hp, self.speed, self.x, self.y, self.CC, self.CT)
         '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
-        self.inventory.contents.extend([wp.Bow(),wp.Arrow(70),wp.Axe()])
+#        self.inventory.contents.extend([wp.Bow(),wp.Arrow(70),wp.Mace()])
 #        torch = it.Torch(200)
 #        torch.is_lit = True
 #        self.inventory.add(torch,self)
@@ -266,7 +361,7 @@ class Player(Character):
 
     def character_collisions(self):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))   
-        for obstacle in self.level.ennemi_list:
+        for obstacle in self.level.char_list:
             if test_rect.colliderect(obstacle.rect.inflate(-obstacle.rect.width/2,-obstacle.rect.height/10)) == True:
                 dx = obstacle.rect.centerx-self.rect.centerx
                 dy = obstacle.rect.centery-self.rect.centery
@@ -346,7 +441,7 @@ class Player(Character):
             if isinstance(item,wp.Bow):
                 x = 1*8
                 break
-            if isinstance(item,wp.Axe):
+            if isinstance(item,wp.Mace):
                 x = 2*8
                 break
             if isinstance(item,wp.Sword):

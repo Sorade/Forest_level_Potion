@@ -101,9 +101,13 @@ skeleton_ss = spritesheet('Skeleton_Sprites\\Skeleton_Sprite_Sheet.png')
 skeleton_bow_ss = spritesheet('Skeleton_Sprites\\Skeleton_Archer_Sheet.png')
 guard_ss = spritesheet('Guard_Sprites\\Guard_Sprite_Lance_sheet.png')
 guard_bow_ss = spritesheet('Guard_Sprites\\Guard_Sprite_Archer_sheet.png')
+ranger_ss = spritesheet('Ranger_Sprites\\Ranger_sword_sheet.png')
+ranger_bow_ss = spritesheet('Ranger_Sprites\\Ranger_archer_sheet.png')
 player_sword_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
 player_bow_ss =spritesheet('Character_Sprites\\Archer_sheet.png')
 player_mace_ss =spritesheet('Character_Sprites\\Mace_sheet.png')
+items_ss = spritesheet('Object_Sprites\\items_sheet.png')
+ent_ss = spritesheet('Boss_Sprites\\Dendroid_boss.png')
 
 '''start menu imports'''
 start_bg = pygame.image.load('Object_Sprites\\startmenu_bg.png').convert_alpha()
@@ -148,9 +152,8 @@ unknown_potion_img = pygame.image.load('Object_Sprites\\unknown_potion.png').con
 helm_img = pygame.image.load('Object_Sprites\\Helm_small.png').convert()
 helm_img.set_colorkey((0,0,0))
 
-arrow_img = pygame.image.load('Object_Sprites\\crap_arrow.png').convert()
+arrow_img = pygame.image.load('Object_Sprites\\crap_arrow.png').convert_alpha()
 arrow_img = pygame.transform.rotate(arrow_img, 180.0)
-arrow_img.set_colorkey((0,0,0))
 
 inv_bg = pygame.image.load('Object_Sprites\\bg_parchment.png').convert()
 inv_bg = pygame.transform.smoothscale(inv_bg, (screenWIDTH, screenHEIGHT))

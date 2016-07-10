@@ -118,7 +118,8 @@ class Level1(Level):
         
         self.add_obstacles(75,var.obs_list)
         self.add_char(10,[ch.Orc],'ennemy')
-        self.add_char(10,[ch.Guard],'ally')
+        self.add_char(3,[ch.Ranger],'ally')
+        self.add_char(1,[ch.Ent],'ennemy')
         self.add_chests(14,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
 #        chest_items = itertools.chain.from_iterable([chest.inventory.contents for chest in self.building_list if isinstance(chest, it.Chest)])
@@ -184,7 +185,8 @@ class Level1(Level):
                     
             for p in self.projectile_ennemy_list: 
                 p.move() #moves enemy projectiles
-                p.hit_test(ins.hero)
+                for o in itertools.chain.from_iterable([self.ally_list,self.player_list]):
+                    p.hit_test(o)
                             
             ins.hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
             ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision
@@ -304,7 +306,7 @@ class Level2(Level):
         
         self.add_obstacles(75,var.dirt_list)
         self.add_char(15,[ch.Skeleton],'ennemy')
-        self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
+        self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Mace(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):
         if self.run == True:
