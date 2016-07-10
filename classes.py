@@ -952,7 +952,13 @@ class Character(MySprite):
                             break
                     wep_used = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT'][0]
                     proj_used.dmg += wep_used.dmg
-                    proj_used.fire(self,(var.screenWIDTH/2,var.screenHEIGHT/2),self.level.projectile_ennemy_list) #in this function the pojectile level attribute needs to be already set
+                    #assign the projectile to the list of friendly fire or ennemy fire
+                    if self in self.level.ennemi_list:
+                        proj_list = self.level.projectile_ennemy_list 
+                    elif self in self.level.ally_list:
+                        proj_list = self.level.projectile_list
+                    #fires the projectile
+                    proj_used.fire(self,Character.rect.center,proj_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
                     return True
            

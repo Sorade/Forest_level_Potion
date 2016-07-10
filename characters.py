@@ -138,7 +138,7 @@ class Guard(Character):
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
         super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
+        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(10)), ar.Leather_armor()],[ar.Leather_armor()]]))
         self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
         self.F = 20
