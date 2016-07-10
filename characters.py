@@ -26,7 +26,7 @@ class Orc(Character):# to change to Orc
         self.equipement.contents.extend([wp.Mace(), ar.Leather_armor()])
 #        self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
-        self.F = 30
+        self.F = 20
         self.E = 30
         self.xp_reward = 50
         self.dead_image = variables.orc_ss.image_at(pygame.Rect(338,1308,34,35))

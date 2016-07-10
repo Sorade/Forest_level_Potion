@@ -1118,7 +1118,6 @@ class Character(MySprite):
                 self.anim_time_left = 0
                 self.is_moving = False
 
-
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
             has_looted = False
