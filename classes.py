@@ -119,6 +119,7 @@ class Level(object):
         self.player_list = pygame.sprite.Group()
         self.char_list = pygame.sprite.Group()
         self.ennemi_list = pygame.sprite.Group()
+        self.ally_list = pygame.sprite.Group()
         self.item_list = pygame.sprite.Group()
         self.building_list = pygame.sprite.Group()
         self.projectile_list = pygame.sprite.Group()
@@ -130,7 +131,7 @@ class Level(object):
         self.to_blit_list = pygame.sprite.Group()
         
         self.sprite_group_list = []
-        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
+        self.sprite_group_list.extend([self.player_list,self.char_list, self.projectile_list, self.dead_sprites_list, self.ennemi_list, self.ally_list, self.item_list,self.building_list, self.all_sprites_list, self.to_blit_list, self.deleted_list])
 
 
     def assign_occluders(self,iterator):
@@ -153,7 +154,13 @@ class Level(object):
         paired_portal_list = [y for y in [x for x in new_level.all_sprites_list if isinstance (x,Level_Change)] if y.pair == pair]
         
         if len(paired_portal_list) > 0:
-            player = [x for x in self.player_list][0]
+            try:
+                player = [x for x in self.player_list][0]
+            except:
+                    pygame.quit()
+                    sys.exit()
+                    print 'Game Over'
+                    
             self.run = False
             player.level = new_level
             new_level.run = True
@@ -179,7 +186,7 @@ class Level(object):
     #random obstacles
     def add_obstacles(self,int,obs_list):
         count = 0
-        while count < 75:
+        while count < int:
             choice = random.choice(obs_list)
             choice = choice if random.randint(0,1) == 1 else pygame.transform.flip(choice, True, False)
             w = Building('obstacles',0,choice,random.randint(25,1800),random.randint(75,1800),1000)
@@ -193,9 +200,9 @@ class Level(object):
                 count += 1
                 
     #Random ennemies
-    def add_ennemies(self,int,list):
+    def add_char(self,int,list,hostility):
         count = 0           
-        while count < 10: #number of wanted enemies
+        while count < int: #number of wanted enemies
             o = random.choice(list)(random.randint(450,1500),random.randint(450,1000))
             if random.randint(0,1) == 1:
                 o.equipement.contents.append(Potion(random.randint(7,10),random.randint(-10,20)))
@@ -203,7 +210,10 @@ class Level(object):
             if test is None:      
                 count += 1
                 self.char_list.add(o)
-                self.ennemi_list.add(o)
+                if hostility == 'ennemy':
+                    self.ennemi_list.add(o)
+                if hostility == 'ally':
+                    self.ally_list.add(o)
                 self.all_sprites_list.add(o)
                 for item in o.equipement.contents: self.all_sprites_list.add(item)
                 for item in o.inventory.contents: self.all_sprites_list.add(item)
@@ -472,14 +482,12 @@ class MySprite(pygame.sprite.Sprite):
         
         
 class Character(MySprite):
-    def __init__(self, hp, walk_images, attack_images, speed, x, y, CC, CT):
-        self.walk_images = walk_images
-        self.attack_images = attack_images
-        self.image_list = self.attack_images[0]
-        self.image = self.image_list[0]
+    def __init__(self, hp,  speed, x, y, CC, CT):
+        #self.image_list = self.attack_images[0]
+        image = var.dead_ennemi #just temporary
         self.dead_image = var.dead_ennemi if random.randint(0,1) == 0 else pygame.transform.flip(var.dead_ennemi, True, False)
         # Call the parent class (Sprite) constructor
-        super(Character, self).__init__(self.image,x,y)
+        super(Character, self).__init__(image,x,y)
         self.speed = int(speed)
         self.hp_max = hp
         self.hp = hp
@@ -565,6 +573,9 @@ class Character(MySprite):
             self.skill_lvl += 1
             self.xp = dxp #to transfer excess xp 
             self.level_up_pts += 1
+            msg = Message('You reached level {}'.format(self.skill_lvl), 3000, 0,0,0,0)
+            msg.rect.center = (var.screenWIDTH/2,25)
+            self.level.message_list.add(msg)
             print 'Reached Level {}'.format(self.skill_lvl)
         
     def merge_ammo(self):
@@ -582,38 +593,60 @@ class Character(MySprite):
                     
                     
                     
-    def anim_move(self):
-        #updates anim timer
-        self.anim_time.tick()
-        self.anim_time_left += self.anim_time.get_time()
+    def anim_move(self,x):
+        '''checks if attack anim needs to terminate'''
+        self.attack_time.tick()
+        self.attack_time_left += self.attack_time.get_time()
+        if self.attack_time_left >= self.attack_speed:
+            self.has_attack = False
+             
         #checks which anim to display based on the direction and if sprite is moving and alive
-        if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-            if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image = self.image_list[self.anim_counter]
-                if self.pos == self.rect.topleft:# and self.has_attack == False:
-                    self.image = self.image_list[0]
-            elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image =self.image_list[self.anim_counter+4]  
-                if self.pos == self.rect.topleft:# and self.has_attack == False:
-                    self.image = self.image_list[4]
-            elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image = self.image_list[self.anim_counter+8]
-                if self.pos == self.rect.topleft:# and self.has_attack == False:
-                    self.image = self.image_list[8]
-            elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                if self.anim_counter >= 4:
-                    self.anim_counter = 0
-                self.image = self.image_list[self.anim_counter+12]
-                if self.pos == self.rect.topleft:# and self.has_attack == False:
-                    self.image = self.image_list[12]
-            self.anim_time_left = 0
-            self.anim_counter += 1
+        if self.hp > 0:
+            if self.is_moving == True: #checks time to animate
+                if self.orientation >= 140 and self.orientation <= 220: #South
+                    self.n = 2+x
+                    self.image = self.strips[self.n].next()
+                elif self.orientation >= 220 and self.orientation <= 320: #West
+                    self.n = 1+x
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 320 or self.orientation <= 40: #North
+                    self.n = 0+x
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 40 and self.orientation <= 140: #East
+                    self.n = 3+x
+                    self.image = self.strips[self.n].next()
+                    
+            if self.has_attack == True: #checks time to animate
+                if self.orientation >= 140 and self.orientation <= 220: #checks orientation
+                    self.n = 6+x
+                    self.image = self.strips[self.n].next()
+                elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
+                    self.n = 5+x
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
+                    self.n = 4+x
+                    self.image = self.strips[self.n].next()            
+                elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
+                    self.n = 7+x
+                    self.image = self.strips[self.n].next()
+                    
+            '''char is not moving, next is not invoked'''        
+            if self.has_attack == False and self.is_moving == False:
+                if self.orientation >= 140 and self.orientation <= 220: #checks orientation
+                    self.n = 2+x
+                    self.image = self.strips[self.n].images[0]
+                elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
+                    self.n = 1+x
+                    self.image = self.strips[self.n].images[0]
+                elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
+                    self.n = 0+x
+                    self.image = self.strips[self.n].images[0]
+                elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
+                    self.n = 3+x
+                    self.image = self.strips[self.n].images[0]
+             
+        img = self.image.get_rect()            
+        self.rect.w,self.rect.h = img.w,img.h
             
             
     def get_dest(self):
@@ -950,7 +983,7 @@ class Character(MySprite):
                 self.dest = (self.rect.x+flee_dist,self.rect.y-flee_dist)
             print 'has fled'
             
-    def behaviour(self,Character):
+    def behaviour(self,ennemies):
         
         '''Managing Attack AI'''
         CT_eq = [x for x in [y for y in self.equipement.contents if isinstance (y,Weapon)] if x.type == 'CT']
@@ -971,49 +1004,53 @@ class Character(MySprite):
             has_CC = True
             range_CC = max(CC_list, key=attrgetter('dmg')).range
             
-        if has_CC and Character.rect.colliderect(self.rect.inflate(range_CC,range_CC)):
-            if len(CC_eq) == 0:
-                self.weapon_xchange('CC','CT')
-            self.attack(Character, 'CC')
-        
-        elif has_CT and self.rect.inflate(range_CT,range_CT).colliderect(Character.rect) \
-                and self.rect.inflate(275,275).colliderect(Character.rect) == False \
-                and fn.in_sight(self,Character, range_CT, self.level.building_list):
-                    if len(CT_eq) == 0:
-                        self.weapon_xchange('CT','CC')
-                    self.attack(Character, 'CT')
-                    
-        if self.has_attack == True:
-            self.dest = self.rect.topleft 
-                    
-        '''managing fleeing AI'''            
-        if self.hp <= 5:
-            if self.flee_test == True:
-                self.flee_test = False
-                if self.speed < 5:
-                    self.speed *= 5
-                self.set_flee_dest(Character)
-        elif self.hp > 5 and self.flee_test == False:
-            self.flee_test = True
+        for Character in ennemies:            
+            if has_CC and Character.rect.colliderect(self.rect.inflate(range_CC,range_CC)):
+                if len(CC_eq) == 0:
+                    self.weapon_xchange('CC','CT')
+                self.attack(Character, 'CC')
             
-        '''Managing movement AI'''
-        self.dest_time.tick()
-        self.dest_time_left += self.dest_time.get_time()
-        if self.dest_time_left >= self.dest_speed  and self.has_attack == False: # checks if time to set new dest
-            self.dest_time_left = 0 #resets timer
-            if has_CC and self.rect.inflate(250,250).colliderect(Character.rect) == True:
-                if self.speed < 2:
-                    self.speed *= 2
-                self.set_charge_dest(Character)
-            elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
-                if self.speed > int(48.0/(var.FPS*0.7)):
-                    self.speed = int(48.0/(var.FPS*0.7))
-                my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
-                random.choice(my_list)
-            else:
-                if self.speed > int(48.0/(var.FPS*0.7)):
-                    self.speed = int(48.0/(var.FPS*0.7))
-                self.set_rand_dest()
+            elif has_CT and self.rect.inflate(range_CT,range_CT).colliderect(Character.rect) \
+                    and self.rect.inflate(275,275).colliderect(Character.rect) == False \
+                    and fn.in_sight(self,Character, range_CT, self.level.building_list):
+                        if len(CT_eq) == 0:
+                            self.weapon_xchange('CT','CC')
+                        self.attack(Character, 'CT')
+                        
+            if self.has_attack == True:
+                self.dest = self.rect.topleft 
+                        
+            '''managing fleeing AI'''            
+            if self.hp <= 5:
+                if self.flee_test == True:
+                    self.flee_test = False
+                    if self.speed < 5:
+                        self.speed *= 5
+                    self.set_flee_dest(Character)
+            elif self.hp > 5 and self.flee_test == False:
+                self.flee_test = True
+                
+            '''Managing movement AI'''
+            self.dest_time.tick()
+            self.dest_time_left += self.dest_time.get_time()
+            if self.dest_time_left >= self.dest_speed  and self.has_attack == False: # checks if time to set new dest
+                self.dest_time_left = 0 #resets timer
+                if has_CC and self.rect.inflate(250,250).colliderect(Character.rect) == True:
+                    if self.speed < 2:
+                        self.speed *= 2
+                    self.set_charge_dest(Character)
+                elif self.rect.inflate(500,500).colliderect(Character.rect) == True:
+                    if self.speed > int(48.0/(var.FPS*0.7)):
+                        self.speed = int(48.0/(var.FPS*0.7))
+                    my_list = [self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_charge_dest(Character),self.set_rand_dest()]
+                    random.choice(my_list)
+                else:
+                    if self.speed > int(48.0/(var.FPS*0.7)):
+                        self.speed = int(48.0/(var.FPS*0.7))
+                    self.set_rand_dest()
+                    
+            if self.has_attack == True:
+                break #to avoid looping through all ennemies
            
     def move_collision(self,EW,SN):
         test_rect = Rect(self.rect.midleft,(self.rect.width,self.rect.height/2))
@@ -1461,6 +1498,7 @@ class Projectile(Item):
         return attack_dmg
 
     def fire(self,shooter, target_pos, dest_list):
+        self.shooter = shooter
         self.rect.center = shooter.rect.center#place's the projectile at shooter's position
         self.dest = target_pos#pygame.mouse.get_pos() #set's destination, will need to be offset
         self.dmg += int(shooter.F/10.0)

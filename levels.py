@@ -116,8 +116,9 @@ class Level1(Level):
         self.player_list.add(ins.hero)
         self.building_list.add(house,self.portal,self.portal2)
         
-        self.add_obstacles(150,var.obs_list)
-        self.add_ennemies(10,[ch.Skeleton])
+        self.add_obstacles(75,var.obs_list)
+        self.add_char(10,[ch.Orc],'ennemy')
+        self.add_char(10,[ch.Guard],'ally')
         self.add_chests(14,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Bow(), ar.Helm()])#,wp.Sword(),wp.Bow(), ar.Helm()
         
 #        chest_items = itertools.chain.from_iterable([chest.inventory.contents for chest in self.building_list if isinstance(chest, it.Chest)])
@@ -165,14 +166,17 @@ class Level1(Level):
                         if isinstance(i,it.Chest):
                             i.open_(ins.hero)
                             
-            for o in self.char_list: 
-                if isinstance(o, ch.Skeleton): #sets mobs dest characters
-                    o.behaviour(ins.hero)
-        
-            for o in self.char_list: 
-                if isinstance(o, ch.Skeleton): #moves characters
-                    o.move()
-            
+#            for o in self.ennemi_list: 
+#                o.behaviour(ins.hero)
+#                o.move()
+                
+            for o in self.char_list:
+                if o in self.ennemi_list:
+                    o.behaviour(itertools.chain.from_iterable([self.ally_list,self.player_list])) #checks is enemy attacks hero or ally
+                if o in self.ally_list:
+                    o.behaviour(self.ennemi_list) #checks is ally attacks ennemy
+                o.move()
+                
             for p in self.projectile_list: #moves projectiles
                 p.move()
                 for o in self.ennemi_list:
@@ -186,8 +190,7 @@ class Level1(Level):
             ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision
             ins.hero.character_collisions()
     
-            for o in self.ennemi_list:
-                o.update_images()
+            for o in self.char_list:
                 o.anim_move()
                 
                    
@@ -199,13 +202,13 @@ class Level1(Level):
                 i.onoff()
                 
             #animations
-            ins.hero.update_images()
+#            ins.hero.update_images()
             ins.hero.anim_move() #animates ins.hero sprite
             #offset checks
             group_offset(self.building_list) #new building position using offset
             group_offset(self.item_list)
             self.scroll_map.offset() #offsets grass background map
-            group_offset(self.ennemi_list)
+            group_offset(self.char_list)
             group_offset(self.dead_sprites_list)
             group_offset(self.projectile_list)
             group_offset(self.projectile_ennemy_list)
@@ -227,10 +230,10 @@ class Level1(Level):
                     
             self.dead_sprites_list.draw(var.screen) #blits corpses
             blit_visible(var.screen,self.item_list) #blitting items
-            self.ennemi_list.draw(var.screen) #blits ennemies
+            self.char_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
-            for e in self.ennemi_list:
+            for e in self.char_list:
                 e.image = e.strips[e.n].next()
                 
 #            #night mask    
@@ -300,12 +303,23 @@ class Level2(Level):
         self.building_list.add(self.portal,self.portal2)
         
         self.add_obstacles(75,var.dirt_list)
-        self.add_ennemies(10,[ch.Skeleton])
+        self.add_char(15,[ch.Skeleton],'ennemy')
         self.add_chests(5,it.Chest,[wp.Arrow(random.randint(2,5)),wp.Axe(),wp.Bow(), ar.Plate_armor()])
         
     def execute(self):
         if self.run == True:
             super(Level2, self).execute()
+            
+            if self.do_once == True:
+                statsmenu_access = False
+                invmenu_access = False
+                
+            '''check if access to menus are allowed'''
+            if pygame.key.get_pressed()[pygame.K_s] == False:
+                statsmenu_access = True
+            if pygame.key.get_pressed()[pygame.K_i] == False:
+                invmenu_access = True
+                
             for event in pygame.event.get(): #setting up quit
                 if event.type == QUIT:
                     pygame.quit()
@@ -314,7 +328,7 @@ class Level2(Level):
                 elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                    print 'has quit'
+                    print 'has quit'                  
                     
                 if event.type == MOUSEBUTTONDOWN:
                     ins.hero.get_dest() # sets the player's destination
@@ -328,7 +342,7 @@ class Level2(Level):
                     for i in self.building_list:
                         if isinstance(i,it.Chest):
                             i.open_(ins.hero)
-                                
+                            
             for o in self.char_list: 
                 if isinstance(o, ch.Skeleton): #sets mobs dest characters
                     o.behaviour(ins.hero)
@@ -351,16 +365,19 @@ class Level2(Level):
             ins.hero.character_collisions()
     
             for o in self.ennemi_list:
-                o.update_images()
+#                o.update_images()
                 o.anim_move()
                 
                    
             for d in self.dead_sprites_list:
                 d.loot(ins.hero)
-    
-                    
+                
+            #check to turn lights on/off
+            for i in (x for x in ins.hero.inventory.contents if isinstance(x, Illuminator)):
+                i.onoff()
+                
             #animations
-            ins.hero.update_images()
+#            ins.hero.update_images()
             ins.hero.anim_move() #animates ins.hero sprite
             #offset checks
             group_offset(self.building_list) #new building position using offset
@@ -376,7 +393,7 @@ class Level2(Level):
                 if Character.is_alive() == True:
                     Character.is_alive() 
             
-            #blitting        
+            '''blitting  '''      
             var.screen.blit(self.scroll_map.image, self.scroll_map.rect) # blits the grass map to new pos
             self.building_list.draw(var.screen) #blits the buildings to new pos
             self.projectile_list.draw(var.screen)
@@ -385,30 +402,38 @@ class Level2(Level):
             if pygame.key.get_pressed()[pygame.K_e]: #blits highlight if e pressed
                 for x in self.item_list:
                     x.highlight()
-            
+                    
             self.dead_sprites_list.draw(var.screen) #blits corpses
-            self.item_list.draw(var.screen) #blitting items
+            blit_visible(var.screen,self.item_list) #blitting items
             self.ennemi_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
+            
+            for e in self.ennemi_list:
+                e.image = e.strips[e.n].next()
+                
+#            #night mask    
+#            self.night_m.day_update(220)
+#            self.night_m.apply_shadows([x for x in self.item_list if isinstance(x, Illuminator)],self.building_list,ins.hero)
+#            var.screen.blit(self.night_m.surf_lighting,(0,0),special_flags=BLEND_MULT)
             
             '''HUD DISPLAY'''
             Lifebar(ins.hero)
             HUDbar(ins.hero)
+           
             for msg in self.message_list:
                 msg.show()
                 
-
-                
             adjust_offset()
             
-            '''dirty loop to get the player's inv_delay timer values'''
+            '''checking access to menus'''
             for player in self.player_list:
-                player.inv_time.tick()
-                player.inv_time_left += player.inv_time.get_time()
-                if pygame.key.get_pressed()[pygame.K_i] and player.inv_time_left > player.inv_delay:
+                if statsmenu_access == True and pygame.key.get_pressed()[pygame.K_s]:
+                    player.stats_menu.execute(player.level,player)
+                if invmenu_access == True and pygame.key.get_pressed()[pygame.K_i]:
                     ins.hero.inventory_opened = True
                     ins.hero.open_inventory()
                     
+            '''checking Portals'''
             for x in self.building_list:
                 if isinstance(x, Level_Change):
                     x.activate(ins.hero,1)

@@ -90,81 +90,17 @@ current_level = Level(1)
 level_list = []
 #Importing Chars
 
-    
-#player attack
-p_a_sword_images = []
-p_w_sword_images = []
-p_a_bow_images = []
-p_w_bow_images = []
-walk_images = [p_w_sword_images,p_w_bow_images]
-attack_images = [p_a_sword_images,p_a_bow_images]
-
-for xyz in ['Down','Left','Up','Right']:
-    for n in range(0,4):
-        p_a_sword_images.append(pygame.image.load('Character_Sprites\\attack\\sword\\{}_{}.png'.format(xyz,n+1)).convert_alpha())
-
-for xyz in ['Down','Left','Up','Right']:
-    for n in range(0,4):
-        p_w_sword_images.append(pygame.image.load('Character_Sprites\\walk\\sword\\{}_{}.png'.format(xyz,n+1)).convert_alpha())
-
-for xyz in ['Down','Left','Up','Right']:
-    for n in range(0,4):
-        p_a_bow_images.append(pygame.image.load('Character_Sprites\\attack\\bow\\{}_{}.png'.format(xyz,n+1)).convert_alpha())
-
-for xyz in ['Down','Left','Up','Right']:
-    for n in range(0,4):
-        p_w_bow_images.append(pygame.image.load('Character_Sprites\\walk\\bow\\{}_{}.png'.format(xyz,n+1)).convert_alpha())
-
 dead_player = pygame.image.load('Character_Sprites\\dead.png').convert_alpha()
-                 
-
-skl_a_sword_images = []
-skl_w_sword_images = []
-
-gobm_down_1 = pygame.image.load('Skeleton_Sprites\\walk\\Down_1.png').convert_alpha()
-gobm_down_2 = pygame.image.load('Skeleton_Sprites\\walk\\Down_2.png').convert_alpha()
-gobm_down_3 = pygame.image.load('Skeleton_Sprites\\walk\\Down_3.png').convert_alpha()
-gobm_down_4 = pygame.image.load('Skeleton_Sprites\\walk\\Down_4.png').convert_alpha()
-
-gobm_lat_1 = pygame.image.load('Skeleton_Sprites\\walk\\Left_1.png').convert_alpha()
-gobm_lat_2 = pygame.image.load('Skeleton_Sprites\\walk\\Left_2.png').convert_alpha()
-gobm_lat_3 = pygame.image.load('Skeleton_Sprites\\walk\\Left_3.png').convert_alpha()
-gobm_lat_4 = pygame.image.load('Skeleton_Sprites\\walk\\Left_4.png').convert_alpha()
-
-gobm_up_1 = pygame.image.load('Skeleton_Sprites\\walk\\Up_1.png').convert_alpha()
-gobm_up_2 = pygame.image.load('Skeleton_Sprites\\walk\\Up_2.png').convert_alpha()
-gobm_up_3 = pygame.image.load('Skeleton_Sprites\\walk\\Up_3.png').convert_alpha()
-gobm_up_4 = pygame.image.load('Skeleton_Sprites\\walk\\Up_4.png').convert_alpha()
-
-gobm_right_1 = pygame.transform.flip(gobm_lat_1, True, False)
-gobm_right_2 = pygame.transform.flip(gobm_lat_2, True, False)
-gobm_right_3 = pygame.transform.flip(gobm_lat_3, True, False)
-gobm_right_4 = pygame.transform.flip(gobm_lat_4, True, False)
-
-skl_w_sword_images = [
-gobm_down_1,gobm_down_2,gobm_down_3,gobm_down_4,
-gobm_lat_1,gobm_lat_2,gobm_lat_3,gobm_lat_4,
-gobm_up_1,gobm_up_2,gobm_up_3,gobm_up_4,
-gobm_right_1,gobm_right_2,gobm_right_3,gobm_right_4]
-
-goba_down_1 = pygame.image.load('Skeleton_Sprites\\attack\\Down_1.png').convert_alpha()
-goba_down_2 = pygame.image.load('Skeleton_Sprites\\attack\\Down_2.png').convert_alpha()
-goba_down_3 = pygame.image.load('Skeleton_Sprites\\attack\\Down_3.png').convert_alpha()
-goba_down_4 = pygame.image.load('Skeleton_Sprites\\attack\\Down_4.png').convert_alpha()
-
-skl_a_sword_images = [goba_down_1, goba_down_2, goba_down_3, goba_down_4,
-                 goba_down_1, goba_down_2, goba_down_3, goba_down_4,
-                 goba_down_1, goba_down_2, goba_down_3, goba_down_4,
-                 goba_down_1, goba_down_2, goba_down_3, goba_down_4]
-
-skl_walk_images = [skl_w_sword_images]
-skl_attack_images = [skl_a_sword_images]
 
 dead_ennemi = pygame.image.load('Skeleton_Sprites\\dead.png').convert_alpha()
 
 '''Spritesheets'''
 orc_ss = spritesheet('Orc_Sprites\\Orc_Sprite_Sheet.png')
 orc_bow_ss = spritesheet('Orc_Sprites\\Orc_Archer_Sheet.png')
+skeleton_ss = spritesheet('Skeleton_Sprites\\Skeleton_Sprite_Sheet.png')
+skeleton_bow_ss = spritesheet('Skeleton_Sprites\\Skeleton_Archer_Sheet.png')
+guard_ss = spritesheet('Guard_Sprites\\Guard_Sprite_Lance_sheet.png')
+guard_bow_ss = spritesheet('Guard_Sprites\\Guard_Sprite_Archer_sheet.png')
 player_sword_ss = spritesheet('Character_Sprites\\Sword_sheet.png')
 player_bow_ss =spritesheet('Character_Sprites\\Archer_sheet.png')
 player_mace_ss =spritesheet('Character_Sprites\\Mace_sheet.png')

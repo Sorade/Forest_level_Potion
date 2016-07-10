@@ -29,6 +29,7 @@ mylevel2 = lvl.Level2()
 '''Pygame Game Loop'''   
 while True:
     clock.tick(v.FPS) #needed to slow game down
+#    print clock.get_fps()
     v.screen.fill((0,0,0)) #make background black for map edges
     
     '''Main Game Loop'''

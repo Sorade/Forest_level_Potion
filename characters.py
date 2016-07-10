@@ -15,20 +15,21 @@ import items as it
 import armors as ar
 
 
-class Skeleton(Character):# to change to Orc
+class Orc(Character):# to change to Orc
     def __init__(self, x, y):
         self.hp = 16
         self.speed = int(48.0/(variables.FPS*0.7))
         self.CC = 30.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
-        super(Skeleton, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
+        super(Orc, self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
         self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
         self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
         self.xp_reward = 500
+        self.dead_image = variables.orc_ss.image_at(pygame.Rect(338,1308,34,35))
         
         '''Sprite Sheet Variables'''
         self.strips = [#Walking Mace
@@ -68,114 +69,135 @@ class Skeleton(Character):# to change to Orc
                 break
             if isinstance(item,wp.Sword):
                 x = 0*8
+                
+        super(Orc, self).anim_move(x)
+                
 
-        '''checks if attack anim needs to terminate'''
-        self.attack_time.tick()
-        self.attack_time_left += self.attack_time.get_time()
-        if self.attack_time_left >= self.attack_speed:
-            self.has_attack = False
-             
-        #checks which anim to display based on the direction and if sprite is moving and alive
-        if self.hp > 0:
-            if self.is_moving == True: #checks time to animate
-                if self.orientation >= 140 and self.orientation <= 220: #South
-                    self.n = 2+x
-                    self.image = self.strips[self.n].next()
-                elif self.orientation >= 220 and self.orientation <= 320: #West
-                    self.n = 1+x
-                    self.image = self.strips[self.n].next()            
-                elif self.orientation >= 320 or self.orientation <= 40: #North
-                    self.n = 0+x
-                    self.image = self.strips[self.n].next()            
-                elif self.orientation >= 40 and self.orientation <= 140: #East
-                    self.n = 3+x
-                    self.image = self.strips[self.n].next()
-                    
-            if self.has_attack == True: #checks time to animate
-                if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 6+x
-                    self.image = self.strips[self.n].next()
-                elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 5+x
-                    self.image = self.strips[self.n].next()            
-                elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 4+x
-                    self.image = self.strips[self.n].next()            
-                elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 7+x
-                    self.image = self.strips[self.n].next()
-                    
-            '''char is not moving, next is not invoked'''        
-            if self.has_attack == False and self.is_moving == False:
-                if self.orientation >= 140 and self.orientation <= 220: #checks orientation
-                    self.n = 2+x
-                    self.image = self.strips[self.n].images[0]
-                elif self.orientation >= 220 and self.orientation <= 320: #checks orientation
-                    self.n = 1+x
-                    self.image = self.strips[self.n].images[0]
-                elif self.orientation >= 320 or self.orientation <= 40: #checks orientation
-                    self.n = 0+x
-                    self.image = self.strips[self.n].images[0]
-                elif self.orientation >= 40 and self.orientation <= 140: #checks orientation
-                    self.n = 3+x
-                    self.image = self.strips[self.n].images[0]
-             
-        img = self.image.get_rect()            
-        self.rect.w,self.rect.h = img.w,img.h
-                
-                
-                
-    def update_images(self):
-        pass
-
-class Orc(Character): #to change to Skeleton
+class Skeleton(Character): 
     def __init__(self, x, y):
-        self.hp = 15
+        self.hp = 16
         self.speed = int(48.0/(variables.FPS*0.7))
         self.CC = 30.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
-        super(Skeleton, self).__init__(self.hp, variables.skl_walk_images, variables.skl_attack_images, self.speed, x, y, self.CC, self.CT)
-        self.equipement.contents.extend(random.choice([[wp.Sword(),wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[wp.Sword(), ar.Leather_armor()]]))
+        super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
+        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
+        self.inventory.contents.extend([wp.Sword()])
         self.attack_speed = 1000
         self.F = 20
         self.E = 20
+        self.xp_reward = 500
+        self.dead_image = variables.skeleton_ss.image_at(pygame.Rect(338,1308,34,35))
         
+        '''Sprite Sheet Variables'''
+        self.strips = [#Walking Mace
+                       SpriteStripAnim(variables.skeleton_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.skeleton_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.skeleton_ss, 32, (16,654,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.skeleton_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Mace
+                       SpriteStripAnim(variables.skeleton_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.skeleton_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.skeleton_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.skeleton_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/8),
+                       #Walking Bow
+                       SpriteStripAnim(variables.skeleton_bow_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.skeleton_bow_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.skeleton_bow_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.skeleton_bow_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Bow
+                       SpriteStripAnim(variables.skeleton_bow_ss, 4, (0,1031,60,60), 13, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.skeleton_bow_ss, 4, (0,1096,60,60), 13, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.skeleton_bow_ss, 4, (0,1157,60,60), 13, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.skeleton_bow_ss, 4, (0,1224,60,60), 13, None, True, variables.FPS/8)]#East
+        self.n = 0
+        self.strips[self.n].iter()
+        self.image = self.strips[self.n].next()
 
-    def update_images(self):
-        #updates attack timer
-        self.attack_time.tick()
-        self.attack_time_left += self.attack_time.get_time()
-        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-        if  self.attack_time_left <= self.attack_speed and self.has_attack == True:
-            images = self.attack_images
-            
-        else:
-            self.has_attack = False
-            images = self.walk_images
-            
+        
+    def anim_move(self):
+        '''checks equipement to display'''
+        x = 0*8 #default value if no item is equiped
         for item in self.equipement.contents:
             if isinstance(item,wp.Bow):
-                self.image_list = images[0]#should be 1
+                x = 1*8
+                break
+            if isinstance(item,wp.Axe):
+                x = 2*8
                 break
             if isinstance(item,wp.Sword):
-                self.image_list = images[0]
-#                if isinstance(item,Shied()):
-#                    self.image_list = variables.pshield_images
+                x = 0*8
+                
+        super(type(self), self).anim_move(x)     
         
+class Guard(Character): 
+    def __init__(self, x, y):
+        self.hp = 16
+        self.speed = int(48.0/(variables.FPS*0.7))
+        self.CC = 30.0
+        self.CT = 50.0
+        # Call the parent class (Sprite) constructor
+        super(type(self), self).__init__(self.hp, self.speed, x, y, self.CC, self.CT)
+        self.equipement.contents.extend(random.choice([[wp.Bow(), wp.Arrow(d10(1)), ar.Leather_armor()],[ar.Leather_armor()]]))
+        self.inventory.contents.extend([wp.Sword()])
+        self.attack_speed = 1000
+        self.F = 20
+        self.E = 20
+        self.xp_reward = 500
+        self.dead_image = variables.guard_ss.image_at(pygame.Rect(338,1308,34,35))
         
+        '''Sprite Sheet Variables'''
+        self.strips = [#Walking Mace
+                       SpriteStripAnim(variables.guard_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.guard_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.guard_ss, 32, (16,654,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.guard_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Mace
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1416,71,60), 6, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1608,71,60), 6, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.guard_ss, 120, (56,1800,71,60), 6, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.guard_ss, 120, (56,2000,71,60), 6, None, True, variables.FPS/8),
+                       #Walking Bow
+                       SpriteStripAnim(variables.guard_bow_ss, 32, (16,524,32,60), 9, None, True, variables.FPS/6),#North
+                       SpriteStripAnim(variables.guard_bow_ss, 32, (16,592,32,60), 9, None, True, variables.FPS/6),#West
+                       SpriteStripAnim(variables.guard_bow_ss, 32, (16,656,32,60), 9, None, True, variables.FPS/6),#South
+                       SpriteStripAnim(variables.guard_bow_ss, 32, (16,710,32,60), 9, None, True, variables.FPS/6),#East
+                       #Attacking Bow
+                       SpriteStripAnim(variables.guard_bow_ss, 4, (0,1031,60,60), 13, None, True, variables.FPS/8),#North
+                       SpriteStripAnim(variables.guard_bow_ss, 4, (0,1096,60,60), 13, None, True, variables.FPS/8),#West
+                       SpriteStripAnim(variables.guard_bow_ss, 4, (0,1157,60,60), 13, None, True, variables.FPS/8),#South
+                       SpriteStripAnim(variables.guard_bow_ss, 4, (0,1224,60,60), 13, None, True, variables.FPS/8)]#East
+        self.n = 0
+        self.strips[self.n].iter()
+        self.image = self.strips[self.n].next()
+
+        
+    def anim_move(self):
+        '''checks equipement to display'''
+        x = 0*8 #default value if no item is equiped
+        for item in self.equipement.contents:
+            if isinstance(item,wp.Bow):
+                x = 1*8
+                break
+            if isinstance(item,wp.Axe):
+                x = 2*8
+                break
+            if isinstance(item,wp.Sword):
+                x = 0*8
+                
+        super(type(self), self).anim_move(x)           
             
 class Player(Character):
     def __init__(self):
         self.hp = 1000
-        self.image = variables.walk_images[0][0]
+        self.image = variables.dead_player
         self.x = (variables.screenWIDTH/2)-(self.image.get_rect()[2]/2.)
         self.y = (variables.screenHEIGHT/2)-(self.image.get_rect()[3]/2.)
         self.speed = 3
         self.CC = 100.0
         self.CT = 50.0
         # Call the parent class (Sprite) constructor
-        super(Player, self).__init__(self.hp, variables.walk_images, variables.attack_images, self.speed, self.x, self.y, self.CC, self.CT)
+        super(Player, self).__init__(self.hp, self.speed, self.x, self.y, self.CC, self.CT)
         '''player inventories'''
         self.equipement.contents.extend([wp.Sword()])
         self.inventory.contents.extend([wp.Bow(),wp.Arrow(70),wp.Axe()])
@@ -264,8 +286,9 @@ class Player(Character):
         '''attack timer update is done in the anim method'''
         self.attack_time.tick()
         self.attack_time_left += self.attack_time.get_time()
-        if self.skills['Fast_shooter'].has == True and variables.has_shot == True:
+        if (self.skills['Fast_shooter'].has == True and variables.has_shot == True) or (self.skills['Chain_attack'].has == True and variables.has_shot == False):
             speed = self.attack_speed*0.66
+            print 'Attack speed skills active'
         else:
             speed = self.attack_speed
         if self.attack_time_left >= speed:
@@ -278,12 +301,15 @@ class Player(Character):
                     test = random.randint(1,100) <= self.CC
                     if test == True:
                         try: #needed so when no weapons are equiped the sum() and max() don't fail
+                            #get default dmg
+                            dmg = max([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True])
+                            #check for skills affectiong dmg
                             if self.skills['Ambidextrous'].has == True:
                                 dmg = sum([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True]) #sum of the values of all weapons in equipement
-                            elif self.skills['Duelist'].has == True and len(pygame.sprite.spritecollide(self,self.level.ennemi_list)) == 1:
-                                dmg = 2*max([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True])
-                            else:
-                                dmg = max([x.random_dmg() for x in self.equipement.contents if isinstance(x, Weapon) == True])
+                                print 'ambidextrous skill active'
+                            if self.skills['Duelist'].has == True and len(pygame.sprite.spritecollide(self,self.level.ennemi_list)) == 1:
+                                dmg *= 2
+                                print 'duelist skill active'
                         except:
                             dmg = 0
                         arm = sum([x.arm for x in Character.equipement.contents if isinstance(x, Armor) == True]) #sum of the values of all weapons in equipement
@@ -312,65 +338,6 @@ class Player(Character):
                     projectile.fire(self,pygame.mouse.get_pos(),self.level.projectile_list) #in this function the pojectile level attribute needs to be already set
                     self.attack_time_left = 0
         
-    def update_images(self):
-        pass
-#        #updates attack timer
-#        self.attack_time.tick()
-#        self.attack_time_left += self.attack_time.get_time()
-#        #check if attack time has elapsed, if so, ends combat anim by reverting to walk imagelist
-#        self.temp = 0
-#        if  (self.attack_time_left <= self.attack_speed and self.has_attack == True) or (self.attack_time_left <= self.attack_speed and self.anim_shot == True):
-#            self.temp = self.attack_images
-#            
-#        else:
-#            self.has_attack = False
-#            self.anim_shot = False
-#            self.temp = self.walk_images
-#            
-#        for item in self.equipement.contents:
-#            if isinstance(item,wp.Bow):
-#                self.image_list = self.temp[1]
-#                break
-#            if isinstance(item,wp.Axe):
-#                self.image_list = self.temp[0]
-#                break
-#            if isinstance(item,wp.Sword):
-#                self.image_list = self.temp[0]
-
-
-            
-#    def anim_move(self):
-#        #updates anim timer
-#        self.anim_time.tick()
-#        self.anim_time_left += self.anim_time.get_time()
-#        #checks which anim to display based on the direction and if sprite is moving and alive
-#        if self.anim_time_left >= self.anim_speed and self.is_alive() == True: #checks time to animate
-#            if self.orientation >= 135 and self.orientation <= 225: # goes south checks orientation
-#                if self.anim_counter >= 4:
-#                    self.anim_counter = 0
-#                self.image = self.image_list[self.anim_counter]
-#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-#                    self.image = self.image_list[0]
-#            elif self.orientation >= 225 and self.orientation <= 315: #goes west checks orientation
-#                if self.anim_counter >= 4:
-#                    self.anim_counter = 0
-#                self.image =self.image_list[self.anim_counter+4]  
-#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-#                    self.image = self.image_list[4]
-#            elif self.orientation >= 315 or self.orientation <= 45: # goes North checks orientation
-#                if self.anim_counter >= 4:
-#                    self.anim_counter = 0
-#                self.image = self.image_list[self.anim_counter+8]
-#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-#                    self.image = self.image_list[8]
-#            elif self.orientation >= 45 and self.orientation <= 135: #goes East checks orientation
-#                if self.anim_counter >= 4:
-#                    self.anim_counter = 0
-#                self.image = self.image_list[self.anim_counter+12]
-#                if variables.xoffset == 0 and variables.yoffset == 0 and self.has_attack == False and self.anim_shot == False:
-#                    self.image = self.image_list[12]#pygame.transform.flip(self.anim_list[4], True, False)
-#            self.anim_time_left = 0
-#            self.anim_counter += 1
             
     def anim_move(self):
         '''checks equipement to display'''
