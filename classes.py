@@ -1117,6 +1117,18 @@ class Character(MySprite):
             else:
                 self.anim_time_left = 0
                 self.is_moving = False
+                
+        '''check if sprite has left level map'''        
+        bg = self.level.scroll_map.rect        
+        if bg.collidepoint(self.rect.center) == False:
+            not_on_map = True
+            while not_on_map == True:
+                x,y = random.randint(bg.x,bg.x+bg.w), random.randint(bg.y,bg.y+bg.h)
+                self.rect.center = (x,y)
+                if pygame.sprite.spritecollideany(self, itertools.chain(self.level.building_list,self.level.char_list), collided = None) == None \
+                and self.rect.colliderect(var.screen.get_rect()) == False:
+                    not_on_map = False
+                    
 
     def loot(self,Character):
         if self.rect.collidepoint(pygame.mouse.get_pos()) == True and Character.rect.colliderect(self.rect.inflate(5,5)) == True: 
@@ -1525,6 +1537,9 @@ class Projectile(Item):
             character.hp -= dmg
             if character.hp <= 0:
                 self.shooter.xp += character.xp_reward
+            else:
+                character.dest = self.shooter.rect.center
+                character.speed = int(character.speed*1.5)
             self.kill()
             print 'has hit ! and dealt = {}'.format(dmg)
         elif test is not None:
