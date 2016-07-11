@@ -1537,7 +1537,7 @@ class Projectile(Item):
             character.hp -= dmg
             if character.hp <= 0:
                 self.shooter.xp += character.xp_reward
-            else:
+            elif character not in var.current_level.player_list:
                 character.dest = self.shooter.rect.center
                 character.speed = int(character.speed*1.5)
             self.kill()

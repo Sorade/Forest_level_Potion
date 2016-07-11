@@ -132,7 +132,7 @@ class Level1(Level):
         
     def execute(self):
         if self.run == True:
-            super(Level1, self).execute()
+            super(type(self), self).execute()
             
             if self.do_once == True:
                 statsmenu_access = False
@@ -310,7 +310,7 @@ class Level2(Level):
         
     def execute(self):
         if self.run == True:
-            super(Level2, self).execute()
+            super(type(self), self).execute()
             
             if self.do_once == True:
                 statsmenu_access = False
@@ -345,14 +345,17 @@ class Level2(Level):
                         if isinstance(i,it.Chest):
                             i.open_(ins.hero)
                             
-            for o in self.char_list: 
-                if isinstance(o, ch.Skeleton): #sets mobs dest characters
-                    o.behaviour(ins.hero)
-        
-            for o in self.char_list: 
-                if isinstance(o, ch.Skeleton): #moves characters
-                    o.move()
-            
+#            for o in self.ennemi_list: 
+#                o.behaviour(ins.hero)
+#                o.move()
+                
+            for o in self.char_list:
+                if o in self.ennemi_list:
+                    o.behaviour(itertools.chain.from_iterable([self.ally_list,self.player_list])) #checks is enemy attacks hero or ally
+                if o in self.ally_list:
+                    o.behaviour(self.ennemi_list) #checks is ally attacks ennemy
+                o.move()
+                
             for p in self.projectile_list: #moves projectiles
                 p.move()
                 for o in self.ennemi_list:
@@ -360,14 +363,14 @@ class Level2(Level):
                     
             for p in self.projectile_ennemy_list: 
                 p.move() #moves enemy projectiles
-                p.hit_test(ins.hero)
+                for o in itertools.chain.from_iterable([self.ally_list,self.player_list]):
+                    p.hit_test(o)
                             
             ins.hero.get_offset() # sets the movement offset for the iteration if player stops or is firing sets offsets to 0
             ins.hero.group_collision_check(self.building_list) #edits the offest based on ins.hero collision
             ins.hero.character_collisions()
     
-            for o in self.ennemi_list:
-#                o.update_images()
+            for o in self.char_list:
                 o.anim_move()
                 
                    
@@ -385,7 +388,7 @@ class Level2(Level):
             group_offset(self.building_list) #new building position using offset
             group_offset(self.item_list)
             self.scroll_map.offset() #offsets grass background map
-            group_offset(self.ennemi_list)
+            group_offset(self.char_list)
             group_offset(self.dead_sprites_list)
             group_offset(self.projectile_list)
             group_offset(self.projectile_ennemy_list)
@@ -407,10 +410,10 @@ class Level2(Level):
                     
             self.dead_sprites_list.draw(var.screen) #blits corpses
             blit_visible(var.screen,self.item_list) #blitting items
-            self.ennemi_list.draw(var.screen) #blits ennemies
+            self.char_list.draw(var.screen) #blits ennemies
             var.screen.blit(ins.hero.image, ins.hero.rect) #blits hero to screen center 
             
-            for e in self.ennemi_list:
+            for e in self.char_list:
                 e.image = e.strips[e.n].next()
                 
 #            #night mask    
